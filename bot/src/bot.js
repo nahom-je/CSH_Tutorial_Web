@@ -1,5 +1,6 @@
 // src/bot.js — CSH Tutorial Bot (@CSH_Tutorial_bot)
 import "dotenv/config";
+import http from "http";
 import { Telegraf } from "telegraf";
 import { getDb, saveDb } from "./db/database.js";
 import { registerStartHandler }      from "./handlers/start.js";
@@ -64,9 +65,11 @@ async function startBot() {
     } catch (_) {}
   });
 
-  // ── Graceful shutdown: save DB before exit
+  // ── Graceful shutdown: save DB and close server before exit
+  let server;
   const shutdown = (signal) => {
     logger.info(`${signal} received, saving DB and stopping bot...`);
+    try { server?.close(); } catch (_) {}
     saveDb();
     bot.stop(signal);
     process.exit(0);
@@ -91,6 +94,22 @@ async function startBot() {
   } catch (err) {
     logger.warn(`Could not send boot message to admin: ${err.message}`);
   }
+
+  // ── Start lightweight HTTP server for Render / keep-alive pings
+  const PORT = process.env.PORT || 3000;
+  server = http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      status: "ok",
+      bot: `@${botInfo.username}`,
+      uptimeSeconds: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString()
+    }));
+  });
+
+  server.listen(PORT, () => {
+    logger.info(`Health check web server running on port ${PORT}`);
+  });
 
   // ── Launch
   bot.launch().catch((err) => {
