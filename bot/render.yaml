@@ -1,0 +1,38 @@
+# NeXT-TeCH Bot — Render deployment config
+# Render reads this file automatically when you connect your repo.
+#
+# IMPORTANT: The 'starter' plan is needed for a persistent disk.
+# The 'free' plan does NOT have a persistent disk — orders.db would
+# be wiped on every deploy. Verify current Render pricing yourself at render.com.
+services:
+  - type: worker          # worker = no HTTP server needed (long-polling bot)
+    name: next-tech-hub-bot
+    env: node
+    plan: starter         # cheapest plan that supports a persistent disk
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: bot-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BOT_TOKEN
+        sync: false   # fill on Render dashboard
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: TELEBIRR_NUMBER
+        sync: false
+      - key: CBE_ACCOUNT
+        sync: false
+      - key: ACCOUNT_HOLDER_NAME
+        sync: false
+      - key: CHANNEL_SEM1_ID
+        sync: false
+      - key: CHANNEL_SEM2_ID
+        sync: false
+      - key: ANNOUNCEMENTS_CHANNEL
+        sync: false
+      - key: DATA_DIR
+        value: /opt/render/project/src/data

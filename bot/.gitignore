@@ -1,0 +1,8 @@
+# .gitignore for the bot
+node_modules/
+data/orders.db
+data/orders.db-shm
+data/orders.db-wal
+logs/
+.env
+*.log

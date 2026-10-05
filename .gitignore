@@ -1,0 +1,34 @@
+# =====================================================
+# .gitignore -- next-tech-hub (root)
+# Covers both bot/ and frontend/
+# =====================================================
+
+# -- SECRETS (NEVER commit these) ------------------
+**/.env
+bot/.env
+
+# -- Dependencies ----------------------------------
+**/node_modules/
+
+# -- Bot: database & logs --------------------------
+bot/data/orders.db
+bot/data/orders.db-shm
+bot/data/orders.db-wal
+bot/logs/
+**/*.log
+
+# -- Frontend: build output ------------------------
+frontend/dist/
+frontend/dist-ssr/
+
+# -- OS & editor junk ------------------------------
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/*
+!.vscode/extensions.json
