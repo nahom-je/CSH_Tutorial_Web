@@ -3,7 +3,7 @@ import {
   getPendingOrders, getOrderByCode, updateOrderStatus,
   findOrders, getStats,
 } from "../db/database.js";
-import { formatOrderSummary } from "../utils/helpers.js";
+import { formatOrderSummary, escapeMd } from "../utils/helpers.js";
 import { deliverAccess } from "../utils/delivery.js";
 import { escapeMarkdown } from "./start.js";
 import { PLAN_LABELS } from "../../config.js";
@@ -38,7 +38,7 @@ export function registerAdminHandlers(bot) {
       return;
     }
     const lines = orders.map((o) =>
-      `🆔 \`${o.order_code}\` | ${o.name} | ${PLAN_LABELS[o.plan]} | ${o.price} ETB | Status: ${o.status}`
+      `🆔 \`${o.order_code}\` | ${escapeMd(o.name)} | ${PLAN_LABELS[o.plan] || o.plan} | ${o.price} ETB | Status: ${o.status}`
     );
     await ctx.reply(
       `📋 *Pending Orders (${orders.length})*\n\n${lines.join("\n")}`,
@@ -158,14 +158,14 @@ async function handleApprove(ctx, code) {
 
   try {
     await deliverAccess(ctx.telegram, order);
-    const userHandle = order.telegram_username ? `@${order.telegram_username.replace(/^@/, "")}` : `ID: ${order.telegram_id}`;
+    const userHandle = order.telegram_username ? `@${escapeMd(order.telegram_username.replace(/^@/, ""))}` : `ID: ${order.telegram_id}`;
     await ctx.reply(
       `✅ Order \`${code}\` approved and student notified!\n\n` +
       `👤 *Student details:*\n` +
-      `• Name: *${order.name}*\n` +
-      `• Field: ${order.department || "N/A"}\n` +
+      `• Name: *${escapeMd(order.name)}*\n` +
+      `• Field: ${escapeMd(order.department || "N/A")}\n` +
       `• User: ${userHandle}\n` +
-      `• Plan: *${PLAN_LABELS[order.plan]}*`,
+      `• Plan: *${PLAN_LABELS[order.plan] || order.plan}*`,
       { parse_mode: "Markdown" }
     );
   } catch (err) {

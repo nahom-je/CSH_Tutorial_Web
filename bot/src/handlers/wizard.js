@@ -4,6 +4,7 @@ import {
   isValidName, isValidUsername,
   paymentMethodKeyboard, screenshotKeyboard,
   coursesForPlan, fieldKeyboard, usernameConfirmKeyboard,
+  escapeMd,
 } from "../utils/helpers.js";
 import { PRICING, PLAN_LABELS } from "../../config.js";
 import { createOrder, getOpenOrderCount } from "../db/database.js";
@@ -51,7 +52,7 @@ export function registerWizardHandler(bot) {
         if (autoUsername) {
           setSession(chatId, { name: text, detected_username: autoUsername, step: "confirm_username" });
           await ctx.reply(
-            `✈️ Is this your Telegram username: *@${autoUsername}*?`,
+            `✈️ Is this your Telegram username: *@${escapeMd(autoUsername)}*?`,
             {
               parse_mode: "Markdown",
               reply_markup: usernameConfirmKeyboard(),
@@ -73,7 +74,7 @@ export function registerWizardHandler(bot) {
           const cleanUsername = text.replace(/^@/, "");
           setSession(chatId, { telegram_username: cleanUsername, step: "ask_field" });
           await ctx.reply(
-            `✅ Username set to *@${cleanUsername}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
+            `✅ Username set to *@${escapeMd(cleanUsername)}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
             {
               parse_mode: "Markdown",
               reply_markup: fieldKeyboard(),
@@ -129,7 +130,7 @@ export function registerWizardHandler(bot) {
 
     setSession(chatId, { telegram_username: username, step: "ask_field" });
     await ctx.editMessageText(
-      `✅ Username set to *@${username}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
+      `✅ Username set to *@${escapeMd(username)}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
       {
         parse_mode: "Markdown",
         reply_markup: fieldKeyboard(),
@@ -179,22 +180,23 @@ async function handleFieldChoice(ctx, field) {
   }
 
   const { plan, name, telegram_username } = session;
-  let activePlan = plan;
+  let activePlan = plan || "sem1";
   let notice = "";
-  if (field === "Social" && plan !== "sem1") {
+  if (field === "Social" && activePlan !== "sem1") {
     activePlan = "sem1";
     notice = `ℹ️ _Note: Semester 2 courses are only available for Natural Science. Your plan has been adjusted to *Semester 1* (${PRICING.sem1} ETB)._\n\n`;
   }
 
   setSession(chatId, { field, plan: activePlan, step: "choose_method" });
 
+  const safeUsername = telegram_username ? escapeMd(telegram_username.replace(/^@/, "")) : "N/A";
   const summary =
     `📋 *Order Preview*\n` +
     `━━━━━━━━━━━━━━━━━━\n` +
-    `👤 Name: ${name}\n` +
-    `✈️ Username: @${telegram_username}\n` +
-    `🎓 Field: ${field}\n` +
-    `📦 Plan: *${PLAN_LABELS[activePlan]}*\n` +
+    `👤 Name: ${escapeMd(name)}\n` +
+    `✈️ Username: @${safeUsername}\n` +
+    `🎓 Field: ${escapeMd(field)}\n` +
+    `📦 Plan: *${PLAN_LABELS[activePlan] || activePlan}*\n` +
     `💰 Price: *${PRICING[activePlan]} ETB*\n\n` +
     notice +
     `${coursesForPlan(activePlan, field)}\n\n` +
@@ -248,14 +250,14 @@ async function handleMethodChoice(ctx, method) {
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `💳 *Payment Details*\n` +
     `${accountLine}\n` +
-    `👤 Account Holder: *${holderName}*\n` +
+    `👤 Account Holder: *${escapeMd(holderName)}*\n` +
     `💰 Exact Amount: *${price} ETB*\n\n` +
     `⚠️ *Safety Notice:* Only pay to the account holder name shown above. Nobody else is authorized to collect payments for CSH Tutorial.\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `📸 *Next Step:*\n` +
     `Send your payment screenshot to *@Umeribnukedir* on Telegram. In the same message, write:\n` +
     `• Your order code: \`${orderCode}\`\n` +
-    `• Your full name: ${name}\n\n` +
+    `• Your full name: ${escapeMd(name)}\n\n` +
     `Your access will be delivered here once payment is verified.`;
 
   await ctx.editMessageText(msg, {
