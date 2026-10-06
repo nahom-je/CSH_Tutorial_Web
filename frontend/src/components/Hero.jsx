@@ -30,23 +30,23 @@ export default function Hero() {
 
           {/* Sub-headline */}
           <p className="hero-subtitle">
-            Structured video lessons + verified PDF study materials for Semester 1 (Natural &amp; Social Science)
-            and Semester 2 courses. Pay once, learn at your own pace.
+            Structured video lessons + verified study materials for Semester 1 (Natural &amp; Social Science).
+            Pay once, learn at your own pace.
           </p>
 
           {/* CTA buttons */}
           <div className="hero-cta">
             <a
-              id="hero-cta-full"
-              href={`https://t.me/${BOT_USERNAME}?start=full`}
+              id="hero-cta-sem1"
+              href={`https://t.me/${BOT_USERNAME}?start=sem1`}
               className="btn btn-primary btn-lg"
               target="_blank"
               rel="noopener noreferrer"
             >
-              🚀 Get Full Year — {FULL_YEAR_PRICE} ETB
+              🚀 Get Semester 1 — {SEM_PRICE} ETB
             </a>
             <a
-              id="hero-cta-sem1"
+              id="hero-cta-plans"
               href="#pricing"
               className="btn btn-outline btn-lg"
             >
@@ -57,16 +57,16 @@ export default function Hero() {
           {/* Stats strip */}
           <div className="hero-stats">
             <div className="hero-stat">
-              <div className="hero-stat-number">{totalCourses}</div>
-              <div className="hero-stat-label">Courses Covered</div>
+              <div className="hero-stat-number">{COURSES.sem1Natural.length + COURSES.sem1Social.length}</div>
+              <div className="hero-stat-label">Semester 1 Courses</div>
             </div>
             <div className="hero-stat stat-divider">
               <div className="hero-stat-number">{SEM_PRICE} ETB</div>
-              <div className="hero-stat-label">Per Semester</div>
+              <div className="hero-stat-label">Semester 1 Access</div>
             </div>
             <div className="hero-stat stat-divider">
-              <div className="hero-stat-number">{FULL_YEAR_PRICE} ETB</div>
-              <div className="hero-stat-label">Full Year Bundle</div>
+              <div className="hero-stat-number">24/7</div>
+              <div className="hero-stat-label">Private Channel Access</div>
             </div>
           </div>
         </div>

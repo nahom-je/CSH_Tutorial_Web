@@ -6,9 +6,7 @@ import { PRICING, PLAN_LABELS } from "../../config.js";
 export function planKeyboard() {
   return {
     inline_keyboard: [
-      [{ text: `📘 Semester 1 — ${PRICING.sem1} ETB`,            callback_data: "plan_sem1" }],
-      [{ text: `📗 Semester 2 — ${PRICING.sem2} ETB`,            callback_data: "plan_sem2" }],
-      [{ text: `🎓 Full Year (Both) — ${PRICING.full} ETB`,      callback_data: "plan_full" }],
+      [{ text: `📘 Semester 1 — ${PRICING.sem1} ETB`, callback_data: "plan_sem1" }],
     ],
   };
 }

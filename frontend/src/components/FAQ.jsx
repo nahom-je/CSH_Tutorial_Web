@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "Can I buy Semester 1 now and Semester 2 later?",
-    a: "Yes! You can purchase Semester 1 now and come back later for Semester 2 (399 ETB each). However, if you buy both together with the Full Year bundle (699 ETB), you get a discount!",
+    a: "Yes! Currently, registration is open for Semester 1 (399 ETB). Semester 2 courses are being prepared and will be announced as soon as they are ready.",
   },
   {
     q: "Will the materials expire?",

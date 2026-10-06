@@ -16,23 +16,31 @@ export function registerStartHandler(bot) {
 
     clearSession(chatId);
 
-    // Parse deep-link plan param: /start sem1  /start sem2  /start full
+    // Parse deep-link plan param: /start sem1 /start full /start sem2
     const param = ctx.message?.text?.split(" ")[1]?.toLowerCase();
-    const validPlans = ["sem1", "sem2", "full"];
-    const preselectedPlan = validPlans.includes(param) ? param : null;
+    
+    if (param === "full" || param === "sem2") {
+      await ctx.reply(
+        `ℹ️ *Notice:* We currently only offer registration for the *Semester 1* plan (${PRICING.sem1} ETB).\n\n` +
+        `Second semester courses will be announced once ready! Tap below to register for Semester 1:`,
+        {
+          parse_mode: "Markdown",
+          reply_markup: planKeyboard(),
+        }
+      );
+      return;
+    }
 
-    if (preselectedPlan) {
-      setSession(chatId, { preselectedPlan });
-      logger.info(`User ${chatId} started with plan=${preselectedPlan}`);
+    if (param === "sem1") {
+      setSession(chatId, { preselectedPlan: "sem1" });
+      logger.info(`User ${chatId} started with plan=sem1`);
     }
 
     await ctx.reply(
       `📦 *Plans Available:*\n` +
-      `• Semester 1 — ${PRICING.sem1} ETB\n` +
-      `• Semester 2 — ${PRICING.sem2} ETB\n` +
-      `• Full Year (both) — ${PRICING.full} ETB (🔥 Save 100 ETB!)\n\n` +
+      `• Semester 1 — ${PRICING.sem1} ETB\n\n` +
       `Type /cancel at any time to restart.\n\n` +
-      `Let's get started — which plan would you like?`,
+      `Let's get started — tap below to begin:`,
       {
         parse_mode: "Markdown",
         reply_markup: planKeyboard(),
@@ -50,16 +58,27 @@ export function registerStartHandler(bot) {
   });
 
   // ── Callback: plan selection
-  for (const plan of ["sem1", "sem2", "full"]) {
-    bot.action(`plan_${plan}`, async (ctx) => {
-      await ctx.answerCbQuery();
-      setSession(ctx.chat.id, { step: "ask_name", plan });
-      await ctx.editMessageText(
-        `✅ *${PLAN_LABELS[plan]}* selected (${PRICING[plan]} ETB).\n\nPlease enter your *full name*:`,
-        { parse_mode: "Markdown" }
-      );
-    });
-  }
+  bot.action("plan_sem1", async (ctx) => {
+    await ctx.answerCbQuery();
+    setSession(ctx.chat.id, { step: "ask_name", plan: "sem1" });
+    await ctx.editMessageText(
+      `✅ *${PLAN_LABELS.sem1}* selected (${PRICING.sem1} ETB).\n\nPlease enter your *full name*:`,
+      { parse_mode: "Markdown" }
+    );
+  });
+
+  // Fallback for any old inline buttons for full / sem2
+  bot.action(["plan_full", "plan_sem2"], async (ctx) => {
+    await ctx.answerCbQuery("ℹ️ Only Semester 1 is currently active");
+    await ctx.reply(
+      `ℹ️ *Notice:* We currently only offer registration for the *Semester 1* plan (${PRICING.sem1} ETB).\n\n` +
+      `Tap below to register for Semester 1:`,
+      {
+        parse_mode: "Markdown",
+        reply_markup: planKeyboard(),
+      }
+    );
+  });
 }
 
 export function escapeMarkdown(text) {
