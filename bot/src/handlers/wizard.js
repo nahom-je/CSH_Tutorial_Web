@@ -3,8 +3,8 @@ import { getSession, setSession, clearSession } from "../utils/session.js";
 import {
   isValidName, isValidUsername,
   paymentMethodKeyboard, screenshotKeyboard,
-  coursesForPlan, fieldKeyboard, usernameConfirmKeyboard,
-  escapeMd,
+  coursesForPlanHtml, fieldKeyboard, usernameConfirmKeyboard,
+  escapeHtml,
 } from "../utils/helpers.js";
 import { PRICING, PLAN_LABELS } from "../../config.js";
 import { createOrder, getOpenOrderCount } from "../db/database.js";
@@ -26,8 +26,8 @@ export function registerWizardHandler(bot) {
       const stepsNeedingText = ["ask_name", "ask_username", "confirm_username"];
       if (stepsNeedingText.includes(session.step)) {
         await ctx.reply(
-          "⚠️ I can only accept *text* at this step. Please type your response.",
-          { parse_mode: "Markdown" }
+          "⚠️ I can only accept <b>text</b> at this step. Please type your response.",
+          { parse_mode: "HTML" }
         );
         return;
       }
@@ -42,7 +42,7 @@ export function registerWizardHandler(bot) {
       // ── Step 1: collect full name
       case "ask_name": {
         if (!isValidName(text)) {
-          await ctx.reply("⚠️ Please enter your *full name* (at least 3 characters).", { parse_mode: "Markdown" });
+          await ctx.reply("⚠️ Please enter your <b>full name</b> (at least 3 characters).", { parse_mode: "HTML" });
           return;
         }
 
@@ -52,17 +52,17 @@ export function registerWizardHandler(bot) {
         if (autoUsername) {
           setSession(chatId, { name: text, detected_username: autoUsername, step: "confirm_username" });
           await ctx.reply(
-            `✈️ Is this your Telegram username: *@${escapeMd(autoUsername)}*?`,
+            `✈️ Is this your Telegram username: <b>@${escapeHtml(autoUsername)}</b>?`,
             {
-              parse_mode: "Markdown",
+              parse_mode: "HTML",
               reply_markup: usernameConfirmKeyboard(),
             }
           );
         } else {
           setSession(chatId, { name: text, step: "ask_username" });
           await ctx.reply(
-            "✈️ What is your *Telegram username*? (e.g. `@username`):",
-            { parse_mode: "Markdown" }
+            "✈️ What is your <b>Telegram username</b>? (e.g. <code>@username</code>):",
+            { parse_mode: "HTML" }
           );
         }
         break;
@@ -74,17 +74,17 @@ export function registerWizardHandler(bot) {
           const cleanUsername = text.replace(/^@/, "");
           setSession(chatId, { telegram_username: cleanUsername, step: "ask_field" });
           await ctx.reply(
-            `✅ Username set to *@${escapeMd(cleanUsername)}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
+            `✅ Username set to <b>@${escapeHtml(cleanUsername)}</b>.\n\n🎓 What is your field: <b>Social</b> or <b>Natural</b>?`,
             {
-              parse_mode: "Markdown",
+              parse_mode: "HTML",
               reply_markup: fieldKeyboard(),
             }
           );
         } else {
           await ctx.reply(
-            "Please tap *Yes, continue* above or type a valid Telegram username (e.g. `@username`).",
+            "Please tap <b>Yes, continue</b> above or type a valid Telegram username (e.g. <code>@username</code>).",
             {
-              parse_mode: "Markdown",
+              parse_mode: "HTML",
               reply_markup: usernameConfirmKeyboard(),
             }
           );
@@ -95,15 +95,15 @@ export function registerWizardHandler(bot) {
       // ── Step 2b: collect typed Telegram username → ask field
       case "ask_username": {
         if (!isValidUsername(text)) {
-          await ctx.reply("⚠️ Please enter a valid *Telegram username* (e.g. `@your_username`).", { parse_mode: "Markdown" });
+          await ctx.reply("⚠️ Please enter a valid <b>Telegram username</b> (e.g. <code>@your_username</code>).", { parse_mode: "HTML" });
           return;
         }
         const cleanUsername = text.replace(/^@/, "");
         setSession(chatId, { telegram_username: cleanUsername, step: "ask_field" });
         await ctx.reply(
-          "🎓 What is your field: *Social* or *Natural*?",
+          "🎓 What is your field: <b>Social</b> or <b>Natural</b>?",
           {
-            parse_mode: "Markdown",
+            parse_mode: "HTML",
             reply_markup: fieldKeyboard(),
           }
         );
@@ -124,15 +124,15 @@ export function registerWizardHandler(bot) {
     const username = session.detected_username || ctx.from?.username?.replace(/^@/, "") || "";
     if (!username) {
       setSession(chatId, { step: "ask_username" });
-      await ctx.editMessageText("✈️ Please enter your *Telegram username* (e.g. `@username`):", { parse_mode: "Markdown" });
+      await ctx.editMessageText("✈️ Please enter your <b>Telegram username</b> (e.g. <code>@username</code>):", { parse_mode: "HTML" });
       return;
     }
 
     setSession(chatId, { telegram_username: username, step: "ask_field" });
     await ctx.editMessageText(
-      `✅ Username set to *@${escapeMd(username)}*.\n\n🎓 What is your field: *Social* or *Natural*?`,
+      `✅ Username set to <b>@${escapeHtml(username)}</b>.\n\n🎓 What is your field: <b>Social</b> or <b>Natural</b>?`,
       {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         reply_markup: fieldKeyboard(),
       }
     );
@@ -143,8 +143,8 @@ export function registerWizardHandler(bot) {
     const chatId = ctx.chat.id;
     setSession(chatId, { step: "ask_username" });
     await ctx.editMessageText(
-      "✏️ Please enter your *Telegram username* (e.g. `@username`):",
-      { parse_mode: "Markdown" }
+      "✏️ Please enter your <b>Telegram username</b> (e.g. <code>@username</code>):",
+      { parse_mode: "HTML" }
     );
   });
 
@@ -164,7 +164,7 @@ async function handleFieldChoice(ctx, field) {
   const session = getSession(chatId);
 
   if (session.step !== "ask_field") {
-    await ctx.reply("Please start from the beginning with /start.", { parse_mode: "Markdown" });
+    await ctx.reply("Please start from the beginning with /start.", { parse_mode: "HTML" });
     return;
   }
 
@@ -172,8 +172,8 @@ async function handleFieldChoice(ctx, field) {
   const openCount = getOpenOrderCount(chatId);
   if (openCount >= MAX_OPEN_ORDERS) {
     await ctx.editMessageText(
-      `🚫 You already have *${openCount}* open orders. Please contact @Umeribnukedir to resolve them before placing a new one.`,
-      { parse_mode: "Markdown" }
+      `🚫 You already have <b>${openCount}</b> open orders. Please contact @Umeribnukedir to resolve them before placing a new one.`,
+      { parse_mode: "HTML" }
     );
     clearSession(chatId);
     return;
@@ -184,26 +184,26 @@ async function handleFieldChoice(ctx, field) {
   let notice = "";
   if (field === "Social" && activePlan !== "sem1") {
     activePlan = "sem1";
-    notice = `ℹ️ _Note: Semester 2 courses are only available for Natural Science. Your plan has been adjusted to *Semester 1* (${PRICING.sem1} ETB)._\n\n`;
+    notice = `ℹ️ <i>Note: Semester 2 courses are only available for Natural Science. Your plan has been adjusted to <b>Semester 1</b> (${PRICING.sem1} ETB).</i>\n\n`;
   }
 
   setSession(chatId, { field, plan: activePlan, step: "choose_method" });
 
-  const safeUsername = telegram_username ? escapeMd(telegram_username.replace(/^@/, "")) : "N/A";
+  const safeUsername = telegram_username ? escapeHtml(telegram_username.replace(/^@/, "")) : "N/A";
   const summary =
-    `📋 *Order Preview*\n` +
+    `📋 <b>Order Preview</b>\n` +
     `━━━━━━━━━━━━━━━━━━\n` +
-    `👤 Name: ${escapeMd(name)}\n` +
+    `👤 Name: ${escapeHtml(name)}\n` +
     `✈️ Username: @${safeUsername}\n` +
-    `🎓 Field: ${escapeMd(field)}\n` +
-    `📦 Plan: *${PLAN_LABELS[activePlan] || activePlan}*\n` +
-    `💰 Price: *${PRICING[activePlan]} ETB*\n\n` +
+    `🎓 Field: ${escapeHtml(field)}\n` +
+    `📦 Plan: <b>${escapeHtml(PLAN_LABELS[activePlan] || activePlan)}</b>\n` +
+    `💰 Price: <b>${PRICING[activePlan]} ETB</b>\n\n` +
     notice +
-    `${coursesForPlan(activePlan, field)}\n\n` +
+    `${coursesForPlanHtml(activePlan, field)}\n\n` +
     `Looks good? Choose your payment method:`;
 
   await ctx.editMessageText(summary, {
-    parse_mode: "Markdown",
+    parse_mode: "HTML",
     reply_markup: paymentMethodKeyboard(),
   });
 }
@@ -215,18 +215,18 @@ async function handleMethodChoice(ctx, method) {
   const session = getSession(chatId);
 
   if (session.step !== "choose_method") {
-    await ctx.reply("Please start from the beginning with /start.", { parse_mode: "Markdown" });
+    await ctx.reply("Please start from the beginning with /start.", { parse_mode: "HTML" });
     return;
   }
 
   const { plan, name, telegram_username, field } = session;
-  const price   = PRICING[plan];
+  const price = PRICING[plan];
 
   let accountLine;
   if (method === "telebirr") {
-    accountLine = `📱 *TeleBirr Number:* \`${process.env.TELEBIRR_NUMBER}\``;
+    accountLine = `📱 <b>TeleBirr Number:</b> <code>${escapeHtml(process.env.TELEBIRR_NUMBER)}</code>`;
   } else {
-    accountLine = `🏦 *CBE Account:* \`${process.env.CBE_ACCOUNT}\``;
+    accountLine = `🏦 <b>CBE Account:</b> <code>${escapeHtml(process.env.CBE_ACCOUNT)}</code>`;
   }
   const holderName = process.env.ACCOUNT_HOLDER_NAME;
 
@@ -246,22 +246,22 @@ async function handleMethodChoice(ctx, method) {
   logger.info(`Order created: ${orderCode} by ${chatId} (${name})`);
 
   const msg =
-    `✅ *Order Created!* Your order code is: \`${orderCode}\`\n\n` +
+    `✅ <b>Order Created!</b> Your order code is: <code>${orderCode}</code>\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💳 *Payment Details*\n` +
+    `💳 <b>Payment Details</b>\n` +
     `${accountLine}\n` +
-    `👤 Account Holder: *${escapeMd(holderName)}*\n` +
-    `💰 Exact Amount: *${price} ETB*\n\n` +
-    `⚠️ *Safety Notice:* Only pay to the account holder name shown above. Nobody else is authorized to collect payments for CSH Tutorial.\n\n` +
+    `👤 Account Holder: <b>${escapeHtml(holderName)}</b>\n` +
+    `💰 Exact Amount: <b>${price} ETB</b>\n\n` +
+    `⚠️ <b>Safety Notice:</b> Only pay to the account holder name shown above. Nobody else is authorized to collect payments for CSH Tutorial.\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `📸 *Next Step:*\n` +
-    `Send your payment screenshot to *@Umeribnukedir* on Telegram. In the same message, write:\n` +
-    `• Your order code: \`${orderCode}\`\n` +
-    `• Your full name: ${escapeMd(name)}\n\n` +
+    `📸 <b>Next Step:</b>\n` +
+    `Send your payment screenshot to <b>@Umeribnukedir</b> on Telegram. In the same message, write:\n` +
+    `• Your order code: <code>${orderCode}</code>\n` +
+    `• Your full name: ${escapeHtml(name)}\n\n` +
     `Your access will be delivered here once payment is verified.`;
 
   await ctx.editMessageText(msg, {
-    parse_mode: "Markdown",
+    parse_mode: "HTML",
     reply_markup: screenshotKeyboard(orderCode),
   });
 }

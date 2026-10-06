@@ -84,6 +84,15 @@ export function escapeMd(text) {
   return String(text).replace(/[_*`\[]/g, "\\$&");
 }
 
+// Safe for Telegram HTML mode — escapes &, <, >
+export function escapeHtml(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 // ── Formatting ─────────────────────────────────────────────────
 
 export function formatOrderSummary(order) {
@@ -162,4 +171,29 @@ export function coursesForPlan(plan, field) {
   if (plan === "sem1") return sem1;
   if (plan === "sem2") return sem2;
   return `${sem1}\n\n${sem2}`;
+}
+
+// HTML-safe version of course lists (used with parse_mode: HTML)
+export function coursesForPlanHtml(plan, field) {
+  const sem1Social =
+    "📘 <b>Semester 1 Courses (Social Science):</b>\n" +
+    "• General Economics\n" +
+    "• Mathematics for Social Science\n" +
+    "• Communicative English Language 1\n" +
+    "• Geography\n" +
+    "• Logic and Critical Thinking\n" +
+    "• General Psychology\n" +
+    "• Physical Fitness";
+
+  const sem1Natural =
+    "📘 <b>Semester 1 Courses (Natural Science):</b>\n" +
+    "• Communicative English Language Skills I\n" +
+    "• Introduction to Sociology\n" +
+    "• Applied Mathematics I\n" +
+    "• Moral and Civic Education\n" +
+    "• Geography of Ethiopia and the Horn\n" +
+    "• Introduction to Emerging Technologies\n" +
+    "• Physical Fitness";
+
+  return field === "Natural" ? sem1Natural : sem1Social;
 }

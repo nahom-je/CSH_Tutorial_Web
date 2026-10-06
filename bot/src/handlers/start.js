@@ -1,6 +1,6 @@
 // src/handlers/start.js — /start command
 import { clearSession, getSession, setSession } from "../utils/session.js";
-import { planKeyboard, fieldKeyboard } from "../utils/helpers.js";
+import { planKeyboard, fieldKeyboard, escapeHtml } from "../utils/helpers.js";
 import { PLAN_LABELS, PRICING } from "../../config.js";
 import { logger } from "../utils/logger.js";
 
@@ -18,13 +18,13 @@ export function registerStartHandler(bot) {
 
     // Parse deep-link plan param: /start sem1 /start full /start sem2
     const param = ctx.message?.text?.split(" ")[1]?.toLowerCase();
-    
+
     if (param === "full" || param === "sem2") {
       await ctx.reply(
-        `ℹ️ *Notice:* We currently only offer registration for the *Semester 1* plan (${PRICING.sem1} ETB).\n\n` +
+        `ℹ️ <b>Notice:</b> We currently only offer registration for the <b>Semester 1</b> plan (${PRICING.sem1} ETB).\n\n` +
         `Second semester courses will be announced once ready! Tap below to register for Semester 1:`,
         {
-          parse_mode: "Markdown",
+          parse_mode: "HTML",
           reply_markup: planKeyboard(),
         }
       );
@@ -37,12 +37,12 @@ export function registerStartHandler(bot) {
     }
 
     await ctx.reply(
-      `📦 *Plans Available:*\n` +
+      `📦 <b>Plans Available:</b>\n` +
       `• Semester 1 — ${PRICING.sem1} ETB\n\n` +
       `Type /cancel at any time to restart.\n\n` +
       `Let's get started — tap below to begin:`,
       {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         reply_markup: planKeyboard(),
       }
     );
@@ -51,10 +51,7 @@ export function registerStartHandler(bot) {
   // /cancel
   bot.command("cancel", async (ctx) => {
     clearSession(ctx.chat.id);
-    await ctx.reply(
-      "❌ Flow cancelled. Type /start whenever you're ready.",
-      { parse_mode: "Markdown" }
-    );
+    await ctx.reply("❌ Flow cancelled. Type /start whenever you're ready.");
   });
 
   // ── Callback: plan selection
@@ -62,8 +59,8 @@ export function registerStartHandler(bot) {
     await ctx.answerCbQuery();
     setSession(ctx.chat.id, { step: "ask_name", plan: "sem1" });
     await ctx.editMessageText(
-      `✅ *${PLAN_LABELS.sem1}* selected (${PRICING.sem1} ETB).\n\nPlease enter your *full name*:`,
-      { parse_mode: "Markdown" }
+      `✅ <b>${escapeHtml(PLAN_LABELS.sem1)}</b> selected (${PRICING.sem1} ETB).\n\nPlease enter your <b>full name</b>:`,
+      { parse_mode: "HTML" }
     );
   });
 
@@ -71,17 +68,17 @@ export function registerStartHandler(bot) {
   bot.action(["plan_full", "plan_sem2"], async (ctx) => {
     await ctx.answerCbQuery("ℹ️ Only Semester 1 is currently active");
     await ctx.reply(
-      `ℹ️ *Notice:* We currently only offer registration for the *Semester 1* plan (${PRICING.sem1} ETB).\n\n` +
+      `ℹ️ <b>Notice:</b> We currently only offer registration for the <b>Semester 1</b> plan (${PRICING.sem1} ETB).\n\n` +
       `Tap below to register for Semester 1:`,
       {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         reply_markup: planKeyboard(),
       }
     );
   });
 }
 
+// Legacy export — kept so any leftover imports don't crash
 export function escapeMarkdown(text) {
-  // Escape ALL MarkdownV2 special characters as required by Telegram API
   return String(text).replace(/[_*[\]()~`>#+=|{}.!\\-]/g, "\\$&");
 }
