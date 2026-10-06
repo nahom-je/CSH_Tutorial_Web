@@ -79,7 +79,7 @@ export function registerAdminHandlers(bot) {
       return;
     }
     for (const o of results) {
-      await ctx.reply(formatOrderSummary(o), { parse_mode: "Markdown" });
+      await ctx.reply(formatOrderSummary(o), { parse_mode: "HTML" });
     }
   }));
 

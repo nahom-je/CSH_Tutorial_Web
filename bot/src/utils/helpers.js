@@ -96,33 +96,37 @@ export function escapeHtml(text) {
 // ── Formatting ─────────────────────────────────────────────────
 
 export function formatOrderSummary(order) {
-  const username = order.telegram_username ? order.telegram_username.replace(/^@/, "") : "N/A";
+  const safeUsername = order.telegram_username
+    ? `@${escapeHtml(order.telegram_username.replace(/^@/, ""))}`
+    : "N/A";
   return (
-    `📋 *Order Summary*\n` +
+    `📋 <b>Order Summary</b>\n` +
     `━━━━━━━━━━━━━━━━━━\n` +
-    `🆔 Order Code: \`${order.order_code}\`\n` +
-    `👤 Name: ${escapeMd(order.name)}\n` +
-    `✈️ Telegram Username: @${escapeMd(username)}\n` +
-    `🎓 Field: ${escapeMd(order.department || "N/A")}\n` +
-    `📦 Plan: ${PLAN_LABELS[order.plan] || order.plan}\n` +
-    `💰 Price: ${order.price} ETB\n` +
+    `🆔 Order Code: <code>${escapeHtml(order.order_code)}</code>\n` +
+    `👤 Name: <b>${escapeHtml(order.name)}</b>\n` +
+    `✈️ Telegram Username: ${safeUsername}\n` +
+    `🎓 Field: ${escapeHtml(order.department || "N/A")}\n` +
+    `📦 Plan: <b>${escapeHtml(PLAN_LABELS[order.plan] || order.plan)}</b>\n` +
+    `💰 Price: <b>${order.price} ETB</b>\n` +
     `💳 Method: ${order.method === "telebirr" ? "TeleBirr" : "CBE"}\n` +
     `📅 Created: ${order.created_at}\n` +
-    `📊 Status: ${order.status}`
+    `📊 Status: <b>${escapeHtml(order.status)}</b>`
   );
 }
 
 export function formatAdminNotification(order) {
-  const username = order.telegram_username ? order.telegram_username.replace(/^@/, "") : "N/A";
+  const safeUsername = order.telegram_username
+    ? `@${escapeHtml(order.telegram_username.replace(/^@/, ""))}`
+    : "N/A";
   return (
-    `🔔 *New Payment Screenshot Sent*\n` +
+    `🔔 <b>New Payment Screenshot Sent</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `🆔 Order: \`${order.order_code}\`\n` +
-    `👤 Name: ${escapeMd(order.name)}\n` +
-    `✈️ TG Username: @${escapeMd(username)}\n` +
-    `🎓 Field: ${escapeMd(order.department || "N/A")}\n` +
-    `📦 Plan: ${PLAN_LABELS[order.plan] || order.plan}\n` +
-    `💰 Price: ${order.price} ETB\n` +
+    `🆔 Order: <code>${escapeHtml(order.order_code)}</code>\n` +
+    `👤 Name: <b>${escapeHtml(order.name)}</b>\n` +
+    `✈️ TG Username: ${safeUsername}\n` +
+    `🎓 Field: ${escapeHtml(order.department || "N/A")}\n` +
+    `📦 Plan: <b>${escapeHtml(PLAN_LABELS[order.plan] || order.plan)}</b>\n` +
+    `💰 Price: <b>${order.price} ETB</b>\n` +
     `💳 Method: ${order.method === "telebirr" ? "TeleBirr" : "CBE"}`
   );
 }

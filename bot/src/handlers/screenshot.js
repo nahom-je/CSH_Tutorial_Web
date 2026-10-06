@@ -1,8 +1,7 @@
 // src/handlers/screenshot.js — "I've sent the screenshot" button handler
 import { getSession, clearSession } from "../utils/session.js";
 import { getOrderByCode, updateOrderStatus } from "../db/database.js";
-import { adminApproveRejectKeyboard, formatAdminNotification } from "../utils/helpers.js";
-import { escapeMarkdown } from "./start.js";
+import { adminApproveRejectKeyboard, formatAdminNotification, escapeHtml } from "../utils/helpers.js";
 import { logger } from "../utils/logger.js";
 
 export function registerScreenshotHandler(bot) {
@@ -12,19 +11,18 @@ export function registerScreenshotHandler(bot) {
 
     const orderCode = ctx.match[1];
     const chatId    = ctx.chat.id;
-    const session   = getSession(chatId);
 
     // Guard: make sure this order belongs to this user
     const order = getOrderByCode(orderCode);
     if (!order || String(order.telegram_id) !== String(chatId)) {
-      await ctx.reply("❌ Could not find your order\\. Please use /start to try again\\.", { parse_mode: "MarkdownV2" });
+      await ctx.reply("❌ Could not find your order. Please use /start to try again.", { parse_mode: "HTML" });
       return;
     }
 
     if (order.status !== "awaiting_payment") {
       await ctx.reply(
-        `ℹ️ Your order *\`${escapeMarkdown(orderCode)}\`* is already marked as *${escapeMarkdown(order.status)}*\\.`,
-        { parse_mode: "MarkdownV2" }
+        `ℹ️ Your order <code>${escapeHtml(orderCode)}</code> is already marked as <b>${escapeHtml(order.status)}</b>.`,
+        { parse_mode: "HTML" }
       );
       return;
     }
@@ -41,7 +39,7 @@ export function registerScreenshotHandler(bot) {
           adminId,
           formatAdminNotification({ ...order, status: "screenshot_sent" }),
           {
-            parse_mode: "Markdown",
+            parse_mode: "HTML",
             reply_markup: adminApproveRejectKeyboard(orderCode),
           }
         );
@@ -52,10 +50,10 @@ export function registerScreenshotHandler(bot) {
 
     // Confirm to student
     await ctx.editMessageText(
-      `📩 *Got it\\!* I've notified the admin about your payment for order \`${escapeMarkdown(orderCode)}\`\\.\n\n` +
-      `⏳ Your access will be sent here once your payment is verified\\. This usually takes *a few hours* on business days\\.\n\n` +
-      `If you have questions, message *@Umeribnukedir* directly\\.`,
-      { parse_mode: "MarkdownV2" }
+      `📩 <b>Got it!</b> I've notified the admin about your payment for order <code>${escapeHtml(orderCode)}</code>.\n\n` +
+      `⏳ Your access will be sent here once your payment is verified. This usually takes <b>a few hours</b> on business days.\n\n` +
+      `If you have questions, message <b>@Umeribnukedir</b> directly.`,
+      { parse_mode: "HTML" }
     );
 
     clearSession(chatId);
