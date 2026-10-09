@@ -13,7 +13,7 @@ export function registerScreenshotHandler(bot) {
     const chatId    = ctx.chat.id;
 
     // Guard: make sure this order belongs to this user
-    const order = getOrderByCode(orderCode);
+    const order = await getOrderByCode(orderCode);
     if (!order || String(order.telegram_id) !== String(chatId)) {
       await ctx.reply("❌ Could not find your order. Please use /start to try again.", { parse_mode: "HTML" });
       return;
@@ -28,7 +28,7 @@ export function registerScreenshotHandler(bot) {
     }
 
     // Update status
-    updateOrderStatus(orderCode, "screenshot_sent");
+    await updateOrderStatus(orderCode, "screenshot_sent");
     logger.info(`Screenshot sent notification: ${orderCode} by ${chatId}`);
 
     // Notify admin

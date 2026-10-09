@@ -1,198 +1,175 @@
-// src/db/database.js — Pure WebAssembly/JS SQLite using sql.js (no C++ build tools or native bindings required)
-import initSqlJs from "sql.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+// src/db/database.js — Supabase-backed persistent storage (replaces sql.js)
+import { createClient } from "@supabase/supabase-js";
 import { ORDER_CODE_PREFIX, ORDER_CODE_START } from "../../config.js";
 import { logger } from "../utils/logger.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Allow DATA_DIR override via env var (used on Render where the persistent disk
-// is mounted at a specific path, not relative to the source file).
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "../../data");
-const DB_PATH = path.join(DATA_DIR, "orders.db");
-const DB_TMP  = path.join(DATA_DIR, "orders.db.tmp");
+// ── Supabase client (singleton) ─────────────────────────────────
+let supabase;
 
+function getClient() {
+  if (supabase) return supabase;
 
-let db;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY; // service-role key (server side only)
 
-// Atomic save: write to temp file first, then rename.
-// This prevents a half-written, corrupted DB if the process is killed mid-save.
-export function saveDb() {
-  if (!db) return;
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    const data = db.export();
-    fs.writeFileSync(DB_TMP, Buffer.from(data));
-    fs.renameSync(DB_TMP, DB_PATH);
-  } catch (err) {
-    logger.error(`Failed to save database: ${err.message}`);
+  if (!url || !key) {
+    throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in environment variables.");
   }
+
+  supabase = createClient(url, key, {
+    auth: { persistSession: false },
+  });
+
+  return supabase;
 }
 
+// ── Compatibility shims (bot.js calls these) ────────────────────
+// getDb() is awaited at startup; after Supabase nothing needs to be loaded from disk.
 export async function getDb() {
-  if (!db) {
-    const SQL = await initSqlJs();
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    if (fs.existsSync(DB_PATH)) {
-      try {
-        const filebuffer = fs.readFileSync(DB_PATH);
-        db = new SQL.Database(filebuffer);
-        // Quick sanity check — if corrupted this will throw
-        db.run("SELECT 1");
-      } catch (err) {
-        logger.error(`Database file corrupted, starting fresh: ${err.message}`);
-        const backupPath = `${DB_PATH}.corrupt.${Date.now()}`;
-        fs.renameSync(DB_PATH, backupPath);
-        logger.warn(`Corrupted DB moved to ${backupPath}`);
-        db = new SQL.Database();
-      }
-    } else {
-      db = new SQL.Database();
-    }
-    initSchema();
-    logger.info(`Database initialized with sql.js at ${DB_PATH}`);
+  const client = getClient();
+  // Quick connectivity + schema sanity check
+  const { error } = await client.from("orders").select("id").limit(1);
+  if (error) {
+    logger.error(`Supabase connectivity check failed: ${error.message}`);
+    throw error;
   }
-  return db;
+  logger.info("Supabase database connected and ready.");
+  return client;
 }
 
-function initSchema() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_code       TEXT    UNIQUE NOT NULL,
-      telegram_id      INTEGER NOT NULL,
-      telegram_username TEXT,
-      name             TEXT    NOT NULL,
-      department       TEXT    NOT NULL,
-      phone            TEXT    NOT NULL,
-      plan             TEXT    NOT NULL,
-      price            INTEGER NOT NULL,
-      method           TEXT    NOT NULL,
-      status           TEXT    NOT NULL DEFAULT 'awaiting_payment',
-      reject_reason    TEXT,
-      created_at       TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      reviewed_at      TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS counters (
-      key   TEXT PRIMARY KEY,
-      value INTEGER NOT NULL DEFAULT 0
-    );
-
-    INSERT OR IGNORE INTO counters(key, value)
-    VALUES ('order_seq', ${ORDER_CODE_START - 1});
-  `);
-  saveDb();
+// saveDb() was called after every write in sql.js; with Supabase writes are immediate — no-op.
+export function saveDb() {
+  // no-op: Supabase persists every write instantly
 }
 
-function execParams(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  stmt.step();
-  stmt.free();
-  saveDb();
-}
+// ── Order helpers ────────────────────────────────────────────────
 
-function getRow(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  let res = null;
-  if (stmt.step()) {
-    res = stmt.getAsObject();
-  }
-  stmt.free();
-  return res;
-}
-
-function getAll(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
-  stmt.free();
-  return rows;
-}
-
-// ── Order helpers ────────────────────────────────────────────
-
-export function generateOrderCode() {
-  let row = getRow("SELECT value FROM counters WHERE key = 'order_seq'");
-  let nextVal = (row && typeof row.value === 'number' ? row.value : ORDER_CODE_START - 1) + 1;
-  execParams("UPDATE counters SET value = ? WHERE key = 'order_seq'", [nextVal]);
+/**
+ * Generate the next order code atomically using an RPC that increments and returns
+ * the counter in a single round-trip, avoiding race conditions.
+ */
+export async function generateOrderCode() {
+  const client = getClient();
+  const { data, error } = await client.rpc("next_order_seq");
+  if (error) throw new Error(`generateOrderCode RPC failed: ${error.message}`);
+  const nextVal = data; // integer returned by the SQL function
   return `${ORDER_CODE_PREFIX}-${nextVal}`;
 }
 
-export function createOrder(data) {
-  const code = generateOrderCode();
-  execParams(`
-    INSERT INTO orders
-      (order_code, telegram_id, telegram_username, name, department, phone, plan, price, method)
-    VALUES
-      (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-    code,
-    data.telegram_id,
-    data.telegram_username || null,
-    data.name,
-    data.department,
-    data.phone,
-    data.plan,
-    data.price,
-    data.method
-  ]);
+export async function createOrder(data) {
+  const client = getClient();
+  const code = await generateOrderCode();
+  const { error } = await client.from("orders").insert({
+    order_code:        code,
+    telegram_id:       data.telegram_id,
+    telegram_username: data.telegram_username || null,
+    name:              data.name,
+    department:        data.department,
+    phone:             data.phone,
+    plan:              data.plan,
+    price:             data.price,
+    method:            data.method,
+    status:            "awaiting_payment",
+  });
+  if (error) throw new Error(`createOrder failed: ${error.message}`);
   return code;
 }
 
-export function getOrderByCode(code) {
-  return getRow("SELECT * FROM orders WHERE order_code = ?", [code]);
+export async function getOrderByCode(code) {
+  const client = getClient();
+  const { data, error } = await client
+    .from("orders")
+    .select("*")
+    .eq("order_code", code)
+    .maybeSingle();
+  if (error) throw new Error(`getOrderByCode failed: ${error.message}`);
+  return data; // null if not found
 }
 
-export function getOpenOrderCount(telegram_id) {
-  const row = getRow(
-    "SELECT COUNT(*) as cnt FROM orders WHERE telegram_id = ? AND status IN ('awaiting_payment','screenshot_sent')",
-    [telegram_id]
-  );
-  return row ? row.cnt : 0;
+export async function getOpenOrderCount(telegram_id) {
+  const client = getClient();
+  const { count, error } = await client
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("telegram_id", telegram_id)
+    .in("status", ["awaiting_payment", "screenshot_sent"]);
+  if (error) throw new Error(`getOpenOrderCount failed: ${error.message}`);
+  return count ?? 0;
 }
 
-export function updateOrderStatus(code, status, extra = {}) {
-  const { reject_reason } = extra;
+export async function updateOrderStatus(code, status, extra = {}) {
+  const client = getClient();
   const now = new Date().toISOString();
-  execParams(`
-    UPDATE orders
-    SET status = ?, reject_reason = ?, reviewed_at = ?
-    WHERE order_code = ?
-  `, [status, reject_reason ?? null, now, code]);
+  const { error } = await client
+    .from("orders")
+    .update({
+      status,
+      reject_reason: extra.reject_reason ?? null,
+      reviewed_at:   now,
+    })
+    .eq("order_code", code);
+  if (error) throw new Error(`updateOrderStatus failed: ${error.message}`);
 }
 
-export function getPendingOrders() {
-  return getAll("SELECT * FROM orders WHERE status IN ('awaiting_payment','screenshot_sent') ORDER BY created_at");
+export async function getPendingOrders() {
+  const client = getClient();
+  const { data, error } = await client
+    .from("orders")
+    .select("*")
+    .in("status", ["awaiting_payment", "screenshot_sent"])
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`getPendingOrders failed: ${error.message}`);
+  return data ?? [];
 }
 
-export function findOrders(query) {
+export async function findOrders(query) {
+  const client = getClient();
   const like = `%${query}%`;
-  return getAll(
-    "SELECT * FROM orders WHERE order_code LIKE ? OR phone LIKE ? OR name LIKE ? ORDER BY created_at DESC LIMIT 10",
-    [like, like, like]
-  );
+  const { data, error } = await client
+    .from("orders")
+    .select("*")
+    .or(`order_code.ilike.${like},phone.ilike.${like},name.ilike.${like}`)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (error) throw new Error(`findOrders failed: ${error.message}`);
+  return data ?? [];
 }
 
-export function getStats() {
-  const plans = getAll("SELECT plan, COUNT(*) as count, SUM(price) as revenue FROM orders WHERE status = 'approved' GROUP BY plan");
-  const totalRow = getRow("SELECT COUNT(*) as count, SUM(price) as revenue FROM orders WHERE status = 'approved'");
+export async function getStats() {
+  const client = getClient();
+
+  // Per-plan breakdown
+  const { data: plans, error: plansErr } = await client
+    .from("orders")
+    .select("plan, price")
+    .eq("status", "approved");
+  if (plansErr) throw new Error(`getStats (plans) failed: ${plansErr.message}`);
+
+  // Aggregate in JS (Supabase free tier doesn't support GROUP BY in the JS client easily)
+  const planMap = {};
+  let totalCount = 0;
+  let totalRevenue = 0;
+  for (const row of plans ?? []) {
+    if (!planMap[row.plan]) planMap[row.plan] = { plan: row.plan, count: 0, revenue: 0 };
+    planMap[row.plan].count++;
+    planMap[row.plan].revenue += row.price;
+    totalCount++;
+    totalRevenue += row.price;
+  }
+
   return {
-    plans,
-    total: totalRow || { count: 0, revenue: 0 },
+    plans: Object.values(planMap),
+    total: { count: totalCount, revenue: totalRevenue },
   };
 }
 
-export function getOrdersByTelegramId(telegram_id) {
-  return getAll("SELECT * FROM orders WHERE telegram_id = ? ORDER BY created_at DESC", [telegram_id]);
+export async function getOrdersByTelegramId(telegram_id) {
+  const client = getClient();
+  const { data, error } = await client
+    .from("orders")
+    .select("*")
+    .eq("telegram_id", telegram_id)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`getOrdersByTelegramId failed: ${error.message}`);
+  return data ?? [];
 }

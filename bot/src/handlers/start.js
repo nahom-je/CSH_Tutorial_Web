@@ -1,7 +1,7 @@
 // src/handlers/start.js — /start command
 import { clearSession, getSession, setSession } from "../utils/session.js";
 import { planKeyboard, fieldKeyboard, escapeHtml } from "../utils/helpers.js";
-import { PLAN_LABELS, PRICING } from "../../config.js";
+import { PLAN_LABELS, PRICING, QUIZ_PLATFORM_URL } from "../../config.js";
 import { logger } from "../utils/logger.js";
 
 export function registerStartHandler(bot) {
@@ -39,7 +39,8 @@ export function registerStartHandler(bot) {
     await ctx.reply(
       `📦 <b>Plans Available:</b>\n` +
       `• Semester 1 — ${PRICING.sem1} ETB\n\n` +
-      `Type /cancel at any time to restart.\n\n` +
+      `Type /cancel at any time to restart.\n` +
+      `Type /quiz to practice chapter quizzes on web.\n\n` +
       `Let's get started — tap below to begin:`,
       {
         parse_mode: "HTML",
@@ -47,6 +48,8 @@ export function registerStartHandler(bot) {
       }
     );
   });
+
+
 
   // /cancel
   bot.command("cancel", async (ctx) => {

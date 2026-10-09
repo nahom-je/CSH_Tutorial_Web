@@ -44,3 +44,5 @@ export const ORDER_CODE_START  = 1001;
 // ──────────────────────────────────────────────
 export const MAX_OPEN_ORDERS = 3;           // per student
 export const INVITE_LINK_EXPIRY_HOURS = 48; // hours before invite link expires
+export const QUIZ_PLATFORM_URL = process.env.QUIZ_PLATFORM_URL || "http://localhost:5173/quizzes";
+

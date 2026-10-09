@@ -5,4 +5,5 @@ data/orders.db-shm
 data/orders.db-wal
 logs/
 .env
+.env.*
 *.log

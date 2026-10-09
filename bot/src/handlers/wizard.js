@@ -169,7 +169,7 @@ async function handleFieldChoice(ctx, field) {
   }
 
   // Check open order limit
-  const openCount = getOpenOrderCount(chatId);
+  const openCount = await getOpenOrderCount(chatId);
   if (openCount >= MAX_OPEN_ORDERS) {
     await ctx.editMessageText(
       `🚫 You already have <b>${openCount}</b> open orders. Please contact @Umeribnukedir to resolve them before placing a new one.`,
@@ -231,7 +231,7 @@ async function handleMethodChoice(ctx, method) {
   const holderName = process.env.ACCOUNT_HOLDER_NAME;
 
   // Create order in DB
-  const orderCode = createOrder({
+  const orderCode = await createOrder({
     telegram_id:       chatId,
     telegram_username: telegram_username || ctx.from?.username || null,
     name,

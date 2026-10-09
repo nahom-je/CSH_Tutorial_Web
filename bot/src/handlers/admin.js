@@ -29,7 +29,7 @@ export function registerAdminHandlers(bot) {
 
   // ── /pending — list orders awaiting or screenshot_sent
   bot.command("pending", adminOnly(async (ctx) => {
-    const orders = getPendingOrders();
+    const orders = await getPendingOrders();
     if (!orders.length) {
       await ctx.reply("✅ No pending orders right now.");
       return;
@@ -73,7 +73,7 @@ export function registerAdminHandlers(bot) {
       await ctx.reply("Usage: /find <order code, phone, or name>");
       return;
     }
-    const results = findOrders(query);
+    const results = await findOrders(query);
     if (!results.length) {
       await ctx.reply(`No orders found matching "${escapeHtml(query)}".`, { parse_mode: "HTML" });
       return;
@@ -90,7 +90,7 @@ export function registerAdminHandlers(bot) {
       await ctx.reply("Usage: /resend NT-XXXX");
       return;
     }
-    const order = getOrderByCode(code);
+    const order = await getOrderByCode(code);
     if (!order) {
       await ctx.reply(`Order ${escapeHtml(code)} not found.`, { parse_mode: "HTML" });
       return;
@@ -111,7 +111,7 @@ export function registerAdminHandlers(bot) {
 
   // ── /stats
   bot.command("stats", adminOnly(async (ctx) => {
-    const { plans, total } = getStats();
+    const { plans, total } = await getStats();
     let msg = `📊 <b>CSH Tutorial Sales Stats</b>\n\n`;
     for (const row of plans) {
       msg += `• ${escapeHtml(PLAN_LABELS[row.plan] || row.plan)}: ${row.count} orders — ${row.revenue} ETB\n`;
@@ -140,7 +140,7 @@ export function registerAdminHandlers(bot) {
 
 // ── Shared approve logic
 async function handleApprove(ctx, code) {
-  const order = getOrderByCode(code);
+  const order = await getOrderByCode(code);
   if (!order) {
     await ctx.reply(`❌ Order <code>${escapeHtml(code)}</code> not found.`, { parse_mode: "HTML" });
     return;
@@ -150,7 +150,7 @@ async function handleApprove(ctx, code) {
     return;
   }
 
-  updateOrderStatus(code, "approved");
+  await updateOrderStatus(code, "approved");
   logger.info(`Order approved: ${code} by admin`);
 
   try {
@@ -175,7 +175,7 @@ async function handleApprove(ctx, code) {
 
 // ── Shared reject logic
 async function handleReject(ctx, code, reason) {
-  const order = getOrderByCode(code);
+  const order = await getOrderByCode(code);
   if (!order) {
     await ctx.reply(`❌ Order <code>${escapeHtml(code)}</code> not found.`, { parse_mode: "HTML" });
     return;
@@ -185,7 +185,7 @@ async function handleReject(ctx, code, reason) {
     return;
   }
 
-  updateOrderStatus(code, "rejected", { reject_reason: reason });
+  await updateOrderStatus(code, "rejected", { reject_reason: reason });
   logger.info(`Order rejected: ${code} | Reason: ${reason}`);
 
   // Notify student
