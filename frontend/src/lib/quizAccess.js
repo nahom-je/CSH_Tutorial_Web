@@ -73,10 +73,11 @@ export function clearAccess() {
   localStorage.removeItem(ACCESS_STORAGE_KEY);
 }
 
+import { supabase } from './supabase';
+
 /**
- * Verify order code against the bot API server.
- * Access is ONLY granted when the server explicitly confirms status = "approved".
- * No offline fallback — if the server is unreachable, access is denied.
+ * Verify order code directly against Supabase database (and fallback to bot API server).
+ * Access is ONLY granted when status is explicitly "approved".
  */
 export async function verifyOrderAccess(inputCode) {
   const norm = normalizeOrderCode(inputCode);
@@ -87,38 +88,75 @@ export async function verifyOrderAccess(inputCode) {
     };
   }
 
-  // Always validate against the server — the server checks status === "approved"
+  // 1. Direct Supabase verification (ultra-fast, works on edge without cold starts)
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('order_code, name, plan, status')
+      .eq('order_code', norm)
+      .maybeSingle();
 
-    const res = await fetch(`${BOT_API_URL}/api/verify-order?code=${encodeURIComponent(norm)}`, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    const data = await res.json();
-    if (res.ok && data.valid) {
-      const access = saveAccess({
-        orderCode: data.order_code,
-        name: data.name,
-        plan: data.plan,
-      });
-      return { success: true, access, message: 'Order verified successfully!' };
-    } else {
+    if (error) {
+      console.warn('Supabase query error:', error.message);
+    } else if (!order) {
       return {
         success: false,
-        message: data.message || 'Order code not found or not yet approved.',
+        message: `Order code "${norm}" was not found. Please double-check your code.`,
+      };
+    } else if (order.status !== 'approved') {
+      const msg = order.status === 'awaiting_payment'
+        ? 'Your order is awaiting payment receipt verification by admin.'
+        : 'Your order is pending admin approval. You will receive access once approved.';
+      return {
+        success: false,
+        message: msg,
+      };
+    } else {
+      // Order exists and status is approved!
+      const access = saveAccess({
+        orderCode: order.order_code,
+        name: order.name,
+        plan: order.plan,
+      });
+      return {
+        success: true,
+        access,
+        message: `Welcome back, ${order.name || 'Student'}! Access unlocked.`,
       };
     }
-  } catch (err) {
-    // Server unreachable — deny access. Never grant access offline.
-    console.warn('Bot verification server unreachable:', err.message);
-    return {
-      success: false,
-      message: 'Unable to reach the verification server. Please check your connection and try again.',
-    };
+  } catch (dbErr) {
+    console.warn('Supabase verification error:', dbErr.message);
   }
+
+  // 2. Secondary fallback: Query bot API server (if configured and not localhost)
+  if (BOT_API_URL && !BOT_API_URL.includes('localhost')) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+
+      const res = await fetch(`${BOT_API_URL}/api/verify-order?code=${encodeURIComponent(norm)}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        const access = saveAccess({
+          orderCode: data.order_code,
+          name: data.name,
+          plan: data.plan,
+        });
+        return { success: true, access, message: 'Order verified successfully!' };
+      }
+    } catch (_) {
+      // Ignore
+    }
+  }
+
+  return {
+    success: false,
+    message: 'Unable to reach the verification server. Please check your connection and try again.',
+  };
 }
 
 /**
