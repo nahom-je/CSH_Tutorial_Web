@@ -34,11 +34,17 @@ export function isValidOrderCodeFormat(code) {
 
 
 /**
- * Retrieve saved access from localStorage
+ * Retrieve saved access from sessionStorage (active only while tab/window is open)
  */
 export function getStoredAccess() {
   try {
-    const raw = localStorage.getItem(ACCESS_STORAGE_KEY);
+    // Clean up any legacy localStorage entry from previous versions
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(ACCESS_STORAGE_KEY)) {
+      localStorage.removeItem(ACCESS_STORAGE_KEY);
+    }
+
+    if (typeof sessionStorage === 'undefined') return null;
+    const raw = sessionStorage.getItem(ACCESS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.orderCode && isValidOrderCodeFormat(parsed.orderCode)) {
@@ -51,7 +57,7 @@ export function getStoredAccess() {
 }
 
 /**
- * Save verified access to localStorage
+ * Save verified access to sessionStorage (clears automatically when student closes the tab or browser)
  */
 export function saveAccess(data) {
   const norm = normalizeOrderCode(data.orderCode);
@@ -62,7 +68,12 @@ export function saveAccess(data) {
     unlockedAt: new Date().toISOString(),
     verified: true,
   };
-  localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(ACCESS_STORAGE_KEY);
+  }
   return payload;
 }
 
@@ -70,7 +81,12 @@ export function saveAccess(data) {
  * Remove saved access
  */
 export function clearAccess() {
-  localStorage.removeItem(ACCESS_STORAGE_KEY);
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(ACCESS_STORAGE_KEY);
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(ACCESS_STORAGE_KEY);
+  }
 }
 
 import { supabase } from './supabase';
