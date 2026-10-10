@@ -236,7 +236,7 @@ export function registerQuizHandler(bot) {
     const text =
       `🌐 <b>CSH Tutorial Web Quiz Platform</b>\n\n` +
       `Take full chapter quizzes with analytics and answer reviews on our website:\n\n` +
-      `👉 <b>Web URL:</b> <code>${escapeHtml(QUIZ_PLATFORM_URL)}</code>\n\n` +
+      `👉 <b>Web URL:</b> <a href="${QUIZ_PLATFORM_URL}">${QUIZ_PLATFORM_URL}</a>\n\n` +
       `💡 <i>Tip: You can unlock quizzes on the website using your Telegram Order Code (e.g. NT-1001).</i>`;
 
     await ctx.editMessageText(text, { parse_mode: "HTML", reply_markup: replyMarkup });

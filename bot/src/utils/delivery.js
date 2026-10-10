@@ -64,6 +64,7 @@ export async function deliverAccess(telegram, order) {
     `• <b>🌐 On Web Platform:</b> Practice on full interactive web interface.\n\n` +
     `🔑 <b>Order Verification Code:</b> <code>${escapeHtml(order_code)}</code>\n` +
     `<i>ℹ️ <b>Why is this code used?</b> This is your unique proof of subscription. If you choose to practice quizzes on our website from a computer or browser, enter this code to unlock all chapters and full explanations.</i>\n\n` +
+    `🌐 <b>Web Quiz Platform:</b> <a href="${QUIZ_PLATFORM_URL}">${QUIZ_PLATFORM_URL}</a>\n\n` +
     `━━━━━━━━━━━━━━━━━━━━\n` +
     `📢 Main Channel: <a href="${mainChannel}">CSH Announcements</a>\n\n` +
     `💬 Need assistance? Message @Umeribnukedir directly anytime.`;
@@ -71,7 +72,10 @@ export async function deliverAccess(telegram, order) {
   const keyboard = {
     inline_keyboard: [
       [
-        { text: "📝 Start Quizzes Now (/quiz)", callback_data: "tgquiz_launch_fresh" }
+        { text: "🚀 Open Web Quizzes", url: QUIZ_PLATFORM_URL }
+      ],
+      [
+        { text: "📝 Practice In Telegram", callback_data: "tgquiz_launch_fresh" }
       ]
     ]
   };
