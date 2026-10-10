@@ -39,8 +39,7 @@ export function registerStartHandler(bot) {
     await ctx.reply(
       `📦 <b>Plans Available:</b>\n` +
       `• Semester 1 — ${PRICING.sem1} ETB\n\n` +
-      `Type /cancel at any time to restart.\n` +
-      `Type /quiz to practice chapter quizzes on web.\n\n` +
+      `Type /cancel at any time to restart.\n\n` +
       `Let's get started — tap below to begin:`,
       {
         parse_mode: "HTML",

@@ -1,6 +1,5 @@
 // src/lib/quizAccess.js — Order Code Access & Verification Manager
 const ACCESS_STORAGE_KEY = 'csh_quiz_access';
-const QUIZ_SECRET = 'CSH_TUTORIAL_QUIZ_2025';
 const BOT_API_URL = import.meta.env.VITE_BOT_API_URL || 'http://localhost:3000';
 
 /**
@@ -33,23 +32,6 @@ export function isValidOrderCodeFormat(code) {
   return /^NT-[A-Z0-9]{3,8}$/.test(norm);
 }
 
-/**
- * Generate SHA-256 token matching the bot's algorithm
- */
-export async function computeQuizToken(code) {
-  const norm = normalizeOrderCode(code);
-  if (!norm) return '';
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(`${norm}:${QUIZ_SECRET}`);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 10);
-  } catch (err) {
-    console.error('Error computing quiz token:', err);
-    return '';
-  }
-}
 
 /**
  * Retrieve saved access from localStorage
@@ -92,12 +74,11 @@ export function clearAccess() {
 }
 
 /**
- * Verify order code:
- * 1. If token is provided, verify cryptographically (fast 0ms, works offline).
- * 2. If no token, ping bot HTTP verification endpoint.
- * 3. Graceful fallback for valid format if server is unreachable.
+ * Verify order code against the bot API server.
+ * Access is ONLY granted when the server explicitly confirms status = "approved".
+ * No offline fallback — if the server is unreachable, access is denied.
  */
-export async function verifyOrderAccess(inputCode, urlToken = null) {
+export async function verifyOrderAccess(inputCode) {
   const norm = normalizeOrderCode(inputCode);
   if (!isValidOrderCodeFormat(norm)) {
     return {
@@ -106,19 +87,10 @@ export async function verifyOrderAccess(inputCode, urlToken = null) {
     };
   }
 
-  // 1. Fast cryptographic verification if token provided in URL
-  if (urlToken) {
-    const expectedToken = await computeQuizToken(norm);
-    if (expectedToken && urlToken.toLowerCase() === expectedToken.toLowerCase()) {
-      const access = saveAccess({ orderCode: norm, name: 'CSH Verified Student' });
-      return { success: true, access, message: 'Access verified successfully via secure token!' };
-    }
-  }
-
-  // 2. Query bot API server
+  // Always validate against the server — the server checks status === "approved"
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3500);
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
     const res = await fetch(`${BOT_API_URL}/api/verify-order?code=${encodeURIComponent(norm)}`, {
       signal: controller.signal,
@@ -140,18 +112,11 @@ export async function verifyOrderAccess(inputCode, urlToken = null) {
       };
     }
   } catch (err) {
-    // 3. Fallback: if server is offline or unreachable, but format is valid,
-    // generate token locally to prevent student from being locked out.
-    console.warn('Bot verification server unreachable, using cryptographic fallback:', err.message);
-    const access = saveAccess({
-      orderCode: norm,
-      name: 'CSH Student',
-      note: 'Verified in offline tolerance mode',
-    });
+    // Server unreachable — deny access. Never grant access offline.
+    console.warn('Bot verification server unreachable:', err.message);
     return {
-      success: true,
-      access,
-      message: `Access unlocked for ${norm}!`,
+      success: false,
+      message: 'Unable to reach the verification server. Please check your connection and try again.',
     };
   }
 }
@@ -168,7 +133,7 @@ export async function checkAndProcessUrlAccess() {
   const tokenParam = params.get('token');
 
   if (orderParam) {
-    const res = await verifyOrderAccess(orderParam, tokenParam);
+    const res = await verifyOrderAccess(orderParam);
     if (res.success) {
       // Remove sensitive query params from browser URL bar cleanly
       params.delete('order');

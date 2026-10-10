@@ -246,7 +246,7 @@ async function handleMethodChoice(ctx, method) {
   logger.info(`Order created: ${orderCode} by ${chatId} (${name})`);
 
   const msg =
-    `✅ <b>Order Created!</b> Your order code is: <code>${orderCode}</code>\n\n` +
+    `✅ <b>Registration Received!</b>\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `💳 <b>Payment Details</b>\n` +
     `${accountLine}\n` +
@@ -255,10 +255,8 @@ async function handleMethodChoice(ctx, method) {
     `⚠️ <b>Safety Notice:</b> Only pay to the account holder name shown above. Nobody else is authorized to collect payments for CSH Tutorial.\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `📸 <b>Next Step:</b>\n` +
-    `Send your payment screenshot to <b>@Umeribnukedir</b> on Telegram. In the same message, write:\n` +
-    `• Your order code: <code>${orderCode}</code>\n` +
-    `• Your full name: ${escapeHtml(name)}\n\n` +
-    `Your access will be delivered here once payment is verified.`;
+    `Send your payment screenshot to <b>@Umeribnukedir</b> on Telegram along with your <b>full name: ${escapeHtml(name)}</b>.\n\n` +
+    `⏳ Once your payment is confirmed, your access and verification code will be sent here automatically.`;
 
   await ctx.editMessageText(msg, {
     parse_mode: "HTML",

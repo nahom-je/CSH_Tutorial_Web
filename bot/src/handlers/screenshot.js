@@ -50,9 +50,9 @@ export function registerScreenshotHandler(bot) {
 
     // Confirm to student
     await ctx.editMessageText(
-      `📩 <b>Got it!</b> I've notified the admin about your payment for order <code>${escapeHtml(orderCode)}</code>.\n\n` +
-      `⏳ Your access will be sent here once your payment is verified. This usually takes <b>a few hours</b> on business days.\n\n` +
-      `If you have questions, message <b>@Umeribnukedir</b> directly.`,
+      `📩 <b>Got it! Payment screenshot received.</b>\n\n` +
+      `⏳ Your request is <b>pending approval</b>. Once your payment is verified, your access and verification code will be sent here automatically.\n\n` +
+      `This usually takes <b>a few hours</b> on business days. If you have questions, message <b>@Umeribnukedir</b> directly.`,
       { parse_mode: "HTML" }
     );
 

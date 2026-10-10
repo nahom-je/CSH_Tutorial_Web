@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getStoredAccess, verifyOrderAccess } from '../lib/quizAccess';
+import { getStoredAccess, verifyOrderAccess, clearAccess } from '../lib/quizAccess';
 
 
 export default function QuizRunner() {
@@ -26,7 +26,9 @@ export default function QuizRunner() {
   const [showPalette, setShowPalette]   = useState(false);
 
   // Access verification state
-  const [access, setAccess]                         = useState(() => getStoredAccess());
+  // Start null — useEffect below will re-validate against the server
+  const [access, setAccess]                         = useState(null);
+  const [accessValidating, setAccessValidating]     = useState(true);
   const [runnerOrderInput, setRunnerOrderInput]     = useState('');
   const [runnerVerifying, setRunnerVerifying]       = useState(false);
   const [runnerVerifyError, setRunnerVerifyError]   = useState(null);
@@ -50,6 +52,29 @@ export default function QuizRunner() {
       setRunnerVerifyError(res.message || 'Could not verify order code.');
     }
   };
+
+  // Re-validate any stored access against the server on mount.
+  // A student cannot access quiz questions unless the server confirms status = approved.
+  useEffect(() => {
+    async function validateStoredAccess() {
+      setAccessValidating(true);
+      const stored = getStoredAccess();
+      if (!stored) {
+        setAccessValidating(false);
+        return;
+      }
+      const res = await verifyOrderAccess(stored.orderCode);
+      if (res.success) {
+        setAccess(res.access);
+      } else {
+        clearAccess();
+        setAccess(null);
+      }
+      setAccessValidating(false);
+    }
+    validateStoredAccess();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const timerRef = useRef(null);
 
@@ -177,12 +202,12 @@ export default function QuizRunner() {
   const scorePercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
   const answeredCount = Object.keys(answers).length;
 
-  if (loading) {
+  if (loading || accessValidating) {
     return (
       <div className="quiz-loading-screen">
         <div className="quiz-spinner-large" />
-        <h2>Preparing Your Quiz...</h2>
-        <p>Loading questions and explanations</p>
+        <h2>{accessValidating ? 'Verifying Access...' : 'Preparing Your Quiz...'}</h2>
+        <p>{accessValidating ? 'Checking your subscription status' : 'Loading questions and explanations'}</p>
       </div>
     );
   }

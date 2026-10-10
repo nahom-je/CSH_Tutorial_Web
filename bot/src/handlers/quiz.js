@@ -9,6 +9,58 @@ import {
 import { QUIZ_PLATFORM_URL } from "../../config.js";
 import { escapeHtml } from "../utils/helpers.js";
 import { logger } from "../utils/logger.js";
+import { getOrdersByTelegramId } from "../db/database.js";
+
+/**
+ * Verify whether the user is an admin or has at least one approved order
+ */
+async function isApprovedStudent(ctx) {
+  const adminId = process.env.ADMIN_CHAT_ID;
+  const fromId = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+
+  // Admin always has access
+  if (adminId && (String(fromId) === String(adminId) || String(chatId) === String(adminId))) {
+    return true;
+  }
+
+  const userId = fromId || chatId;
+  if (!userId) return false;
+
+  try {
+    const orders = await getOrdersByTelegramId(userId);
+    return orders.some((order) => order.status === "approved");
+  } catch (err) {
+    logger.error(`Error checking student approval status: ${err.message}`);
+    return false;
+  }
+}
+
+/**
+ * Send access denied response when student is not approved yet
+ */
+async function replyAccessDenied(ctx) {
+  const text =
+    `🔒 <b>Quiz Access Locked</b>\n\n` +
+    `Chapter quizzes are exclusively available to students with an approved CSH Tutorial subscription.\n\n` +
+    `• If you haven't registered yet, tap /start to choose your plan and register.\n` +
+    `• If you already submitted your payment screenshot, please wait for admin verification. You will receive full access immediately once approved!`;
+
+  if (ctx.callbackQuery) {
+    try {
+      await ctx.answerCbQuery("Access restricted. Active subscription required.", { show_alert: true });
+    } catch {
+      // ignore
+    }
+    try {
+      await ctx.editMessageText(text, { parse_mode: "HTML" });
+    } catch {
+      // ignore
+    }
+  } else {
+    await ctx.reply(text, { parse_mode: "HTML" });
+  }
+}
 
 const COURSE_ICONS = {
   "PHIL-1011": "🧠",
@@ -106,6 +158,11 @@ function renderAnswerFeedbackView(session, result) {
 export function registerQuizHandler(bot) {
   // ── /quiz or /quizzes command: Main Choice Menu
   bot.command(["quiz", "quizzes"], async (ctx) => {
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
+
     const text =
       `📝 <b>CSH Tutorial Chapter Quizzes</b>\n\n` +
       `Master your freshman subjects with <b>1,185 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
@@ -130,6 +187,11 @@ export function registerQuizHandler(bot) {
   // ── Launch fresh quiz menu from delivery message (keeps channel link intact above)
   bot.action("tgquiz_launch_fresh", async (ctx) => {
     await ctx.answerCbQuery();
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
+
     const text =
       `📝 <b>CSH Tutorial Chapter Quizzes</b>\n\n` +
       `Master your freshman subjects with <b>1,185 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
@@ -151,6 +213,11 @@ export function registerQuizHandler(bot) {
   // ── Menu: Choose Web
   bot.action("tgquiz_menu_web", async (ctx) => {
     await ctx.answerCbQuery();
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
+
     const isLocal = QUIZ_PLATFORM_URL.includes("localhost") || QUIZ_PLATFORM_URL.includes("127.0.0.1");
 
     const replyMarkup = isLocal
@@ -178,6 +245,10 @@ export function registerQuizHandler(bot) {
   // ── Menu: Choose Bot Quizzes → Show Course Catalog
   bot.action(["tgquiz_menu_bot", "tgquiz_courses"], async (ctx) => {
     await ctx.answerCbQuery("Loading courses...");
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
     const courses = await getQuizCourses();
 
     if (!courses.length) {
@@ -236,6 +307,10 @@ export function registerQuizHandler(bot) {
   // ── Course selected → Show Chapters
   bot.action(/^tgquiz_course_(.+)$/, async (ctx) => {
     await ctx.answerCbQuery("Loading chapters...");
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
     const courseId = ctx.match[1];
     const courses = await getQuizCourses();
     const course = courses.find((c) => c.id === courseId);
@@ -293,6 +368,10 @@ export function registerQuizHandler(bot) {
   // ── Start Chapter Quiz
   bot.action(/^tgquiz_start_(.+)$/, async (ctx) => {
     await ctx.answerCbQuery("Loading questions...");
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
     const chapterId = ctx.match[1];
     const userId = ctx.from.id;
 

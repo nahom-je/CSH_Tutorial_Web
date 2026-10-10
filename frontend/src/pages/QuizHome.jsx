@@ -7,6 +7,7 @@ import {
   verifyOrderAccess,
   clearAccess,
   normalizeOrderCode,
+  getStoredAccess,
 } from '../lib/quizAccess';
 
 const COURSE_ICONS = {
@@ -40,6 +41,7 @@ export default function QuizHome() {
 
   // Access control state
   const [access, setAccess]                 = useState(null);
+  const [accessDenied, setAccessDenied]     = useState(false);
   const [orderInput, setOrderInput]         = useState('');
   const [verifying, setVerifying]           = useState(false);
   const [verifyError, setVerifyError]       = useState(null);
@@ -89,14 +91,30 @@ export default function QuizHome() {
     load();
   }, []);
 
-  // Check URL params (?order=NT-1001&token=...) or local storage on load
+  // On mount: process URL params or re-validate any stored access against the server.
+  // This ensures that even if someone has a stored code, their order must still be approved.
   useEffect(() => {
-    checkAndProcessUrlAccess().then(saved => {
-      if (saved) {
-        setAccess(saved);
-        setVerifySuccess(`Welcome! Order ${saved.orderCode} active.`);
+    async function initAccess() {
+      const saved = await checkAndProcessUrlAccess();
+      if (!saved) return; // No stored access — user must enter their code manually
+
+      // Re-validate the stored code against the server to confirm status = approved
+      const res = await verifyOrderAccess(saved.orderCode);
+      if (res.success) {
+        setAccess(res.access);
+        setVerifySuccess(`Welcome back, ${res.access.name || 'Student'}!`);
+      } else {
+        // Stored code is no longer valid (rejected, pending, or code doesn't exist)
+        clearAccess();
+        setAccess(null);
+        // Only show access denied if this was a URL-delivered token (not just stale storage)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('order') || params.get('order_code')) {
+          setAccessDenied(true);
+        }
       }
-    });
+    }
+    initAccess();
   }, []);
 
   const handleVerifySubmit = async (e) => {
