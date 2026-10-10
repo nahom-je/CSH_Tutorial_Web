@@ -56,7 +56,7 @@ export async function deliverAccess(telegram, order) {
     `🔗 <a href="${inviteLink}">Join Private Telegram Channel</a>\n` +
     `<i>(⚠️ This is your personal single-use link. Please tap and join immediately!)</i>\n\n` +
     `━━━━━━━━━━━━━━━━━━━━\n` +
-    `📝 <b>2. Chapter Quizzes (1,005 Questions):</b>\n` +
+    `📝 <b>2. Chapter Quizzes (1,185 Questions):</b>\n` +
     `When you finish studying each chapter, test your mastery with authentic university questions and detailed explanations!\n\n` +
     `👉 <b>How to start taking quizzes:</b>\n` +
     `Type <b>/quiz</b> (or tap the button below). You will be given the choice to practice:\n` +

@@ -17,6 +17,7 @@ const COURSE_ICONS = {
   "MATH-1011": "➕",
   "PHYS-1011": "⚡",
   "ENGL-1011": "📝",
+  "ECON-1011": "📈",
 };
 
 /**
@@ -107,7 +108,7 @@ export function registerQuizHandler(bot) {
   bot.command(["quiz", "quizzes"], async (ctx) => {
     const text =
       `📝 <b>CSH Tutorial Chapter Quizzes</b>\n\n` +
-      `Master your freshman subjects with <b>1,005 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
+      `Master your freshman subjects with <b>1,185 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
       `<b>Where would you like to practice?</b>\n` +
       `• <b>Telegram Bot:</b> Practice right here in chat with instant buttons.\n` +
       `• <b>Web Platform:</b> Practice on full interactive web interface.`;
@@ -131,7 +132,7 @@ export function registerQuizHandler(bot) {
     await ctx.answerCbQuery();
     const text =
       `📝 <b>CSH Tutorial Chapter Quizzes</b>\n\n` +
-      `Master your freshman subjects with <b>1,005 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
+      `Master your freshman subjects with <b>1,185 authentic university questions</b>, instant answer feedback, and step-by-step explanations!\n\n` +
       `<b>Where would you like to practice?</b>\n` +
       `• <b>Telegram Bot:</b> Practice right here in chat with interactive buttons.\n` +
       `• <b>Web Platform:</b> Practice on full interactive web interface.`;

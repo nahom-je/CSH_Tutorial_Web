@@ -1424,6 +1424,61 @@ section {
   box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
+.quiz-stream-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.15rem;
+  flex-wrap: wrap;
+}
+
+.quiz-stream-tab {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border);
+  padding: 0.45rem 1.05rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
+}
+
+.quiz-stream-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.quiz-stream-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+
+.quiz-stream-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.02em;
+}
+
+.quiz-stream-badge.social {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.quiz-stream-badge.natural {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 /* ── Quiz Catalog & Courses Grid ───────────────────────────────── */
 .quiz-catalog-section {
   max-width: 1200px;
@@ -2702,7 +2757,11 @@ section {
 }
 
 .quiz-gate-prefix {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4F46E5;
+  flex-shrink: 0;
 }
 
 .quiz-gate-input {

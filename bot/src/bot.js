@@ -126,7 +126,7 @@ async function startBot() {
 
       if (!normalized) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ valid: false, message: "Please provide an order code (e.g. NT-1001)." }));
+        res.end(JSON.stringify({ valid: false, message: "Please provide an order code (e.g. NT-8K3P9Q)." }));
         return;
       }
 

@@ -1,6 +1,6 @@
-// src/db/database.js — Supabase-backed persistent storage (replaces sql.js)
+import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
-import { ORDER_CODE_PREFIX, ORDER_CODE_START } from "../../config.js";
+import { ORDER_CODE_PREFIX } from "../../config.js";
 import { logger } from "../utils/logger.js";
 
 // ── Supabase client (singleton) ─────────────────────────────────
@@ -44,35 +44,77 @@ export function saveDb() {
 
 // ── Order helpers ────────────────────────────────────────────────
 
+// Non-ambiguous 32-character set (omits 0, 1, I, O to avoid manual entry confusion)
+const ORDER_CODE_CHARSET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
 /**
- * Generate the next order code atomically using an RPC that increments and returns
- * the counter in a single round-trip, avoiding race conditions.
+ * Generate a random non-sequential order code (e.g. NT-K7P4N8, NT-8K3P9Q).
+ * 6 characters from a 32-char alphabet provides ~1.07 billion combinations,
+ * preventing sequential guessing while keeping codes compact and easy to type.
+ */
+export function generateRandomOrderCode(length = 6) {
+  const bytes = crypto.randomBytes(length);
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += ORDER_CODE_CHARSET[bytes[i] % ORDER_CODE_CHARSET.length];
+  }
+  return `${ORDER_CODE_PREFIX}-${result}`;
+}
+
+/**
+ * Generates an order code and ensures uniqueness in Supabase.
  */
 export async function generateOrderCode() {
   const client = getClient();
-  const { data, error } = await client.rpc("next_order_seq");
-  if (error) throw new Error(`generateOrderCode RPC failed: ${error.message}`);
-  const nextVal = data; // integer returned by the SQL function
-  return `${ORDER_CODE_PREFIX}-${nextVal}`;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = generateRandomOrderCode(6);
+    const { data, error } = await client
+      .from("orders")
+      .select("id")
+      .eq("order_code", code)
+      .limit(1);
+
+    if (error) {
+      logger.warn(`Collision check error for ${code}: ${error.message}`);
+      return code;
+    }
+    if (!data || data.length === 0) {
+      return code;
+    }
+    logger.warn(`Order code collision detected for ${code}, retrying...`);
+  }
+  // Fallback with timestamp hex component if 5 collisions occur (astronomically unlikely)
+  const hex = crypto.randomBytes(4).toString("hex").toUpperCase();
+  return `${ORDER_CODE_PREFIX}-${hex}`;
 }
 
 export async function createOrder(data) {
   const client = getClient();
-  const code = await generateOrderCode();
-  const { error } = await client.from("orders").insert({
-    order_code:        code,
-    telegram_id:       data.telegram_id,
-    telegram_username: data.telegram_username || null,
-    name:              data.name,
-    department:        data.department,
-    phone:             data.phone,
-    plan:              data.plan,
-    price:             data.price,
-    method:            data.method,
-    status:            "awaiting_payment",
-  });
-  if (error) throw new Error(`createOrder failed: ${error.message}`);
-  return code;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const code = await generateOrderCode();
+    const { error } = await client.from("orders").insert({
+      order_code:        code,
+      telegram_id:       data.telegram_id,
+      telegram_username: data.telegram_username || null,
+      name:              data.name,
+      department:        data.department,
+      phone:             data.phone,
+      plan:              data.plan,
+      price:             data.price,
+      method:            data.method,
+      status:            "awaiting_payment",
+    });
+
+    if (!error) return code;
+
+    // Retry if unique key constraint violated
+    if (error.code === "23505" || error.message?.includes("duplicate key")) {
+      logger.warn(`Order code collision on insert: ${code}, retrying...`);
+      continue;
+    }
+    throw new Error(`createOrder failed: ${error.message}`);
+  }
+  throw new Error("createOrder failed: maximum retry attempts exceeded");
 }
 
 export async function getOrderByCode(code) {

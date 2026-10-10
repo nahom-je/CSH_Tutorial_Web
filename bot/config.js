@@ -33,11 +33,10 @@ export const CHANNELS = {
 export const ANNOUNCEMENTS_CHANNEL = process.env.ANNOUNCEMENTS_CHANNEL || "https://t.me/campus_study_hub";
 
 // ──────────────────────────────────────────────
-// Order code prefix & starting counter
-// Orders will look like NT-1001, NT-1002 …
+// Order code prefix
+// Orders will look like NT-K7P4N8, NT-8K3P9Q (random, non-sequential)
 // ──────────────────────────────────────────────
 export const ORDER_CODE_PREFIX = "NT";
-export const ORDER_CODE_START  = 1001;
 
 // ──────────────────────────────────────────────
 // Business rules

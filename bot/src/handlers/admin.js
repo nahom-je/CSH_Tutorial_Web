@@ -5,6 +5,7 @@ import {
 } from "../db/database.js";
 import { formatOrderSummary, escapeMd, escapeHtml } from "../utils/helpers.js";
 import { deliverAccess } from "../utils/delivery.js";
+import { normalizeOrderCode } from "../utils/token.js";
 import { PLAN_LABELS } from "../../config.js";
 import { logger } from "../utils/logger.js";
 
@@ -43,24 +44,24 @@ export function registerAdminHandlers(bot) {
     );
   }));
 
-  // ── /approve NT-XXXX
+  // ── /approve <order_code>
   bot.command("approve", adminOnly(async (ctx) => {
-    const args = ctx.message.text.split(" ");
-    const code = args[1]?.toUpperCase();
+    const raw = ctx.message.text.split(" ")[1];
+    const code = normalizeOrderCode(raw);
     if (!code) {
-      await ctx.reply("Usage: /approve NT-XXXX");
+      await ctx.reply("Usage: /approve <order_code> (e.g. /approve NT-8K3P9Q)");
       return;
     }
     await handleApprove(ctx, code);
   }));
 
-  // ── /reject NT-XXXX <reason>
+  // ── /reject <order_code> <reason>
   bot.command("reject", adminOnly(async (ctx) => {
     const parts = ctx.message.text.split(" ");
-    const code   = parts[1]?.toUpperCase();
+    const code   = normalizeOrderCode(parts[1]);
     const reason = parts.slice(2).join(" ") || "No reason provided.";
     if (!code) {
-      await ctx.reply("Usage: /reject NT-XXXX <reason>");
+      await ctx.reply("Usage: /reject <order_code> <reason> (e.g. /reject NT-8K3P9Q Screenshot invalid)");
       return;
     }
     await handleReject(ctx, code, reason);
@@ -83,11 +84,12 @@ export function registerAdminHandlers(bot) {
     }
   }));
 
-  // ── /resend NT-XXXX — re-issue invite links for approved order
+  // ── /resend <order_code> — re-issue invite links for approved order
   bot.command("resend", adminOnly(async (ctx) => {
-    const code = ctx.message.text.split(" ")[1]?.toUpperCase();
+    const raw = ctx.message.text.split(" ")[1];
+    const code = normalizeOrderCode(raw);
     if (!code) {
-      await ctx.reply("Usage: /resend NT-XXXX");
+      await ctx.reply("Usage: /resend <order_code> (e.g. /resend NT-8K3P9Q)");
       return;
     }
     const order = await getOrderByCode(code);

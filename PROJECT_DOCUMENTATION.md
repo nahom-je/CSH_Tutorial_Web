@@ -495,8 +495,7 @@ These variables must be populated inside `bot/.env` (refer to `bot/.env.example`
 ### Central Bot Settings (`bot/config.js`)
 - `PRICING`: Price in ETB for `sem1` (399), `sem2` (399), and `full` (699).
 - `PLAN_LABELS`: Human-readable labels for plans.
-- `ORDER_CODE_PREFIX`: Prefix for order identifiers (`NT`).
-- `ORDER_CODE_START`: Initial order number counter (`1001`).
+- `ORDER_CODE_PREFIX`: Prefix for order identifiers (`NT`). Orders use a 6-character non-sequential random alphanumeric code (e.g. `NT-8K3P9Q`, ~1.07B combinations) to prevent sequential guessing.
 - `MAX_OPEN_ORDERS`: Max unfulfilled orders per student (`3`) to mitigate spam.
 - `INVITE_LINK_EXPIRY_HOURS`: Duration before single-use invite links expire (`48` hours).
 

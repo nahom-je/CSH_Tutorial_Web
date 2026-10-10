@@ -34,7 +34,7 @@ export default function QuizRunner() {
   const handleRunnerVerify = async (e) => {
     if (e) e.preventDefault();
     if (!runnerOrderInput.trim()) {
-      setRunnerVerifyError('Please enter your Order Code (e.g. NT-1001).');
+      setRunnerVerifyError('Please enter your Order Code (e.g. NT-8K3P9Q).');
       return;
     }
     setRunnerVerifying(true);
@@ -210,20 +210,29 @@ export default function QuizRunner() {
           <div className="quiz-gate-pill">🔒 Verification Required</div>
           <h2>Unlock Chapter Quiz</h2>
           <p>
-            Please enter the <strong>Order Code</strong> sent to you on Telegram (e.g. <code>NT-1001</code>) to practice this chapter.
+            Enter your official <strong>Order Verification Code</strong> (e.g. <code>NT-8K3P9Q</code>) provided via Telegram to access this chapter's questions and full explanations.
           </p>
           <form onSubmit={handleRunnerVerify} className="quiz-gate-form">
             <div className="quiz-gate-input-wrapper">
-              <span className="quiz-gate-prefix">🆔</span>
+              <span className="quiz-gate-prefix" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="7.5" cy="15.5" r="5.5" />
+                  <path d="m21 2-9.6 9.6" />
+                  <path d="m15.5 7.5 3 3L22 7l-3-3" />
+                </svg>
+              </span>
               <input
                 type="text"
                 className="quiz-gate-input"
-                placeholder="e.g. NT-1001 or 1001"
+                placeholder="Order Code (e.g. NT-8K3P9Q)"
                 value={runnerOrderInput}
                 onChange={(e) => {
                   setRunnerOrderInput(e.target.value);
                   setRunnerVerifyError(null);
                 }}
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck="false"
               />
               <button
                 type="submit"
