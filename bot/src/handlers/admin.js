@@ -1,12 +1,14 @@
 // src/handlers/admin.js — All admin-only commands and approve/reject callbacks
 import {
   getPendingOrders, getOrderByCode, updateOrderStatus,
-  findOrders, getStats,
+  findOrders, getStats, resetOrderDeviceId, resetOrderDeviceIdByTelegramId,
+  setChapterLockStatus, getCourseChaptersStatus, setAllChaptersLockStatus,
 } from "../db/database.js";
 import { formatOrderSummary, escapeMd, escapeHtml } from "../utils/helpers.js";
 import { deliverAccess } from "../utils/delivery.js";
 import { normalizeOrderCode } from "../utils/token.js";
-import { PLAN_LABELS } from "../../config.js";
+import { PLAN_LABELS, QUIZ_PLATFORM_URL } from "../../config.js";
+import { clearQuizChapterCache } from "../utils/quizApi.js";
 import { logger } from "../utils/logger.js";
 
 function isAdmin(ctx) {
@@ -120,6 +122,158 @@ export function registerAdminHandlers(bot) {
     }
     msg += `\n💰 <b>Total: ${total?.count || 0} approved orders — ${total?.revenue || 0} ETB</b>`;
     await ctx.reply(msg, { parse_mode: "HTML" });
+  }));
+
+  // ── /resetdevice [order_code] — self-service for student, or admin override
+  bot.command("resetdevice", async (ctx) => {
+    const raw = ctx.message?.text?.split(" ")[1];
+    const code = normalizeOrderCode(raw);
+
+    // If admin provides a specific code
+    if (code && isAdmin(ctx)) {
+      try {
+        await resetOrderDeviceId(code);
+        await ctx.reply(`✅ Device lock cleared for order <code>${escapeHtml(code)}</code>.`, { parse_mode: "HTML" });
+      } catch (err) {
+        await ctx.reply(`❌ Failed to reset device: ${escapeHtml(err.message)}`, { parse_mode: "HTML" });
+      }
+      return;
+    }
+
+    // Student self-service device reset
+    const userId = ctx.from?.id || ctx.chat?.id;
+    try {
+      const resetCodes = await resetOrderDeviceIdByTelegramId(userId);
+      if (!resetCodes || resetCodes.length === 0) {
+        await ctx.reply(
+          `⚠️ <b>No active subscription found.</b>\n\nOnly approved students can reset their device lock. Use /start to register or contact @Umeribnukedir.`,
+          { parse_mode: "HTML" }
+        );
+        return;
+      }
+      await ctx.reply(
+        `✅ <b>Device Lock Cleared Successfully!</b>\n\n` +
+        `Your device binding for order <code>${escapeHtml(resetCodes[0])}</code> has been reset.\n\n` +
+        `👉 You can now enter your code on your new phone, laptop, or browser to lock it there:\n` +
+        `🌐 <b>Website:</b> <a href="${QUIZ_PLATFORM_URL}">${QUIZ_PLATFORM_URL}</a>`,
+        { parse_mode: "HTML" }
+      );
+    } catch (err) {
+      logger.error(`Error in /resetdevice for ${userId}: ${err.message}`);
+      await ctx.reply(`⚠️ Could not reset device at this moment. Please try again or contact @Umeribnukedir.`);
+    }
+  });
+
+  // ── /lock <course> <chapter>
+  bot.command("lock", adminOnly(async (ctx) => {
+    const parts = (ctx.message?.text || "").split(" ");
+    const courseCode = parts[1]?.toUpperCase();
+    const chapterNum = parseInt(parts[2], 10);
+
+    if (!courseCode || isNaN(chapterNum)) {
+      await ctx.reply("Usage: /lock <COURSE_CODE> <CHAPTER_NUM>\nExample: /lock ECON-1011 2");
+      return;
+    }
+
+    try {
+      const updated = await setChapterLockStatus(courseCode, chapterNum, true);
+      if (!updated) {
+        await ctx.reply(`⚠️ Chapter ${chapterNum} not found in course ${courseCode}.`);
+        return;
+      }
+      clearQuizChapterCache();
+      await ctx.reply(`🔒 <b>Chapter Locked:</b> ${escapeHtml(courseCode)} Chapter ${chapterNum} (${escapeHtml(updated.title)}) is now LOCKED on web and bot.`, { parse_mode: "HTML" });
+    } catch (err) {
+      await ctx.reply(`❌ Failed to lock chapter: ${escapeHtml(err.message)}`);
+    }
+  }));
+
+  // ── /unlock <course> <chapter>
+  bot.command("unlock", adminOnly(async (ctx) => {
+    const parts = (ctx.message?.text || "").split(" ");
+    const courseCode = parts[1]?.toUpperCase();
+    const chapterNum = parseInt(parts[2], 10);
+
+    if (!courseCode || isNaN(chapterNum)) {
+      await ctx.reply("Usage: /unlock <COURSE_CODE> <CHAPTER_NUM>\nExample: /unlock ECON-1011 2");
+      return;
+    }
+
+    try {
+      const updated = await setChapterLockStatus(courseCode, chapterNum, false);
+      if (!updated) {
+        await ctx.reply(`⚠️ Chapter ${chapterNum} not found in course ${courseCode}.`);
+        return;
+      }
+      clearQuizChapterCache();
+      await ctx.reply(`🔓 <b>Chapter Unlocked:</b> ${escapeHtml(courseCode)} Chapter ${chapterNum} (${escapeHtml(updated.title)}) is now OPEN for students! 🎉`, { parse_mode: "HTML" });
+    } catch (err) {
+      await ctx.reply(`❌ Failed to unlock chapter: ${escapeHtml(err.message)}`);
+    }
+  }));
+
+  // ── /chapters <course>
+  bot.command("chapters", adminOnly(async (ctx) => {
+    const courseCode = (ctx.message?.text || "").split(" ")[1]?.toUpperCase();
+    if (!courseCode) {
+      await ctx.reply("Usage: /chapters <COURSE_CODE>\nExample: /chapters ECON-1011");
+      return;
+    }
+
+    try {
+      const { course, chapters } = await getCourseChaptersStatus(courseCode);
+      if (!chapters.length) {
+        await ctx.reply(`No chapters found for course ${courseCode}.`);
+        return;
+      }
+      const lines = chapters.map(ch =>
+        `${ch.is_locked ? "🔒 [LOCKED]" : "🔓 [OPEN]"} Ch ${ch.chapter_number}: ${escapeHtml(ch.title)}`
+      );
+      await ctx.reply(
+        `📚 <b>${escapeHtml(course.code)}: ${escapeHtml(course.title)}</b>\n\n${lines.join("\n")}\n\n` +
+        `<i>Use /unlock ${course.code} &lt;num&gt; or /lock ${course.code} &lt;num&gt; to toggle.</i>`,
+        { parse_mode: "HTML" }
+      );
+    } catch (err) {
+      await ctx.reply(`❌ Error: ${escapeHtml(err.message)}`);
+    }
+  }));
+
+  // ── /lockall — Lock ALL chapters across all courses instantly
+  bot.command("lockall", adminOnly(async (ctx) => {
+    try {
+      await ctx.reply("⏳ Locking all chapters... please wait.");
+      const count = await setAllChaptersLockStatus(true);
+      clearQuizChapterCache();
+      await ctx.reply(
+        `🔒 <b>ALL Chapters Locked!</b>\n\n` +
+        `<b>${count}</b> chapters across all courses have been locked.\n\n` +
+        `Students will see a 🔒 badge on every chapter.\n` +
+        `Use <code>/unlock COURSE_CODE NUM</code> to open individual chapters,\n` +
+        `or <code>/unlockall</code> to open everything at once.`,
+        { parse_mode: "HTML" }
+      );
+    } catch (err) {
+      await ctx.reply(`❌ Failed to lock all chapters: ${escapeHtml(err.message)}`);
+    }
+  }));
+
+  // ── /unlockall — Unlock ALL chapters across all courses instantly
+  bot.command("unlockall", adminOnly(async (ctx) => {
+    try {
+      await ctx.reply("⏳ Unlocking all chapters... please wait.");
+      const count = await setAllChaptersLockStatus(false);
+      clearQuizChapterCache();
+      await ctx.reply(
+        `🔓 <b>ALL Chapters Unlocked!</b>\n\n` +
+        `<b>${count}</b> chapters across all courses are now OPEN for students! 🎉\n\n` +
+        `Students can now access every quiz immediately.\n` +
+        `Use <code>/lock COURSE_CODE NUM</code> to lock specific chapters.`,
+        { parse_mode: "HTML" }
+      );
+    } catch (err) {
+      await ctx.reply(`❌ Failed to unlock all chapters: ${escapeHtml(err.message)}`);
+    }
   }));
 
   // ── Inline button: admin_approve_NT-XXXX

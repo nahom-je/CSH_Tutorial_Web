@@ -39,15 +39,29 @@ export async function getQuizCourses() {
 /**
  * Fetch chapters for a given course
  */
+export function clearQuizChapterCache() {
+  cachedChaptersByCourse.clear();
+}
+
+/**
+ * Fetch chapters for a given course
+ */
 export async function getQuizChapters(courseId) {
   if (cachedChaptersByCourse.has(courseId)) {
     return cachedChaptersByCourse.get(courseId);
   }
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/chapters?course_id=eq.${encodeURIComponent(courseId)}&select=id,chapter_number,title,description&order=chapter_number`,
+    let res = await fetch(
+      `${SUPABASE_URL}/rest/v1/chapters?course_id=eq.${encodeURIComponent(courseId)}&select=id,chapter_number,title,description,is_locked&order=chapter_number`,
       { headers: HEADERS }
     );
+    // If column is_locked doesn't exist yet, fall back without it
+    if (!res.ok && res.status === 400) {
+      res = await fetch(
+        `${SUPABASE_URL}/rest/v1/chapters?course_id=eq.${encodeURIComponent(courseId)}&select=id,chapter_number,title,description&order=chapter_number`,
+        { headers: HEADERS }
+      );
+    }
     if (!res.ok) throw new Error(`Chapters fetch failed: ${res.status}`);
     const data = await res.json();
     const sorted = data || [];

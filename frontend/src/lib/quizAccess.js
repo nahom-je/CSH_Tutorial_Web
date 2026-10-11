@@ -1,6 +1,24 @@
 // src/lib/quizAccess.js — Order Code Access & Verification Manager
 const ACCESS_STORAGE_KEY = 'csh_quiz_access';
+const DEVICE_STORAGE_KEY = 'csh_device_id';
 const BOT_API_URL = import.meta.env.VITE_BOT_API_URL || 'http://localhost:3000';
+
+/**
+ * Get or create a persistent device identifier for the current browser/device
+ */
+export function getOrCreateDeviceId() {
+  if (typeof localStorage === 'undefined') return 'dev_temp';
+  try {
+    let deviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
+    if (!deviceId) {
+      deviceId = 'dev_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+      localStorage.setItem(DEVICE_STORAGE_KEY, deviceId);
+    }
+    return deviceId;
+  } catch {
+    return 'dev_temp';
+  }
+}
 
 /**
  * Normalizes any variation of an order code to "NT-XXXXXX" or "NT-NNNN"
@@ -34,17 +52,17 @@ export function isValidOrderCodeFormat(code) {
 
 
 /**
- * Retrieve saved access from sessionStorage (active only while tab/window is open)
+ * Retrieve saved access from sessionStorage or localStorage
  */
 export function getStoredAccess() {
   try {
-    // Clean up any legacy localStorage entry from previous versions
-    if (typeof localStorage !== 'undefined' && localStorage.getItem(ACCESS_STORAGE_KEY)) {
-      localStorage.removeItem(ACCESS_STORAGE_KEY);
+    let raw = null;
+    if (typeof sessionStorage !== 'undefined') {
+      raw = sessionStorage.getItem(ACCESS_STORAGE_KEY);
     }
-
-    if (typeof sessionStorage === 'undefined') return null;
-    const raw = sessionStorage.getItem(ACCESS_STORAGE_KEY);
+    if (!raw && typeof localStorage !== 'undefined') {
+      raw = localStorage.getItem(ACCESS_STORAGE_KEY);
+    }
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.orderCode && isValidOrderCodeFormat(parsed.orderCode)) {
@@ -57,22 +75,28 @@ export function getStoredAccess() {
 }
 
 /**
- * Save verified access to sessionStorage (clears automatically when student closes the tab or browser)
+ * Save verified access to both sessionStorage and localStorage for seamless persistence on this device
  */
 export function saveAccess(data) {
   const norm = normalizeOrderCode(data.orderCode);
+  const deviceId = data.deviceId || getOrCreateDeviceId();
   const payload = {
     orderCode: norm,
     name: data.name || 'CSH Student',
     plan: data.plan || 'Semester 1',
+    deviceId,
     unlockedAt: new Date().toISOString(),
     verified: true,
   };
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
-  }
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem(ACCESS_STORAGE_KEY);
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(payload));
+    }
+  } catch {
+    // Ignore storage quota errors
   }
   return payload;
 }
@@ -81,11 +105,15 @@ export function saveAccess(data) {
  * Remove saved access
  */
 export function clearAccess() {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.removeItem(ACCESS_STORAGE_KEY);
-  }
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem(ACCESS_STORAGE_KEY);
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(ACCESS_STORAGE_KEY);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(ACCESS_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore
   }
 }
 
@@ -93,7 +121,7 @@ import { supabase } from './supabase';
 
 /**
  * Verify order code directly against Supabase database (and fallback to bot API server).
- * Access is ONLY granted when status is explicitly "approved".
+ * Access is ONLY granted when status is explicitly "approved", and device binding is verified.
  */
 export async function verifyOrderAccess(inputCode) {
   const norm = normalizeOrderCode(inputCode);
@@ -104,17 +132,35 @@ export async function verifyOrderAccess(inputCode) {
     };
   }
 
+  const deviceId = getOrCreateDeviceId();
+
   // 1. Direct Supabase verification (ultra-fast, works on edge without cold starts)
   try {
-    const { data: order, error } = await supabase
+    let order = null;
+    let hasDeviceCol = true;
+
+    const { data, error } = await supabase
       .from('orders')
-      .select('order_code, name, plan, status')
+      .select('order_code, name, plan, status, device_id')
       .eq('order_code', norm)
       .maybeSingle();
 
-    if (error) {
+    if (error && error.code === '42703') {
+      // Column device_id does not exist yet in DB; fallback query without it
+      hasDeviceCol = false;
+      const fallback = await supabase
+        .from('orders')
+        .select('order_code, name, plan, status')
+        .eq('order_code', norm)
+        .maybeSingle();
+      order = fallback.data;
+    } else if (error) {
       console.warn('Supabase query error:', error.message);
-    } else if (!order) {
+    } else {
+      order = data;
+    }
+
+    if (!order) {
       return {
         success: false,
         message: `Order code "${norm}" was not found. Please double-check your code.`,
@@ -128,11 +174,33 @@ export async function verifyOrderAccess(inputCode) {
         message: msg,
       };
     } else {
-      // Order exists and status is approved!
+      // Device binding verification
+      if (hasDeviceCol && order.device_id) {
+        if (order.device_id !== deviceId) {
+          return {
+            success: false,
+            deviceLocked: true,
+            message: '🚫 This order code is locked to another device. If you switched devices or browsers, open @CSH_Tutorial_bot on Telegram and type /resetdevice to transfer access.',
+          };
+        }
+      } else if (hasDeviceCol && !order.device_id) {
+        // First device login: bind this device
+        try {
+          await supabase
+            .from('orders')
+            .update({ device_id: deviceId })
+            .eq('order_code', norm);
+        } catch (bindErr) {
+          console.warn('Could not bind device in direct DB call:', bindErr.message);
+        }
+      }
+
+      // Order exists, status is approved, and device matches!
       const access = saveAccess({
         orderCode: order.order_code,
         name: order.name,
         plan: order.plan,
+        deviceId,
       });
       return {
         success: true,
@@ -150,7 +218,7 @@ export async function verifyOrderAccess(inputCode) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
 
-      const res = await fetch(`${BOT_API_URL}/api/verify-order?code=${encodeURIComponent(norm)}`, {
+      const res = await fetch(`${BOT_API_URL}/api/verify-order?code=${encodeURIComponent(norm)}&device_id=${encodeURIComponent(deviceId)}`, {
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -161,8 +229,15 @@ export async function verifyOrderAccess(inputCode) {
           orderCode: data.order_code,
           name: data.name,
           plan: data.plan,
+          deviceId,
         });
         return { success: true, access, message: 'Order verified successfully!' };
+      } else if (data.device_locked) {
+        return {
+          success: false,
+          deviceLocked: true,
+          message: data.message || 'This order code is locked to another device. Type /resetdevice in @CSH_Tutorial_bot to transfer access.',
+        };
       }
     } catch (_) {
       // Ignore

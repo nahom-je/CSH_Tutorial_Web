@@ -108,12 +108,16 @@ flowchart TD
 | `status` | `text` | `awaiting_payment` → `screenshot_sent` → `approved` / `rejected` |
 | `screenshot_file_id` | `text` | Telegram photo file ID of the payment receipt |
 | `reject_reason` | `text` | Reason if payment was rejected by admin |
+| `device_id` | `text` | Bound device identifier (anti-sharing protection) |
 | `created_at` | `timestamptz` | Order creation timestamp |
 | `reviewed_at` | `timestamptz` | Admin approval timestamp |
 
 #### 2. Quiz Tables (`courses`, `chapters`, `questions`)
 - **`courses`**: Stores university courses (Code, Title, Description, Semester).
-- **`chapters`**: Chapters belonging to each course with sequence numbers.
+- **`chapters`**: Chapters belonging to each course with sequence numbers:
+  - `chapter_number`: Chapter sequence number
+  - `title`, `description`: Chapter name and syllabus overview
+  - `is_locked`: `boolean` (Default: `false`). Enables paced drip-releasing of chapter quizzes alongside video lectures.
 - **`questions`**: Over 1,185 exam questions with:
   - `question_text`: Problem statement
   - `options`: JSON array `[{"id":"A","text":"..."},{"id":"B","text":"..."}]`
@@ -155,17 +159,21 @@ flowchart TD
 
 ---
 
-### Flow 4: Web Quiz Access (Zero-Trust Security)
+### Flow 4: Web Quiz Access & Single-Device Binding (Anti-Sharing Protection)
 1. Student opens the website.
-2. The web frontend extracts the order code from the URL or local storage.
-3. **Live Verification:** Frontend sends a request to the backend:
+2. The web frontend generates a unique, persistent client device fingerprint (`csh_device_id`).
+3. **Live Verification:** Frontend validates against Supabase and the Render bot API:
    ```http
-   GET https://csh-tutorial-bot.onrender.com/api/verify-order?code=NT-XXXX
+   GET https://csh-tutorial-bot.onrender.com/api/verify-order?code=NT-XXXX&device_id=dev_xxxxx
    ```
-4. The bot backend queries Supabase:
-   - If order exists **and** `status === 'approved'` → Returns `200 OK { valid: true }`.
-   - If order is missing, pending, awaiting payment, or rejected → Returns `403 Forbidden { valid: false }`.
-5. Frontend unlocks the quiz dashboard only upon `200 OK`. If unapproved, the student is redirected to a locked screen.
+4. The backend verifies:
+   - Status must be `approved`.
+   - If `order.device_id` is null (first login) → Automatically binds `device_id` to that student's device.
+   - If `order.device_id` matches current device → Returns `200 OK { valid: true }`.
+   - If `order.device_id` belongs to another device → Returns `403 Forbidden { device_locked: true }` with instructions to reset via Telegram bot.
+5. **Legitimate Device Switching:**
+   - The verified student can reset their device binding anytime by sending `/resetdevice` to `@CSH_Tutorial_bot`.
+   - Admin can also reset any order manually: `/resetdevice NT-XXXX`.
 
 ---
 
@@ -177,6 +185,31 @@ flowchart TD
    - Otherwise, the bot halts execution and shows `🔒 Quiz Access Locked`, instructing the student to register and wait for approval.
 
 ---
+
+### Flow 6: Drip-Locked Chapters (Synchronized Video Release)
+1. In `chapters` table, each chapter has an `is_locked` boolean (default `false`).
+2. When `is_locked === true`:
+   - **Web Frontend:** Chapter displays a `🔒 Locked` badge with a disabled-style card. Clicking it shows an alert explaining the quiz will unlock when the video drops.
+   - **Direct URL Safeguard:** Visiting `/quiz/:chapterId` directly renders a full locked screen with a link back to the catalog.
+   - **Telegram In-Bot Quiz:** Shows `🔒 Ch X: Title [Locked]` as the chapter button. Tapping it pops an alert: *"Chapter X is locked! It will unlock when the video tutorial is released."*
+3. **Admin Chapter Control via Telegram:**
+
+   | Command | Effect |
+   | :--- | :--- |
+   | `/lockall` | 🔒 Lock **ALL** chapters across every course instantly |
+   | `/unlockall` | 🔓 Unlock **ALL** chapters across every course instantly |
+   | `/lock ECON-1011 2` | Lock Chapter 2 of Economics only |
+   | `/unlock ECON-1011 2` | Unlock Chapter 2 of Economics only |
+   | `/chapters ECON-1011` | List locked/open status of all chapters in a course |
+
+4. **Typical Weekly Workflow:**
+   - Start of semester → `/lockall` (locks everything except Chapter 1 if you unlock it).
+   - Drop Chapter 1 video → `/unlock ECON-1011 1`, `/unlock PSYC-1011 1`, etc.
+   - Drop Chapter 2 video → `/unlock ECON-1011 2`, etc.
+   - Check a course anytime → `/chapters ECON-1011`
+
+---
+
 
 ## 4. Hosting & Deployment Setup
 

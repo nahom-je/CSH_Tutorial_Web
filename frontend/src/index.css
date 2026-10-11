@@ -1666,6 +1666,19 @@ section {
   transform: translateY(-1px);
 }
 
+.quiz-chapter-card-item.quiz-chapter-card-locked {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  opacity: 0.85;
+}
+
+.quiz-chapter-card-item.quiz-chapter-card-locked:hover {
+  border-color: #CBD5E1;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+}
+
 .quiz-chapter-number-pill {
   font-size: 0.72rem;
   font-weight: 800;
@@ -1675,6 +1688,26 @@ section {
   border-radius: var(--radius-xs);
   flex-shrink: 0;
 }
+
+.quiz-chapter-number-pill.locked-pill {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.quiz-locked-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  margin-left: 0.45rem;
+  vertical-align: middle;
+}
+
 
 .quiz-chapter-content {
   flex: 1;

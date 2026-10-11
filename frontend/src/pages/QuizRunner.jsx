@@ -87,13 +87,27 @@ export default function QuizRunner() {
         setError(null);
 
         // 1. Fetch chapter
-        const { data: chData, error: chErr } = await supabase
+        let chData = null;
+        const chRes = await supabase
           .from('chapters')
-          .select('id, chapter_number, title, description, course_id')
+          .select('id, chapter_number, title, description, course_id, is_locked')
           .eq('id', chapterId)
           .single();
 
-        if (chErr || !chData) throw new Error('Chapter not found.');
+        if (chRes.error && chRes.error.code === '42703') {
+          const fallback = await supabase
+            .from('chapters')
+            .select('id, chapter_number, title, description, course_id')
+            .eq('id', chapterId)
+            .single();
+          chData = fallback.data;
+        } else if (chRes.error) {
+          throw new Error('Chapter not found.');
+        } else {
+          chData = chRes.data;
+        }
+
+        if (!chData) throw new Error('Chapter not found.');
         setChapter(chData);
 
         // 2. Fetch course
@@ -103,6 +117,11 @@ export default function QuizRunner() {
           .eq('id', chData.course_id)
           .single();
         setCourse(coData);
+
+        if (chData.is_locked) {
+          setLoading(false);
+          return;
+        }
 
         // 3. Fetch questions
         const { data: qData, error: qErr } = await supabase
@@ -208,6 +227,28 @@ export default function QuizRunner() {
         <div className="quiz-spinner-large" />
         <h2>{accessValidating ? 'Verifying Access...' : 'Preparing Your Quiz...'}</h2>
         <p>{accessValidating ? 'Checking your subscription status' : 'Loading questions and explanations'}</p>
+      </div>
+    );
+  }
+
+  if (chapter?.is_locked) {
+    return (
+      <div className="quiz-error-screen">
+        <div className="quiz-error-card">
+          <div className="quiz-error-icon">🔒</div>
+          <h2>Chapter Quiz Locked</h2>
+          <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+            <strong>{course?.title || 'This Course'} — Chapter {chapter.chapter_number} ({chapter.title})</strong>
+          </p>
+          <p style={{ marginTop: '0.75rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
+            This chapter quiz is currently locked. It will automatically unlock as soon as the video tutorial is published in the private CSH Telegram group!
+          </p>
+          <div style={{ marginTop: '1.5rem' }}>
+            <Link to="/quizzes" className="btn btn-primary">
+              ← Return to Course Catalog
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

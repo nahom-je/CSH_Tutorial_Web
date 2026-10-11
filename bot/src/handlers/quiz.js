@@ -348,8 +348,8 @@ export function registerQuizHandler(bot) {
 
     const buttons = chapters.map((ch) => [
       {
-        text: `📖 Ch ${ch.chapter_number}: ${ch.title}`,
-        callback_data: `tgquiz_start_${ch.id}`,
+        text: `${ch.is_locked ? "🔒 " : "📖 "}Ch ${ch.chapter_number}: ${ch.title}${ch.is_locked ? " [Locked]" : ""}`,
+        callback_data: ch.is_locked ? `tgquiz_locked_${ch.chapter_number}` : `tgquiz_start_${ch.id}`,
       },
     ]);
 
@@ -363,6 +363,15 @@ export function registerQuizHandler(bot) {
       parse_mode: "HTML",
       reply_markup: { inline_keyboard: buttons },
     });
+  });
+
+  // ── Locked Chapter Callback
+  bot.action(/^tgquiz_locked_(\d+)$/, async (ctx) => {
+    const chNum = ctx.match[1];
+    await ctx.answerCbQuery(
+      `🔒 Chapter ${chNum} is locked!\n\nIt will unlock when the video tutorial is released in the private group.`,
+      { show_alert: true }
+    );
   });
 
   // ── Start Chapter Quiz

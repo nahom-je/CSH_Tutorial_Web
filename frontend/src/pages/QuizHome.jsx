@@ -61,12 +61,22 @@ export default function QuizHome() {
 
         const allChapters = {};
         for (const c of coursesData || []) {
-          const { data: chs } = await supabase
+          let chsRes = await supabase
             .from('chapters')
-            .select('id, chapter_number, title, description')
+            .select('id, chapter_number, title, description, is_locked')
             .eq('course_id', c.id)
             .order('chapter_number');
-          allChapters[c.id] = chs || [];
+
+          // Fallback if is_locked column doesn't exist yet in Supabase
+          if (chsRes.error && chsRes.error.code === '42703') {
+            chsRes = await supabase
+              .from('chapters')
+              .select('id, chapter_number, title, description')
+              .eq('course_id', c.id)
+              .order('chapter_number');
+          }
+
+          allChapters[c.id] = chsRes.data || [];
         }
         setChapters(allChapters);
 
@@ -146,7 +156,11 @@ export default function QuizHome() {
     setVerifyError(null);
   };
 
-  const handleLaunchQuiz = (chapterId) => {
+  const handleLaunchQuiz = (chapterId, isLocked = false, chapterNum = '') => {
+    if (isLocked) {
+      alert(`🔒 Chapter ${chapterNum} Quiz is Currently Locked!\n\nThis quiz will be unlocked as soon as the video lecture is published in the private CSH Telegram group.`);
+      return;
+    }
     if (!access) {
       setVerifyError('Please enter and verify your Order Code to access chapter quizzes.');
       const gate = document.getElementById('quiz-order-gate');
@@ -412,9 +426,9 @@ export default function QuizHome() {
                     {isEnglish ? (
                       <button
                         className="btn btn-primary quiz-start-btn"
-                        onClick={() => chs[0] && handleLaunchQuiz(chs[0].id)}
+                        onClick={() => chs[0] && handleLaunchQuiz(chs[0].id, chs[0]?.is_locked, 1)}
                       >
-                        {access ? 'Start English Quiz →' : '🔒 Unlock English Quiz'}
+                        {chs[0]?.is_locked ? '🔒 Locked' : access ? 'Start English Quiz →' : '🔒 Unlock English Quiz'}
                       </button>
                     ) : (
                       <button
@@ -434,17 +448,21 @@ export default function QuizHome() {
                       <div className="quiz-chapters-list">
                         {chs.map(ch => {
                           const qCount = questionCounts[ch.id] || 30;
+                          const isLocked = Boolean(ch.is_locked);
                           return (
                             <button
                               key={ch.id}
-                              className="quiz-chapter-card-item"
-                              onClick={() => handleLaunchQuiz(ch.id)}
+                              className={`quiz-chapter-card-item ${isLocked ? 'quiz-chapter-card-locked' : ''}`}
+                              onClick={() => handleLaunchQuiz(ch.id, isLocked, ch.chapter_number)}
                             >
-                              <div className="quiz-chapter-number-pill">
-                                Ch {ch.chapter_number}
+                              <div className={`quiz-chapter-number-pill ${isLocked ? 'locked-pill' : ''}`}>
+                                {isLocked ? `🔒 Ch ${ch.chapter_number}` : `Ch ${ch.chapter_number}`}
                               </div>
                               <div className="quiz-chapter-content">
-                                <h4 className="quiz-chapter-title">{ch.title}</h4>
+                                <h4 className="quiz-chapter-title">
+                                  {ch.title}
+                                  {isLocked && <span className="quiz-locked-tag">Locked</span>}
+                                </h4>
                                 {ch.description && (
                                   <p className="quiz-chapter-desc">{ch.description}</p>
                                 )}
@@ -452,7 +470,7 @@ export default function QuizHome() {
                               <div className="quiz-chapter-action">
                                 <span className="quiz-ch-count">{qCount} Qs</span>
                                 <span className="quiz-start-link">
-                                  {access ? 'Start Quiz →' : '🔒 Unlock'}
+                                  {isLocked ? '🔒 Locked' : access ? 'Start Quiz →' : '🔒 Unlock'}
                                 </span>
                               </div>
                             </button>

@@ -2,7 +2,7 @@
 import "dotenv/config";
 import http from "http";
 import { Telegraf } from "telegraf";
-import { getDb, saveDb, getOrderByCode } from "./db/database.js";
+import { getDb, saveDb, getOrderByCode, setOrderDeviceId } from "./db/database.js";
 import { generateQuizToken, normalizeOrderCode } from "./utils/token.js";
 
 import { registerStartHandler }      from "./handlers/start.js";
@@ -96,7 +96,7 @@ async function startBot() {
       `✅ *CSH Tutorial Bot is ONLINE*\n\n` +
       `🤖 @${(botInfo.username || "").replace(/_/g, "\\_")} started successfully\\.\n` +
       `⏰ ${new Date().toUTCString().replace(/[.!]/g, "\\$&")}\n\n` +
-      `Commands: /pending /stats /find /approve /reject /resend`,
+      `Commands: /pending /stats /find /approve /reject /resend /resetdevice /lock /unlock /lockall /unlockall /chapters`,
       { parse_mode: "MarkdownV2" }
     );
   } catch (err) {
@@ -122,6 +122,7 @@ async function startBot() {
 
     if (url.pathname === "/api/verify-order") {
       const rawCode = url.searchParams.get("code") || "";
+      const deviceId = (url.searchParams.get("device_id") || "").trim();
       const normalized = normalizeOrderCode(rawCode);
 
       if (!normalized) {
@@ -150,6 +151,22 @@ async function startBot() {
                 : "Order is pending admin approval."
             }));
             return;
+          }
+
+          // Device binding verification
+          if (order.device_id) {
+            if (deviceId && order.device_id !== deviceId) {
+              res.writeHead(403, { "Content-Type": "application/json" });
+              res.end(JSON.stringify({
+                valid: false,
+                device_locked: true,
+                message: "This order code is already locked to another device. If you switched devices or browsers, open @CSH_Tutorial_bot on Telegram and type /resetdevice."
+              }));
+              return;
+            }
+          } else if (deviceId) {
+            // First time login: bind this device
+            await setOrderDeviceId(normalized, deviceId);
           }
 
           const token = generateQuizToken(normalized);

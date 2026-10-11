@@ -215,3 +215,121 @@ export async function getOrdersByTelegramId(telegram_id) {
   if (error) throw new Error(`getOrdersByTelegramId failed: ${error.message}`);
   return data ?? [];
 }
+
+/**
+ * Bind an order to a specific device_id
+ */
+export async function setOrderDeviceId(code, deviceId) {
+  const client = getClient();
+  const { error } = await client
+    .from("orders")
+    .update({ device_id: deviceId })
+    .eq("order_code", code);
+  if (error) {
+    logger.warn(`setOrderDeviceId note: ${error.message}`);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Clear the device_id binding for an order code
+ */
+export async function resetOrderDeviceId(code) {
+  const client = getClient();
+  const { error } = await client
+    .from("orders")
+    .update({ device_id: null })
+    .eq("order_code", code);
+  if (error) throw new Error(`resetOrderDeviceId failed: ${error.message}`);
+  return true;
+}
+
+/**
+ * Clear the device_id binding by telegram_id (for the student's active approved order)
+ */
+export async function resetOrderDeviceIdByTelegramId(telegramId) {
+  const client = getClient();
+  const { data: orders, error: fetchErr } = await client
+    .from("orders")
+    .select("order_code, status")
+    .eq("telegram_id", telegramId)
+    .eq("status", "approved");
+
+  if (fetchErr) throw new Error(`resetOrderDeviceIdByTelegramId query failed: ${fetchErr.message}`);
+  if (!orders || orders.length === 0) return null;
+
+  const codes = orders.map(o => o.order_code);
+  const { error: updateErr } = await client
+    .from("orders")
+    .update({ device_id: null })
+    .in("order_code", codes);
+
+  if (updateErr) throw new Error(`resetOrderDeviceIdByTelegramId update failed: ${updateErr.message}`);
+  return codes;
+}
+
+/**
+ * Set lock status for a course chapter (e.g. courseCode = "ECON-1011", chapterNumber = 2, isLocked = false)
+ */
+export async function setChapterLockStatus(courseCode, chapterNumber, isLocked) {
+  const client = getClient();
+  // Find course first
+  const { data: course, error: courseErr } = await client
+    .from("courses")
+    .select("id")
+    .ilike("code", courseCode)
+    .maybeSingle();
+
+  if (courseErr || !course) throw new Error(`Course not found: ${courseCode}`);
+
+  const { data, error } = await client
+    .from("chapters")
+    .update({ is_locked: isLocked })
+    .eq("course_id", course.id)
+    .eq("chapter_number", chapterNumber)
+    .select("id, chapter_number, title, is_locked");
+
+  if (error) throw new Error(`setChapterLockStatus failed: ${error.message}`);
+  return data && data[0] ? data[0] : null;
+}
+
+/**
+ * Get all chapters for a course with lock status
+ */
+export async function getCourseChaptersStatus(courseCode) {
+  const client = getClient();
+  const { data: course, error: courseErr } = await client
+    .from("courses")
+    .select("id, code, title")
+    .ilike("code", courseCode)
+    .maybeSingle();
+
+  if (courseErr || !course) throw new Error(`Course not found: ${courseCode}`);
+
+  const { data: chs, error: chsErr } = await client
+    .from("chapters")
+    .select("id, chapter_number, title, is_locked")
+    .eq("course_id", course.id)
+    .order("chapter_number");
+
+  if (chsErr) throw new Error(`getCourseChaptersStatus failed: ${chsErr.message}`);
+  return { course, chapters: chs || [] };
+}
+
+/**
+ * Lock or unlock ALL chapters across every course in the platform in one query.
+ * Returns { locked: N, unlocked: N } counts for the opposite of what was set.
+ */
+export async function setAllChaptersLockStatus(isLocked) {
+  const client = getClient();
+  const { data, error } = await client
+    .from("chapters")
+    .update({ is_locked: isLocked })
+    .neq("id", "00000000-0000-0000-0000-000000000000") // match all rows
+    .select("id");
+
+  if (error) throw new Error(`setAllChaptersLockStatus failed: ${error.message}`);
+  return data?.length ?? 0;
+}
+
