@@ -17,11 +17,12 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { href: isHomePage ? "#benefits" : "/#benefits", label: "Why CSH" },
-    { href: isHomePage ? "#courses"  : "/#courses",  label: "Courses" },
-    { href: isHomePage ? "#pricing"  : "/#pricing",  label: "Pricing" },
-    { href: isHomePage ? "#how"      : "/#how",      label: "How It Works" },
-    { href: isHomePage ? "#faq"      : "/#faq",      label: "FAQ" },
+    { href: isHomePage ? "#orientation" : "/#orientation", label: "Orientation" },
+    { href: isHomePage ? "#benefits"    : "/#benefits",    label: "Why CSH" },
+    { href: isHomePage ? "#courses"     : "/#courses",     label: "Courses" },
+    { href: isHomePage ? "#pricing"     : "/#pricing",     label: "Pricing" },
+    { href: isHomePage ? "#how"         : "/#how",         label: "How It Works" },
+    { href: isHomePage ? "#faq"         : "/#faq",         label: "FAQ" },
   ];
 
   return (

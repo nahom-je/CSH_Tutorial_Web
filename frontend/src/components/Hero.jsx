@@ -46,6 +46,13 @@ export default function Hero() {
               🚀 Get Semester 1 — {SEM_PRICE} ETB
             </a>
             <a
+              id="hero-cta-video"
+              href="#orientation"
+              className="btn btn-secondary btn-lg"
+            >
+              ▶ Watch 2-Min Guide
+            </a>
+            <a
               id="hero-cta-plans"
               href="#pricing"
               className="btn btn-outline btn-lg"

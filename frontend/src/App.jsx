@@ -2,6 +2,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar        from "./components/Navbar";
 import Hero          from "./components/Hero";
+import VideoShowcase from "./components/VideoShowcase";
 import Benefits      from "./components/Benefits";
 import Courses       from "./components/Courses";
 import Pricing       from "./components/Pricing";
@@ -32,6 +33,7 @@ function LandingPage() {
 
       <main id="main-content">
         <Hero />
+        <VideoShowcase />
         <Benefits />
         <Courses />
         <Pricing />
