@@ -12,38 +12,38 @@ export const COURSES = {
   // Semester 1: Natural Science Stream
   sem1Natural: [
     {
-      name: "Mathematics for Natural Sciences",
-      description: "Essential calculus, algebra, vectors, and foundational mathematical tools.",
-      icon: "📐",
-    },
-    {
       name: "General Physics",
       description: "Core mechanics, heat, and foundational physics principles.",
       icon: "⚡",
     },
     {
-      name: "Communicative English Language Skills I",
+      name: "Mathematics for Natural science",
+      description: "Essential calculus, algebra, vectors, and foundational mathematical tools.",
+      icon: "📐",
+    },
+    {
+      name: "Communicative English Language 1",
       description: "Develops basic reading, writing, and listening proficiency.",
       curriculumUrl: "https://ju.edu.et/jit/faculties-and-schools/faculty-of-computing-and-informatics/departments-chairs/information-science/programs-20/undergraduate-program/undergraduate-curriculum/",
       icon: "🗣️",
     },
     {
-      name: "General Psychology",
-      description: "Introduction to human behavior and cognitive processes.",
-      icon: "🧠",
-    },
-    {
-      name: "Critical Thinking",
-      description: "Logic, reasoning, and argument analysis.",
-      icon: "💡",
-    },
-    {
-      name: "Geography of Ethiopia and the Horn",
+      name: "Geography",
       description: "Physical, economic, and human geography of the region.",
       icon: "🌍",
     },
     {
-      name: "Physical Fitness",
+      name: "Logic and Critical thinking",
+      description: "Logic, reasoning, and argument analysis.",
+      icon: "💡",
+    },
+    {
+      name: "General psychology",
+      description: "Introduction to human behavior and cognitive processes.",
+      icon: "🧠",
+    },
+    {
+      name: "physical fitness",
       description: "Health-related conditioning and wellness (Pass/Fail).",
       icon: "🏃‍♂️",
     },
@@ -57,7 +57,7 @@ export const COURSES = {
       icon: "📈",
     },
     {
-      name: "Mathematics for Social Science",
+      name: "Mathematics for Social science",
       description: "Linear programming, matrices, calculus concepts, and practical applications.",
       icon: "📊",
     },
@@ -72,17 +72,17 @@ export const COURSES = {
       icon: "🌍",
     },
     {
-      name: "Logic and Critical Thinking",
+      name: "Logic and Critical thinking",
       description: "Philosophical reasoning, informal fallacies, argument construction, and critical analysis.",
       icon: "💡",
     },
     {
-      name: "General Psychology",
+      name: "General psychology",
       description: "Foundations of psychological theory, cognition, emotion, learning, and behavior.",
       icon: "🧠",
     },
     {
-      name: "Physical Fitness",
+      name: "physical fitness",
       description: "Health-related conditioning and wellness.",
       icon: "🏃‍♂️",
     },

@@ -135,24 +135,24 @@ export function coursesForPlan(plan, field) {
   const isSocial = String(field).toLowerCase().includes("social");
 
   const sem1Natural =
-    `📘 *Semester 1 (Natural Science) Courses:*\n` +
-    `• Mathematics for Natural Sciences\n` +
-    `• General Physics\n` +
-    `• Communicative English Language Skills I\n` +
-    `• General Psychology\n` +
-    `• Critical Thinking\n` +
-    `• Geography of Ethiopia and the Horn\n` +
-    `• Physical Fitness`;
+    `✨ *Natural science Courses*\n\n` +
+    `① General Physics\n` +
+    `② Mathematics for Natural science\n` +
+    `③ Communicative English Language 1\n` +
+    `④ Geography\n` +
+    `⑤ Logic and Critical thinking\n` +
+    `⑥ General psychology\n` +
+    `⑦ physical fitness`;
 
   const sem1Social =
-    `📘 *Semester 1 (Social Science) Courses:*\n` +
-    `• General Economics\n` +
-    `• Mathematics for Social Science\n` +
-    `• Communicative English Language 1\n` +
-    `• Geography\n` +
-    `• Logic and Critical Thinking\n` +
-    `• General Psychology\n` +
-    `• Physical Fitness`;
+    `✅ *Social Science Courses*\n\n` +
+    `1 General Economics\n` +
+    `2 Mathematics for Social science\n` +
+    `3 Communicative English Language 1\n` +
+    `4 Geography\n` +
+    `5 Logic and Critical thinking\n` +
+    `6 General psychology\n` +
+    `7 physical fitness`;
 
   // Social Science stream only has Semester 1 courses
   if (isSocial) {
@@ -179,25 +179,27 @@ export function coursesForPlan(plan, field) {
 
 // HTML-safe version of course lists (used with parse_mode: HTML)
 export function coursesForPlanHtml(plan, field) {
-  const sem1Social =
-    "📘 <b>Semester 1 Courses (Social Science):</b>\n" +
-    "• General Economics\n" +
-    "• Mathematics for Social Science\n" +
-    "• Communicative English Language 1\n" +
-    "• Geography\n" +
-    "• Logic and Critical Thinking\n" +
-    "• General Psychology\n" +
-    "• Physical Fitness";
+  const isSocial = String(field).toLowerCase().includes("social");
 
   const sem1Natural =
-    "📘 <b>Semester 1 Courses (Natural Science):</b>\n" +
-    "• Communicative English Language Skills I\n" +
-    "• Introduction to Sociology\n" +
-    "• Applied Mathematics I\n" +
-    "• Moral and Civic Education\n" +
-    "• Geography of Ethiopia and the Horn\n" +
-    "• Introduction to Emerging Technologies\n" +
-    "• Physical Fitness";
+    "📘 <b>✨ Natural science Courses</b>\n\n" +
+    "① General Physics\n" +
+    "② Mathematics for Natural science\n" +
+    "③ Communicative English Language 1\n" +
+    "④ Geography\n" +
+    "⑤ Logic and Critical thinking\n" +
+    "⑥ General psychology\n" +
+    "⑦ physical fitness";
 
-  return field === "Natural" ? sem1Natural : sem1Social;
+  const sem1Social =
+    "📘 <b>✅ Social Science Courses</b>\n\n" +
+    "1 General Economics\n" +
+    "2 Mathematics for Social science\n" +
+    "3 Communicative English Language 1\n" +
+    "4 Geography\n" +
+    "5 Logic and Critical thinking\n" +
+    "6 General psychology\n" +
+    "7 physical fitness";
+
+  return isSocial ? sem1Social : sem1Natural;
 }
