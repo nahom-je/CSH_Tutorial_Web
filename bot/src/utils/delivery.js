@@ -68,15 +68,14 @@ export async function deliverAccess(telegram, order) {
     `📢 Main Channel: <a href="${mainChannel}">CSH Announcements</a>\n\n` +
     `💬 Need assistance? Message @Umeribnukedir directly anytime.`;
 
+  const inlineButtons = [];
+  if (!isLocal) {
+    inlineButtons.push([{ text: "🚀 Open Web Quizzes", url: QUIZ_PLATFORM_URL }]);
+  }
+  inlineButtons.push([{ text: "📝 Practice In Telegram", callback_data: "tgquiz_launch_fresh" }]);
+
   const keyboard = {
-    inline_keyboard: [
-      [
-        { text: "🚀 Open Web Quizzes", url: QUIZ_PLATFORM_URL }
-      ],
-      [
-        { text: "📝 Practice In Telegram", callback_data: "tgquiz_launch_fresh" }
-      ]
-    ]
+    inline_keyboard: inlineButtons,
   };
 
   await telegram.sendMessage(telegram_id, accessMsg, {
