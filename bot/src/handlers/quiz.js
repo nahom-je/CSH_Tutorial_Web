@@ -63,14 +63,81 @@ async function replyAccessDenied(ctx) {
 }
 
 const COURSE_ICONS = {
-  "PHIL-1011": "🧠",
-  "PSYC-1011": "🧬",
-  "GEOG-1011": "🌍",
-  "MATH-1011": "➕",
   "PHYS-1011": "⚡",
+  "MATH-1011": "📐",
   "ENGL-1011": "📝",
+  "GEOG-1011": "🌍",
+  "PHIL-1011": "💡",
+  "PSYC-1011": "🧠",
   "ECON-1011": "📈",
 };
+
+const NATURAL_STREAM_COURSES = [
+  { code: "PHYS-1011", name: "1. General Physics", icon: "⚡" },
+  { code: "MATH-1011", name: "2. Mathematics for Natural Science", icon: "📐" },
+  { code: "ENGL-1011", name: "3. Communicative English Language 1", icon: "📝" },
+  { code: "GEOG-1011", name: "4. Geography", icon: "🌍" },
+  { code: "PHIL-1011", name: "5. Logic and Critical Thinking", icon: "💡" },
+  { code: "PSYC-1011", name: "6. General Psychology", icon: "🧠" },
+];
+
+const SOCIAL_STREAM_COURSES = [
+  { code: "ECON-1011", name: "1. General Economics", icon: "📈" },
+  { code: "MATH-1011", name: "2. Mathematics for Social Science", icon: "📊" },
+  { code: "ENGL-1011", name: "3. Communicative English Language 1", icon: "📝" },
+  { code: "GEOG-1011", name: "4. Geography", icon: "🌍" },
+  { code: "PHIL-1011", name: "5. Logic and Critical Thinking", icon: "💡" },
+  { code: "PSYC-1011", name: "6. General Psychology", icon: "🧠" },
+];
+
+async function renderStreamCourses(ctx, stream) {
+  const isSocial = stream === "Social";
+  const courseList = isSocial ? SOCIAL_STREAM_COURSES : NATURAL_STREAM_COURSES;
+  const dbCourses = await getQuizCourses();
+
+  if (!dbCourses.length) {
+    await ctx.editMessageText(
+      "⚠️ Could not load courses at this moment. Please try again shortly.",
+      {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [[{ text: "🔄 Retry", callback_data: isSocial ? "tgquiz_stream_social" : "tgquiz_stream_natural" }]],
+        },
+      }
+    );
+    return;
+  }
+
+  const buttons = [];
+  for (const item of courseList) {
+    const course = dbCourses.find((c) => c.code === item.code);
+    if (course) {
+      buttons.push([
+        {
+          text: `${item.icon} ${item.name}`,
+          callback_data: `tgquiz_course_${course.id}`,
+        },
+      ]);
+    }
+  }
+
+  const switchBtn = isSocial
+    ? { text: "🔬 Switch to Natural Science", callback_data: "tgquiz_stream_natural" }
+    : { text: "📚 Switch to Social Science", callback_data: "tgquiz_stream_social" };
+
+  buttons.push([switchBtn]);
+  buttons.push([{ text: "🔙 Back to Streams", callback_data: "tgquiz_courses" }]);
+
+  const streamHeader = isSocial ? "📚 <b>Social Science Courses</b>" : "🔬 <b>Natural Science Courses</b>";
+  const text =
+    `${streamHeader}\n\n` +
+    `Select any course below to view its chapters and start testing:`;
+
+  await ctx.editMessageText(text, {
+    parse_mode: "HTML",
+    reply_markup: { inline_keyboard: buttons },
+  });
+}
 
 /**
  * Format active question text and inline keyboard
@@ -242,50 +309,49 @@ export function registerQuizHandler(bot) {
     await ctx.editMessageText(text, { parse_mode: "HTML", reply_markup: replyMarkup });
   });
 
-  // ── Menu: Choose Bot Quizzes → Show Course Catalog
+  // ── Menu: Choose Bot Quizzes → Select Stream
   bot.action(["tgquiz_menu_bot", "tgquiz_courses"], async (ctx) => {
-    await ctx.answerCbQuery("Loading courses...");
+    await ctx.answerCbQuery();
     if (!(await isApprovedStudent(ctx))) {
       await replyAccessDenied(ctx);
       return;
     }
-    const courses = await getQuizCourses();
-
-    if (!courses.length) {
-      await ctx.editMessageText(
-        "⚠️ Could not load courses at this moment. Please try again shortly.",
-        {
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "🔄 Retry", callback_data: "tgquiz_menu_bot" }],
-            ],
-          },
-        }
-      );
-      return;
-    }
-
-    const buttons = courses.map((c) => {
-      const icon = COURSE_ICONS[c.code] || "📚";
-      return [
-        {
-          text: `${icon} ${c.title} (${c.code})`,
-          callback_data: `tgquiz_course_${c.id}`,
-        },
-      ];
-    });
-
-    buttons.push([{ text: "🔙 Back", callback_data: "tgquiz_back_choice" }]);
 
     const text =
-      `📚 <b>Select a Course to Practice:</b>\n\n` +
-      `Choose any freshman course below to view its chapter quizzes:`;
+      `📚 <b>CSH Tutorial Chapter Quizzes</b>\n\n` +
+      `The quiz platform is organized by stream. Select your field of study to view your courses:\n\n` +
+      `• <b>🔬 Natural Science:</b> Physics, Math, English, Geography, Logic, Psychology\n` +
+      `• <b>📚 Social Science:</b> Economics, Math, English, Geography, Logic, Psychology`;
 
-    await ctx.editMessageText(text, {
-      parse_mode: "HTML",
-      reply_markup: { inline_keyboard: buttons },
-    });
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: "🔬 Natural Science (6 Courses)", callback_data: "tgquiz_stream_natural" }],
+        [{ text: "📚 Social Science (6 Courses)", callback_data: "tgquiz_stream_social" }],
+        [{ text: "🔙 Back", callback_data: "tgquiz_back_choice" }],
+      ],
+    };
+
+    await ctx.editMessageText(text, { parse_mode: "HTML", reply_markup: keyboard });
+  });
+
+  // ── Stream: Natural Science
+  bot.action("tgquiz_stream_natural", async (ctx) => {
+    await ctx.answerCbQuery("Loading Natural Science courses...");
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
+    await renderStreamCourses(ctx, "Natural");
+  });
+
+  // ── Stream: Social Science
+  bot.action("tgquiz_stream_social", async (ctx) => {
+    await ctx.answerCbQuery("Loading Social Science courses...");
+    if (!(await isApprovedStudent(ctx))) {
+      await replyAccessDenied(ctx);
+      return;
+    }
+    await renderStreamCourses(ctx, "Social");
   });
 
   // ── Back to choice menu
@@ -318,12 +384,12 @@ export function registerQuizHandler(bot) {
 
     const chapters = await getQuizChapters(courseId);
 
-    // If English Grammar (Single Quiz)
+    // If English (Single Diagnostic & Practice Exam)
     if (courseCode === "ENGL-1011" && chapters.length === 1) {
       const ch = chapters[0];
       const text =
-        `📝 <b>English Grammar (ENGL-1011)</b>\n\n` +
-        `Comprehensive 45-question diagnostic & practice exam covering all essential university freshman grammar topics.\n\n` +
+        `📝 <b>Communicative English Language 1 (ENGL-1011)</b>\n\n` +
+        `Comprehensive 45-question diagnostic & practice exam covering all essential university freshman grammar and language skills.\n\n` +
         `Ready to start?`;
 
       const keyboard = {

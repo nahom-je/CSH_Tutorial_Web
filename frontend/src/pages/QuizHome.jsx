@@ -11,24 +11,66 @@ import {
 } from '../lib/quizAccess';
 
 const COURSE_ICONS = {
-  'PHIL-1011': '🧠',
-  'PSYC-1011': '🧬',
-  'GEOG-1011': '🌍',
-  'MATH-1011': '➕',
   'PHYS-1011': '⚡',
+  'MATH-1011': '📐',
   'ENGL-1011': '📝',
+  'GEOG-1011': '🌍',
+  'PHIL-1011': '💡',
+  'PSYC-1011': '🧠',
   'ECON-1011': '📈',
 };
 
 const COURSE_COLORS = {
+  'PHYS-1011': '#EF4444',
+  'MATH-1011': '#F59E0B',
+  'ENGL-1011': '#4F46E5',
+  'GEOG-1011': '#10B981',
   'PHIL-1011': '#7C3AED',
   'PSYC-1011': '#0EA5E9',
-  'GEOG-1011': '#10B981',
-  'MATH-1011': '#F59E0B',
-  'PHYS-1011': '#EF4444',
-  'ENGL-1011': '#4F46E5',
   'ECON-1011': '#059669',
 };
+
+// Stream-specific sequence (exact required 6 courses per stream)
+const NATURAL_STREAM_ORDER = [
+  'PHYS-1011', // 1. General Physics
+  'MATH-1011', // 2. Mathematics for Natural Science
+  'ENGL-1011', // 3. Communicative English Language 1
+  'GEOG-1011', // 4. Geography
+  'PHIL-1011', // 5. Logic and Critical Thinking
+  'PSYC-1011', // 6. General Psychology
+];
+
+const SOCIAL_STREAM_ORDER = [
+  'ECON-1011', // 1. General Economics
+  'MATH-1011', // 2. Mathematics for Social Science
+  'ENGL-1011', // 3. Communicative English Language 1
+  'GEOG-1011', // 4. Geography
+  'PHIL-1011', // 5. Logic and Critical Thinking
+  'PSYC-1011', // 6. General Psychology
+];
+
+function getCourseDisplayTitle(course, stream) {
+  if (course.code === 'MATH-1011') {
+    if (stream === 'Social') return 'Mathematics for Social Science';
+    if (stream === 'Natural') return 'Mathematics for Natural Science';
+    return 'Mathematics (Natural & Social Science)';
+  }
+  if (course.code === 'ENGL-1011') return 'Communicative English Language 1';
+  if (course.code === 'GEOG-1011') return 'Geography';
+  if (course.code === 'PHIL-1011') return 'Logic and Critical Thinking';
+  if (course.code === 'PSYC-1011') return 'General Psychology';
+  if (course.code === 'PHYS-1011') return 'General Physics';
+  if (course.code === 'ECON-1011') return 'General Economics';
+  return course.title;
+}
+
+function getCourseStreamBadge(course, stream) {
+  if (course.code === 'PHYS-1011') return { text: '🔬 Natural Science', className: 'natural' };
+  if (course.code === 'ECON-1011') return { text: '📚 Social Science', className: 'social' };
+  if (stream === 'Social') return { text: '📚 Social Science (Shared)', className: 'social' };
+  if (stream === 'Natural') return { text: '🔬 Natural Science (Shared)', className: 'natural' };
+  return { text: '🌐 Shared Course', className: 'shared' };
+}
 
 export default function QuizHome() {
   const [courses, setCourses]       = useState([]);
@@ -113,6 +155,9 @@ export default function QuizHome() {
       if (res.success) {
         setAccess(res.access);
         setVerifySuccess(`Welcome back, ${res.access.name || 'Student'}!`);
+        if (res.access.department === 'Social' || res.access.department === 'Natural') {
+          setStreamFilter(res.access.department);
+        }
       } else {
         // Stored code is no longer valid (rejected, pending, or code doesn't exist)
         clearAccess();
@@ -143,6 +188,9 @@ export default function QuizHome() {
     if (res.success) {
       setAccess(res.access);
       setVerifySuccess(res.message || `Order ${res.access.orderCode} verified!`);
+      if (res.access.department === 'Social' || res.access.department === 'Natural') {
+        setStreamFilter(res.access.department);
+      }
       setOrderInput('');
     } else {
       setVerifyError(res.message || 'Could not verify order code. Check code and try again.');
@@ -178,14 +226,36 @@ export default function QuizHome() {
   const totalQuestions = Object.values(questionCounts).reduce((a, b) => a + b, 0) || 1185;
   const totalChapters = Object.values(chapters).reduce((acc, list) => acc + list.length, 0) || 42;
 
-  const filteredCourses = courses.filter(c => {
-    const matchesStream = streamFilter === 'all' || (c.stream && c.stream.toLowerCase() === streamFilter.toLowerCase());
-    const q = searchQuery.toLowerCase();
-    const matchesTitle = c.title?.toLowerCase().includes(q) || c.code?.toLowerCase().includes(q);
-    const chs = chapters[c.id] || [];
-    const matchesChapter = chs.some(ch => ch.title?.toLowerCase().includes(q));
-    return matchesStream && (matchesTitle || matchesChapter);
-  });
+  const filteredCourses = courses
+    .filter((c) => {
+      // Stream filter: Natural vs Social vs All
+      let matchesStream = true;
+      if (streamFilter === 'Natural') {
+        matchesStream = NATURAL_STREAM_ORDER.includes(c.code);
+      } else if (streamFilter === 'Social') {
+        matchesStream = SOCIAL_STREAM_ORDER.includes(c.code);
+      }
+
+      // Search filter
+      const q = searchQuery.toLowerCase().trim();
+      if (!q) return matchesStream;
+
+      const displayTitle = getCourseDisplayTitle(c, streamFilter).toLowerCase();
+      const matchesTitle = displayTitle.includes(q) || c.code?.toLowerCase().includes(q);
+      const chs = chapters[c.id] || [];
+      const matchesChapter = chs.some((ch) => ch.title?.toLowerCase().includes(q));
+
+      return matchesStream && (matchesTitle || matchesChapter);
+    })
+    .sort((a, b) => {
+      if (streamFilter === 'Natural') {
+        return NATURAL_STREAM_ORDER.indexOf(a.code) - NATURAL_STREAM_ORDER.indexOf(b.code);
+      }
+      if (streamFilter === 'Social') {
+        return SOCIAL_STREAM_ORDER.indexOf(a.code) - SOCIAL_STREAM_ORDER.indexOf(b.code);
+      }
+      return a.code.localeCompare(b.code);
+    });
 
   if (loading) return (
     <div className="quiz-loading-screen">
@@ -348,21 +418,21 @@ export default function QuizHome() {
                 className={`quiz-stream-tab ${streamFilter === 'all' ? 'active' : ''}`}
                 onClick={() => setStreamFilter('all')}
               >
-                🌐 All Streams ({courses.length})
+                🌐 All Courses ({courses.length})
               </button>
               <button
                 type="button"
                 className={`quiz-stream-tab ${streamFilter === 'Natural' ? 'active' : ''}`}
                 onClick={() => setStreamFilter('Natural')}
               >
-                🔬 Natural Science ({courses.filter(c => c.stream === 'Natural').length})
+                🔬 Natural Science (6)
               </button>
               <button
                 type="button"
                 className={`quiz-stream-tab ${streamFilter === 'Social' ? 'active' : ''}`}
                 onClick={() => setStreamFilter('Social')}
               >
-                📚 Social Science ({courses.filter(c => c.stream === 'Social').length})
+                📚 Social Science (6)
               </button>
             </div>
           </div>
@@ -385,6 +455,8 @@ export default function QuizHome() {
               const chs   = chapters[course.id] || [];
               const isOpen = expanded === course.id;
               const isEnglish = course.code === 'ENGL-1011';
+              const displayTitle = getCourseDisplayTitle(course, streamFilter);
+              const streamBadge  = getCourseStreamBadge(course, streamFilter);
 
               // Calculate total questions for this course
               const courseQCount = chs.reduce((sum, ch) => sum + (questionCounts[ch.id] || 0), 0) || (isEnglish ? 45 : chs.length * 30);
@@ -405,8 +477,8 @@ export default function QuizHome() {
                         <span className="quiz-code-pill" style={{ color, borderColor: `${color}40`, background: `${color}10` }}>
                           {course.code}
                         </span>
-                        <span className={`quiz-stream-badge ${course.stream?.toLowerCase() === 'social' ? 'social' : 'natural'}`}>
-                          {course.stream?.toLowerCase() === 'social' ? '📚 Social Science' : '🔬 Natural Science'}
+                        <span className={`quiz-stream-badge ${streamBadge.className}`}>
+                          {streamBadge.text}
                         </span>
                         <span className="quiz-meta-badge">
                           {isEnglish ? 'Single Exam' : `${chs.length} Chapters`}
@@ -415,10 +487,10 @@ export default function QuizHome() {
                           {courseQCount} Questions
                         </span>
                       </div>
-                      <h3 className="quiz-course-name">{course.title}</h3>
+                      <h3 className="quiz-course-name">{displayTitle}</h3>
                       {isEnglish && (
                         <p className="quiz-english-note">
-                          🎯 Complete non-chapterized 45-question diagnostic & practice quiz. Available anytime.
+                          🎯 Complete non-chapterized 45-question diagnostic & practice quiz covering university freshman grammar and language skills. Available anytime.
                         </p>
                       )}
                     </div>

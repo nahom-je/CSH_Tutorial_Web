@@ -141,7 +141,7 @@ export async function verifyOrderAccess(inputCode) {
 
     const { data, error } = await supabase
       .from('orders')
-      .select('order_code, name, plan, status, device_id')
+      .select('order_code, name, plan, status, device_id, department')
       .eq('order_code', norm)
       .maybeSingle();
 
@@ -150,7 +150,7 @@ export async function verifyOrderAccess(inputCode) {
       hasDeviceCol = false;
       const fallback = await supabase
         .from('orders')
-        .select('order_code, name, plan, status')
+        .select('order_code, name, plan, status, department')
         .eq('order_code', norm)
         .maybeSingle();
       order = fallback.data;
@@ -200,6 +200,7 @@ export async function verifyOrderAccess(inputCode) {
         orderCode: order.order_code,
         name: order.name,
         plan: order.plan,
+        department: order.department,
         deviceId,
       });
       return {
