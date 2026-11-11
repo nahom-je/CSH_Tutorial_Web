@@ -9,6 +9,7 @@ import Pricing       from "./components/Pricing";
 import HowItWorks    from "./components/HowItWorks";
 import PaymentMethods from "./components/PaymentMethods";
 import FAQ           from "./components/FAQ";
+import CustomDev     from "./components/CustomDev";
 import Footer        from "./components/Footer";
 
 // Quiz Pages
@@ -40,6 +41,7 @@ function LandingPage() {
         <HowItWorks />
         <PaymentMethods />
         <FAQ />
+        <CustomDev />
       </main>
 
       <Footer />
