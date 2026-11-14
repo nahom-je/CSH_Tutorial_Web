@@ -69,6 +69,26 @@ export default function Navbar() {
                 }}>1,005 Qs</span>
               </Link>
             </li>
+            <li>
+              <Link
+                to="/exam"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontWeight: "600",
+                  color: "var(--accent-dark)",
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "9999px",
+                  background: "var(--accent-light)",
+                  border: "1px solid rgba(217, 119, 6, 0.25)",
+                  transition: "var(--transition)",
+                }}
+              >
+                🎯 Mock Exam
+              </Link>
+            </li>
           </ul>
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -121,6 +141,14 @@ export default function Navbar() {
           onClick={() => setMenuOpen(false)}
         >
           📝 Take Chapter Quizzes (1,005 Qs)
+        </Link>
+        <Link
+          to="/exam"
+          className="btn btn-outline"
+          style={{ marginBottom: "0.5rem", display: "flex", justifyContent: "center", gap: "8px", borderColor: "var(--accent)", color: "var(--accent-dark)" }}
+          onClick={() => setMenuOpen(false)}
+        >
+          🎯 Mock Exam
         </Link>
         {navLinks.map((l) => (
           <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a>

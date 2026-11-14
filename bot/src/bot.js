@@ -108,7 +108,7 @@ async function startBot() {
   server = http.createServer((req, res) => {
     // Enable CORS for web frontend
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     if (req.method === "OPTIONS") {
@@ -184,6 +184,127 @@ async function startBot() {
           res.end(JSON.stringify({ valid: false, message: "Internal server error." }));
         }
       })();
+      return;
+    }
+
+    // ── GET /api/exam-questions?course_id=X ──────────────────────────
+    if (req.method === "GET" && url.pathname === "/api/exam-questions") {
+      const courseId = url.searchParams.get("course_id") || "";
+      if (!courseId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Missing course_id parameter." }));
+        return;
+      }
+      (async () => {
+        try {
+          const { createClient } = await import("@supabase/supabase-js");
+          const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+          // Fetch all chapter IDs for this course
+          const { data: chapters, error: chErr } = await sb
+            .from("chapters")
+            .select("id")
+            .eq("course_id", courseId);
+          if (chErr) throw chErr;
+          if (!chapters || chapters.length === 0) {
+            res.writeHead(404, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "No chapters found for this course." }));
+            return;
+          }
+
+          const chapterIds = chapters.map((c) => c.id);
+
+          // Fetch questions — NEVER send correct_option to client
+          const { data: questions, error: qErr } = await sb
+            .from("questions")
+            .select("id, question_number, question_text, options")
+            .in("chapter_id", chapterIds)
+            .order("question_number", { ascending: true });
+          if (qErr) throw qErr;
+
+          // Shuffle and limit to 30
+          const shuffled = questions
+            .map((q) => ({ ...q, _sort: Math.random() }))
+            .sort((a, b) => a._sort - b._sort)
+            .slice(0, 30)
+            .map(({ _sort, ...q }) => q);
+
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ questions: shuffled }));
+        } catch (err) {
+          logger.error(`/api/exam-questions error: ${err.message}`);
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Failed to load questions." }));
+        }
+      })();
+      return;
+    }
+
+    // ── POST /api/submit-exam ─────────────────────────────────────────
+    if (req.method === "POST" && url.pathname === "/api/submit-exam") {
+      let body = "";
+      req.on("data", (chunk) => { body += chunk; });
+      req.on("end", () => {
+        (async () => {
+          try {
+            const payload = JSON.parse(body);
+            const { full_name, student_id, phone, stream, subject, course_code, course_id, answers } = payload;
+
+            if (!full_name || !student_id || !phone || !stream || !subject || !course_code || !course_id || !Array.isArray(answers)) {
+              res.writeHead(400, { "Content-Type": "application/json" });
+              res.end(JSON.stringify({ error: "Missing required fields." }));
+              return;
+            }
+
+            const { createClient } = await import("@supabase/supabase-js");
+            const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+            // Fetch correct answers server-side
+            const questionIds = answers.map((a) => a.question_id);
+            const { data: correctData, error: cErr } = await sb
+              .from("questions")
+              .select("id, correct_option")
+              .in("id", questionIds);
+            if (cErr) throw cErr;
+
+            const correctMap = {};
+            correctData.forEach((q) => { correctMap[q.id] = q.correct_option; });
+
+            const total = answers.length;
+            const correct = answers.filter((a) => a.selected_option === correctMap[a.question_id]).length;
+            const score = Math.round((correct / total) * 20 * 10) / 10;
+
+            // Save to exam_results
+            const { error: insertErr } = await sb.from("exam_results").insert({
+              full_name,
+              student_id,
+              phone,
+              stream,
+              subject,
+              course_code,
+              total_questions: total,
+              correct_answers: correct,
+              score,
+            });
+            if (insertErr) throw insertErr;
+
+            // Send Telegram admin notification
+            try {
+              const tgText = `📝 New Exam Result\nName: ${full_name}\nID: ${student_id}\nPhone: ${phone}\nSubject: ${subject}\nScore: ${score} / 20`;
+              await bot.telegram.sendMessage(process.env.ADMIN_CHAT_ID, tgText);
+            } catch (tgErr) {
+              logger.warn(`Telegram notify failed: ${tgErr.message}`);
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ score, correct, total }));
+          } catch (err) {
+            logger.error(`/api/submit-exam error: ${err.message}`);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Failed to submit exam. Please try again." }));
+          }
+        })();
+      });
       return;
     }
 

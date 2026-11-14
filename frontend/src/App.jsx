@@ -16,6 +16,9 @@ import Footer        from "./components/Footer";
 import QuizHome      from "./pages/QuizHome";
 import QuizRunner    from "./pages/QuizRunner";
 
+// Exam Page
+import ExamPage      from "./pages/ExamPage";
+
 function LandingPage() {
   return (
     <>
@@ -55,6 +58,7 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/quizzes" element={<QuizHome />} />
       <Route path="/quiz/:chapterId" element={<QuizRunner />} />
+      <Route path="/exam" element={<ExamPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
