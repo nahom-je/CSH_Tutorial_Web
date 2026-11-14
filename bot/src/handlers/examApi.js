@@ -44,10 +44,10 @@ function isValidEthiopianPhone(phone) {
   return /^(09|07)\d{8}$/.test(cleaned) || /^\+251(9|7)\d{8}$/.test(cleaned);
 }
 
-// ── Student ID Validator (Format: RU/XXXX/XX) ──────────────────
+// ── Student ID Validator (Format: RUXXXX/19) ──────────────────
 function isValidStudentId(id) {
   const cleaned = (id || "").trim();
-  return /^RU\/[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
+  return /^RU[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
 }
 
 // ── Helper to Read JSON Body ──────────────────────────────────
@@ -123,7 +123,7 @@ export async function handleExamApi(req, res, url, bot) {
       }
       if (!student_id?.trim() || !isValidStudentId(student_id)) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Student ID must be in the format RU/XXXX/XX (e.g. RU/1234/17)." }));
+        res.end(JSON.stringify({ error: "Student ID must be in the format RUXXXX/19 (e.g. RU1234/19)." }));
         return true;
       }
       if (!isValidEthiopianPhone(phone)) {

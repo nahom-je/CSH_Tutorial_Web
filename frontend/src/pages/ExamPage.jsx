@@ -85,8 +85,8 @@ function validateEthiopianPhone(phone) {
 
 function validateStudentId(id) {
   const cleaned = (id || "").trim();
-  // Format: RU/XXXX/XX (case-insensitive, e.g. RU/1234/17)
-  return /^RU\/[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
+  // Format: RUXXXX/19 (case-insensitive, e.g. RU1234/19)
+  return /^RU[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
 }
 
 function formatTime(seconds) {
@@ -237,7 +237,7 @@ export default function ExamPage() {
     if (!student.student_id.trim()) {
       errs.student_id = "Student ID is required.";
     } else if (!validateStudentId(student.student_id)) {
-      errs.student_id = "Student ID must follow format RU/XXXX/XX (e.g. RU/1234/17).";
+      errs.student_id = "Student ID must follow format RUXXXX/19 (e.g. RU1234/19).";
     }
     if (!validateEthiopianPhone(student.phone))
       errs.phone = "Enter a valid Ethiopian phone number (e.g. 09XXXXXXXX, 07XXXXXXXX, or +251...).";
@@ -416,12 +416,12 @@ export default function ExamPage() {
                 </div>
 
                 <div className="exam-field">
-                  <label className="exam-label" htmlFor="student_id">Student ID (RU/XXXX/XX) *</label>
+                  <label className="exam-label" htmlFor="student_id">Student ID (RUXXXX/19) *</label>
                   <input
                     id="student_id"
                     className={`exam-input${formErrors.student_id ? " exam-input--error" : ""}`}
                     type="text"
-                    placeholder="e.g. RU/1234/17"
+                    placeholder="e.g. RU1234/19"
                     value={student.student_id}
                     onChange={(e) => setStudent({ ...student, student_id: e.target.value.toUpperCase() })}
                   />
