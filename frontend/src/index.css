@@ -316,8 +316,18 @@ section {
 
 .nav-links {
   display: none;
-  gap: 2.25rem;
+  align-items: center;
+  gap: clamp(0.75rem, 1.6vw, 1.75rem);
   list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .nav-links a {
@@ -325,6 +335,9 @@ section {
   font-size: 0.92rem;
   font-weight: 600;
   transition: color var(--transition);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
 }
 .nav-links a:hover {
   color: var(--primary);
@@ -2933,7 +2946,8 @@ section {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .nav-quiz-link {
+  .nav-quiz-link,
+  .nav-exam-link {
     display: none !important;
   }
 

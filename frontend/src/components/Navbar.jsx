@@ -56,22 +56,30 @@ export default function Navbar() {
                   background: "var(--primary-light)",
                   border: "1px solid rgba(79, 70, 229, 0.2)",
                   transition: "var(--transition)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  lineHeight: 1.2,
                 }}
               >
-                <span>📝 Quizzes</span>
+                <span style={{ whiteSpace: "nowrap" }}>📝 Quizzes</span>
                 <span style={{
                   fontSize: "0.68rem",
                   background: "var(--primary)",
                   color: "#fff",
-                  padding: "0.1rem 0.4rem",
+                  padding: "0.15rem 0.45rem",
                   borderRadius: "9999px",
-                  fontWeight: "700"
+                  fontWeight: "700",
+                  whiteSpace: "nowrap",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  lineHeight: 1,
                 }}>1,005 Qs</span>
               </Link>
             </li>
             <li>
               <Link
                 to="/exam"
+                className="nav-exam-link"
                 onClick={() => setMenuOpen(false)}
                 style={{
                   display: "inline-flex",
@@ -84,9 +92,12 @@ export default function Navbar() {
                   background: "var(--accent-light)",
                   border: "1px solid rgba(217, 119, 6, 0.25)",
                   transition: "var(--transition)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  lineHeight: 1.2,
                 }}
               >
-                🎯 Mock Exam
+                <span style={{ whiteSpace: "nowrap" }}>🎯 Mock Exam</span>
               </Link>
             </li>
           </ul>
