@@ -1,4 +1,5 @@
 // src/components/Hero.jsx
+import { Link } from "react-router-dom";
 import { BOT_USERNAME, SEM_PRICE, FULL_YEAR_PRICE, COURSES } from "../data/courses";
 
 export default function Hero() {
@@ -52,6 +53,13 @@ export default function Hero() {
             >
               ▶ Watch 2-Min Guide
             </a>
+            <Link
+              to="/exam"
+              className="btn btn-outline btn-lg"
+              style={{ borderColor: "var(--accent)", color: "var(--accent-dark)", fontWeight: "600" }}
+            >
+              🎯 Mock Exam
+            </Link>
             <a
               id="hero-cta-plans"
               href="#pricing"

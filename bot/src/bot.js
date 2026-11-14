@@ -10,6 +10,7 @@ import { registerWizardHandler }     from "./handlers/wizard.js";
 import { registerScreenshotHandler } from "./handlers/screenshot.js";
 import { registerAdminHandlers }     from "./handlers/admin.js";
 import { registerQuizHandler }      from "./handlers/quiz.js";
+import { registerExamBotHandlers, handleExamApi } from "./handlers/examApi.js";
 import { logger } from "./utils/logger.js";
 
 
@@ -60,6 +61,7 @@ async function startBot() {
   // ── Register handlers (order matters)
   registerStartHandler(bot);
   registerAdminHandlers(bot);   // register admin BEFORE wizard so /approve etc. don't fall through
+  registerExamBotHandlers(bot);  // /results <subject>
   registerScreenshotHandler(bot);
   registerQuizHandler(bot);     // interactive in-bot chapter quizzes
   registerWizardHandler(bot);   // catch-all text handler — must be last
@@ -119,6 +121,12 @@ async function startBot() {
 
     const host = req.headers.host || `localhost:${PORT}`;
     const url = new URL(req.url, `http://${host}`);
+
+    // ── Dedicated Exam Portal APIs (/api/exam/*) ──────────────────────
+    if (url.pathname.startsWith("/api/exam")) {
+      handleExamApi(req, res, url, bot);
+      return;
+    }
 
     if (url.pathname === "/api/verify-order") {
       const rawCode = url.searchParams.get("code") || "";
