@@ -1,6 +1,6 @@
 // src/handlers/examApi.js — Mock Exam API & Telegram Admin Handlers
 import { createClient } from "@supabase/supabase-js";
-import { getOrderByCode, setOrderDeviceId } from "../db/database.js";
+import { getOrderByCode } from "../db/database.js";
 import { normalizeOrderCode } from "../utils/token.js";
 import { logger } from "../utils/logger.js";
 
@@ -70,14 +70,13 @@ export function isValidOrderCodeFormat(code) {
   return /^NT-[A-Z0-9]{6}$/.test(norm);
 }
 
-// ── Helper: Order and Device Verification ─────────────────────
-async function verifyOrderAndDevice(rawCode, rawDeviceId) {
+// ── Helper: Order Access Verification (No Device Lock for Exam) ──
+async function verifyExamOrder(rawCode) {
   const normalized = normalizeOrderCode(rawCode);
   if (!isValidOrderCodeFormat(normalized)) {
     return { valid: false, error: "Invalid or unapproved order code.", status: 400 };
   }
 
-  const deviceId = (rawDeviceId || "").trim();
   let order;
   try {
     order = await getOrderByCode(normalized);
@@ -88,21 +87,6 @@ async function verifyOrderAndDevice(rawCode, rawDeviceId) {
 
   if (!order || order.status !== "approved") {
     return { valid: false, error: "Invalid or unapproved order code.", status: 403 };
-  }
-
-  // Device Lock check
-  if (order.device_id) {
-    if (deviceId && order.device_id !== deviceId) {
-      return {
-        valid: false,
-        device_locked: true,
-        error: "This code is linked to another device. Use /resetdevice in the bot.",
-        status: 403,
-      };
-    }
-  } else if (deviceId) {
-    // Bind device on first use
-    await setOrderDeviceId(normalized, deviceId);
   }
 
   return { valid: true, order, normalizedCode: normalized };
@@ -161,20 +145,18 @@ export async function handleExamApi(req, res, url, bot) {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 1. GET /api/exam/subjects?code=NT-XXXXXX&device_id=dev_xxxxxx
+  // 1. GET /api/exam/subjects?code=NT-XXXXXX
   // ─────────────────────────────────────────────────────────────
   if (req.method === "GET" && url.pathname === "/api/exam/subjects") {
     try {
       const code = url.searchParams.get("code") || "";
-      const deviceId = url.searchParams.get("device_id") || "";
 
-      const auth = await verifyOrderAndDevice(code, deviceId);
+      const auth = await verifyExamOrder(code);
       if (!auth.valid) {
         res.writeHead(auth.status, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
             valid: false,
-            device_locked: !!auth.device_locked,
             message: auth.error,
           })
         );
@@ -256,16 +238,15 @@ export async function handleExamApi(req, res, url, bot) {
   if (req.method === "POST" && url.pathname === "/api/exam/start") {
     try {
       const body = await readJsonBody(req);
-      const { code, device_id, phone, student_id, subject_id } = body;
+      const { code, phone, student_id, subject_id } = body;
 
-      // 1. Verify Order & Device
-      const auth = await verifyOrderAndDevice(code, device_id);
+      // 1. Verify Order
+      const auth = await verifyExamOrder(code);
       if (!auth.valid) {
         res.writeHead(auth.status, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
             error: auth.error,
-            device_locked: !!auth.device_locked,
           })
         );
         return true;
@@ -493,16 +474,15 @@ export async function handleExamApi(req, res, url, bot) {
   if (req.method === "POST" && url.pathname === "/api/exam/submit") {
     try {
       const body = await readJsonBody(req);
-      const { code, device_id, attempt_id, answers } = body;
+      const { code, attempt_id, answers } = body;
 
-      // 1. Verify Order & Device
-      const auth = await verifyOrderAndDevice(code, device_id);
+      // 1. Verify Order
+      const auth = await verifyExamOrder(code);
       if (!auth.valid) {
         res.writeHead(auth.status, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
             error: auth.error,
-            device_locked: !!auth.device_locked,
           })
         );
         return true;

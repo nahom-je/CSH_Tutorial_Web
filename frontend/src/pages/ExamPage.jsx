@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getOrCreateDeviceId, normalizeOrderCode } from "../lib/quizAccess";
+import { normalizeOrderCode } from "../lib/quizAccess";
 import "../exam.css";
 
 // ── Configuration ─────────────────────────────────────────────
@@ -176,26 +176,21 @@ export default function ExamPage() {
 
     setIsVerifyingCode(true);
     setSubjectsLoading(true);
-    const deviceId = getOrCreateDeviceId();
 
     try {
       const res = await fetch(
-        `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}&device_id=${encodeURIComponent(deviceId)}`
+        `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}`
       );
       const data = await res.json();
 
       if (!res.ok || !data.valid) {
-        if (data.device_locked) {
-          setOrderError("This code is linked to another device. Use /resetdevice in the bot.");
-        } else {
-          setOrderError(data.message || "Invalid or unapproved order code.");
-        }
+        setOrderError(data.message || "Invalid or unapproved order code.");
         setVerifiedOrder(null);
         setSubjects([]);
         return;
       }
 
-      // Success: order approved and device verified!
+      // Success: order approved!
       const orderData = {
         name: data.name,
         field: data.field || "Natural",
@@ -252,12 +247,10 @@ export default function ExamPage() {
 
     setStep("submitting");
     setErrorMsg("");
-    const deviceId = getOrCreateDeviceId();
 
     try {
       const payload = {
         code: verifiedOrder.code,
-        device_id: deviceId,
         phone: phone.trim(),
         student_id: studentId.trim().toUpperCase(),
         subject_id: chosen.id,
@@ -332,12 +325,10 @@ export default function ExamPage() {
     clearInterval(timerRef.current);
     setShowConfirmModal(false);
     setStep("submitting");
-    const deviceId = getOrCreateDeviceId();
 
     try {
       const payload = {
         code: verifiedOrder?.code || orderCodeInput,
-        device_id: deviceId,
         attempt_id: attemptId,
         answers: answersRef.current,
       };
