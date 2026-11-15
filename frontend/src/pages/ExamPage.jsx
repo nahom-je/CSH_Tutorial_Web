@@ -773,7 +773,7 @@ export default function ExamPage() {
               <div className="exam-action-row exam-action-row--center" style={{ marginTop: "2rem" }}>
                 <button
                   type="button"
-                  className="btn btn-outline"
+                  className="btn btn-primary"
                   onClick={() => {
                     setResult(null);
                     setStep("entry");
@@ -784,9 +784,6 @@ export default function ExamPage() {
                 >
                   Take Another Subject
                 </button>
-                <Link to="/quizzes" className="btn btn-primary">
-                  📝 Chapter Quizzes
-                </Link>
               </div>
             </div>
           )}
