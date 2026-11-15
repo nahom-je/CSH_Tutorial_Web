@@ -43,6 +43,19 @@ function formatTime(seconds) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function formatDurationText(minutes) {
+  if (!minutes) return "1 hour";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) {
+    return `${h} hour${h > 1 ? "s" : ""} ${m} minute${m > 1 ? "s" : ""}`;
+  }
+  if (h > 0) {
+    return `${h} hour${h > 1 ? "s" : ""}`;
+  }
+  return `${m} minute${m > 1 ? "s" : ""}`;
+}
+
 export default function ExamPage() {
   const location = useLocation();
 
@@ -528,7 +541,7 @@ export default function ExamPage() {
                             <span className="exam-subject-icon">
                               {sub.code.startsWith("MATH") ? "📐" :
                                sub.code.startsWith("PHYS") ? "⚡" :
-                               sub.code.startsWith("PHIL") ? "💡" :
+                               sub.code.startsWith("LOGIC") || sub.code.startsWith("PHIL") ? "💡" :
                                sub.code.startsWith("PSYC") ? "🧠" :
                                sub.code.startsWith("GEOG") ? "🌍" : "📊"}
                             </span>
@@ -536,7 +549,7 @@ export default function ExamPage() {
                             <div className="exam-subject-meta">
                               <span>📝 {sub.question_count || 20} Qs</span>
                               <span>•</span>
-                              <span>⏱ {sub.duration_minutes}m</span>
+                              <span>⏱ {formatDurationText(sub.duration_minutes)}</span>
                             </div>
 
                             <span className={`exam-status-badge ${sub.status}`}>
@@ -703,7 +716,7 @@ export default function ExamPage() {
                     className="btn btn-outline"
                     onClick={() => setShowConfirmModal(false)}
                   >
-                    Review Answers
+                    Return to Questions
                   </button>
                   <button
                     type="button"
@@ -753,42 +766,7 @@ export default function ExamPage() {
                 </div>
               ) : (
                 <div className="exam-result-encourage">
-                  💪 Keep practicing! Review the explanations below and strengthen your concepts.
-                </div>
-              )}
-
-              {/* Review Section */}
-              {result.review && result.review.length > 0 && (
-                <div className="exam-review-section">
-                  <h3 className="exam-review-title">📖 Question Review & Explanations</h3>
-                  {result.review.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className={`exam-review-card ${item.is_correct ? "correct" : "incorrect"}`}
-                    >
-                      <div className="exam-review-qheader">
-                        <span>Question {item.question_number || idx + 1}</span>
-                        <span className={`exam-review-status ${item.is_correct ? "correct" : "incorrect"}`}>
-                          {item.is_correct ? "✓ Correct" : "✗ Incorrect"}
-                        </span>
-                      </div>
-                      <div className="exam-review-qtext">{item.question_text}</div>
-                      <div className="exam-review-choices">
-                        <span>
-                          Your Answer: <strong>{item.student_answer || "Unanswered"}</strong>
-                        </span>
-                        <span>•</span>
-                        <span>
-                          Correct Answer: <strong style={{ color: "var(--success)" }}>{item.correct_answer}</strong>
-                        </span>
-                      </div>
-                      {item.explanation && (
-                        <div className="exam-review-exp">
-                          💡 <strong>Explanation:</strong> {item.explanation}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  💪 Keep practicing to strengthen your concepts.
                 </div>
               )}
 

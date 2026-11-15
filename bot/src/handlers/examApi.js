@@ -5,7 +5,6 @@ import { normalizeOrderCode } from "../utils/token.js";
 import { logger } from "../utils/logger.js";
 
 // ── Configuration ─────────────────────────────────────────────
-export const SHOW_REVIEW = process.env.SHOW_REVIEW !== "false"; // default true
 const GRACE_PERIOD_MS = 15000; // 15 seconds network grace period
 
 // Allowed CORS Origins (Security rule: restricted to production web and local dev)
@@ -548,17 +547,14 @@ export async function handleExamApi(req, res, url, bot) {
       // 3. Fetch questions and grade on server
       const { data: officialQuestions, error: qErr } = await sb
         .from("exam_questions")
-        .select("id, question_number, question_text, options, correct_option, explanation")
-        .eq("subject_id", attempt.subject_id)
-        .order("question_number", { ascending: true });
+        .select("id, correct_option")
+        .eq("subject_id", attempt.subject_id);
 
       if (qErr) throw qErr;
 
       const total = officialQuestions?.length || 0;
       let correctCount = 0;
       const normalizedAnswers = typeof answers === "object" && answers !== null ? answers : {};
-
-      const review = [];
 
       for (const q of officialQuestions || []) {
         const studentChoice = normalizedAnswers[q.id] || null;
@@ -567,19 +563,6 @@ export async function handleExamApi(req, res, url, bot) {
           studentChoice.trim().toUpperCase() === q.correct_option?.trim().toUpperCase();
 
         if (isCorrect) correctCount++;
-
-        if (SHOW_REVIEW && q.explanation) {
-          review.push({
-            id: q.id,
-            question_number: q.question_number,
-            question_text: q.question_text,
-            options: q.options,
-            student_answer: studentChoice,
-            correct_answer: q.correct_option,
-            is_correct: isCorrect,
-            explanation: q.explanation,
-          });
-        }
       }
 
       // Score = (correct / total) * 20, rounded to 1 decimal
@@ -639,7 +622,6 @@ export async function handleExamApi(req, res, url, bot) {
           correct_count: correctCount,
           total,
           time_used_minutes: timeUsedMinutes,
-          review: SHOW_REVIEW ? review : null,
         })
       );
     } catch (err) {
@@ -653,13 +635,295 @@ export async function handleExamApi(req, res, url, bot) {
   return false;
 }
 
-// ── Register Bot Admin Commands (/results <SUBJECT>) ──────────
-export function registerExamBotHandlers(bot) {
-  bot.command("results", async (ctx) => {
-    const adminChatId = String(process.env.ADMIN_CHAT_ID);
-    if (String(ctx.chat.id) !== adminChatId) {
-      return ctx.reply("⛔ This command is restricted to platform administrators.");
+// ── Helper: Admin Verification for Exam Bot Commands ─────────
+function isExamAdmin(ctx) {
+  const adminId = String(process.env.ADMIN_CHAT_ID || "").trim();
+  if (!adminId) return false;
+  const fromId = String(ctx.from?.id ?? "").trim();
+  const chatId = String(ctx.chat?.id ?? "").trim();
+  return fromId === adminId || chatId === adminId;
+}
+
+const VALID_EXAM_CODES = ["MATH", "PHYS", "LOGIC", "PSYC", "GEOG", "ECON"];
+
+function matchSubjectCode(arg) {
+  if (!arg) return null;
+  const upper = arg.trim().toUpperCase();
+  if (upper === "ALL") return "ALL";
+  if (VALID_EXAM_CODES.includes(upper)) return upper;
+  if (upper === "PHIL") return "LOGIC";
+  return null;
+}
+
+function formatDurationShort(minutes) {
+  if (!minutes) return "1 h";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) return `${h} h ${m} min`;
+  if (h > 0) return `${h} h`;
+  return `${m} min`;
+}
+
+async function forceSubmitAttempts(attempts, bot) {
+  for (const att of attempts || []) {
+    try {
+      const { data: officialQuestions } = await sb
+        .from("exam_questions")
+        .select("id, correct_option")
+        .eq("subject_id", att.subject_id);
+
+      const total = officialQuestions?.length || 0;
+      let correct = 0;
+      const ans = att.answers || {};
+
+      for (const q of officialQuestions || []) {
+        const choice = ans[q.id];
+        if (choice && choice.trim().toUpperCase() === q.correct_option?.trim().toUpperCase()) {
+          correct++;
+        }
+      }
+
+      const score = total > 0 ? Math.round(((correct / total) * 20) * 10) / 10 : 0;
+      const submittedAt = new Date().toISOString();
+      const timeUsed = Math.max(1, Math.round((new Date(submittedAt) - new Date(att.started_at)) / 60000));
+
+      await sb.from("exam_attempts").update({
+        submitted_at: submittedAt,
+        correct_count: correct,
+        total,
+        score,
+      }).eq("id", att.id);
+
+      const { data: sub } = await sb.from("exam_subjects").select("title").eq("id", att.subject_id).single();
+      const subTitle = sub?.title || "Exam";
+
+      const adminMsg =
+`📝 New Exam Result (Force Submitted)
+👤 Name: ${att.student_name}
+🆔 ID: ${att.student_id}
+📞 Phone: ${att.phone}
+🎓 Field: ${att.field}
+📚 Subject: ${subTitle}
+⭐ Score: ${score.toFixed(1)} / 20 (${correct} of ${total} correct)
+⏱ Time used: ${timeUsed} min
+🕒 Submitted: ${new Date().toLocaleString("en-US", { timeZone: "Africa/Addis_Ababa" })}
+🔑 Order: ${att.order_code || "N/A"}`;
+
+      await bot.telegram.sendMessage(process.env.ADMIN_CHAT_ID, adminMsg);
+    } catch (e) {
+      logger.error(`[ExamBot] Force submit error for attempt ${att.id}: ${e.message}`);
     }
+  }
+}
+
+// ── Register Bot Admin Commands (/lockexam, /unlockexam, /exams, /results) ──
+export function registerExamBotHandlers(bot) {
+  // ── /lockexam <SUBJECT_CODE> [force] ──────────────────────────
+  bot.command("lockexam", async (ctx) => {
+    if (!isExamAdmin(ctx)) return; // Silently ignore non-admin
+
+    const text = ctx.message.text || "";
+    const parts = text.replace(/^\/lockexam(@\w+)?\s*/i, "").trim().split(/\s+/);
+    const rawTarget = parts[0] || "";
+    const isForce = parts.some((p) => p.toLowerCase() === "force");
+
+    if (!rawTarget) {
+      return ctx.reply("Usage: /lockexam <SUBJECT_CODE>\nExample: /lockexam PHYS, /lockexam ALL");
+    }
+
+    const target = matchSubjectCode(rawTarget);
+    if (!target) {
+      return ctx.reply(`Unknown subject. Valid codes: ${VALID_EXAM_CODES.join(", ")}`);
+    }
+
+    try {
+      if (target === "ALL") {
+        const { data: allSubs } = await sb.from("exam_subjects").select("id, is_active");
+        const activeSubs = (allSubs || []).filter((s) => s.is_active);
+
+        if (activeSubs.length === 0) {
+          return ctx.reply("Already locked.");
+        }
+
+        await sb.from("exam_subjects").update({ is_active: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+
+        const now = new Date().toISOString();
+        const { data: inProgress } = await sb
+          .from("exam_attempts")
+          .select("id, started_at, student_name, student_id, phone, field, subject_id, answers, order_code")
+          .is("submitted_at", null)
+          .gt("deadline_at", now);
+
+        const inProgressCount = inProgress?.length || 0;
+
+        if (isForce && inProgressCount > 0) {
+          await forceSubmitAttempts(inProgress, bot);
+          return ctx.reply(`🔒 All exams are now FORCE LOCKED. ${inProgressCount} active attempt(s) were auto-submitted.`);
+        }
+
+        const studentWord = inProgressCount === 1 ? "student is" : "students are";
+        return ctx.reply(`🔒 All exams are now LOCKED. ${inProgressCount} ${studentWord} still taking them.`);
+      }
+
+      // Specific subject
+      const { data: subject, error } = await sb
+        .from("exam_subjects")
+        .select("id, code, title, is_active")
+        .eq("code", target)
+        .single();
+
+      if (error || !subject) {
+        return ctx.reply(`Unknown subject. Valid codes: ${VALID_EXAM_CODES.join(", ")}`);
+      }
+
+      if (subject.is_active === false) {
+        return ctx.reply("Already locked.");
+      }
+
+      await sb.from("exam_subjects").update({ is_active: false }).eq("id", subject.id);
+
+      const now = new Date().toISOString();
+      const { data: inProgress } = await sb
+        .from("exam_attempts")
+        .select("id, started_at, student_name, student_id, phone, field, subject_id, answers, order_code")
+        .eq("subject_id", subject.id)
+        .is("submitted_at", null)
+        .gt("deadline_at", now);
+
+      const inProgressCount = inProgress?.length || 0;
+
+      if (isForce && inProgressCount > 0) {
+        await forceSubmitAttempts(inProgress, bot);
+        return ctx.reply(`🔒 ${subject.title} is now FORCE LOCKED. ${inProgressCount} active attempt(s) were auto-submitted.`);
+      }
+
+      const studentWord = inProgressCount === 1 ? "student is" : "students are";
+      return ctx.reply(`🔒 ${subject.title} is now LOCKED. ${inProgressCount} ${studentWord} still taking it.`);
+    } catch (err) {
+      logger.error(`[ExamBot] /lockexam error: ${err.message}`);
+      return ctx.reply(`❌ Failed to lock exam: ${err.message}`);
+    }
+  });
+
+  // ── /unlockexam <SUBJECT_CODE> ────────────────────────────────
+  bot.command("unlockexam", async (ctx) => {
+    if (!isExamAdmin(ctx)) return; // Silently ignore non-admin
+
+    const text = ctx.message.text || "";
+    const rawTarget = text.replace(/^\/unlockexam(@\w+)?\s*/i, "").trim().split(/\s+/)[0] || "";
+
+    if (!rawTarget) {
+      return ctx.reply("Usage: /unlockexam <SUBJECT_CODE>\nExample: /unlockexam PHYS, /unlockexam ALL");
+    }
+
+    const target = matchSubjectCode(rawTarget);
+    if (!target) {
+      return ctx.reply(`Unknown subject. Valid codes: ${VALID_EXAM_CODES.join(", ")}`);
+    }
+
+    try {
+      if (target === "ALL") {
+        const { data: allSubs } = await sb
+          .from("exam_subjects")
+          .select("id, title, is_active, question_count");
+
+        const eligible = (allSubs || []).filter((s) => (s.question_count || 0) > 0);
+        const alreadyUnlocked = eligible.every((s) => s.is_active);
+
+        if (alreadyUnlocked) {
+          return ctx.reply("Already unlocked.");
+        }
+
+        for (const sub of eligible) {
+          await sb.from("exam_subjects").update({ is_active: true }).eq("id", sub.id);
+        }
+
+        return ctx.reply(`🔓 All exams are now UNLOCKED (${eligible.length} subjects).`);
+      }
+
+      // Specific subject
+      const { data: subject, error } = await sb
+        .from("exam_subjects")
+        .select("id, code, title, is_active, question_count, duration_minutes")
+        .eq("code", target)
+        .single();
+
+      if (error || !subject) {
+        return ctx.reply(`Unknown subject. Valid codes: ${VALID_EXAM_CODES.join(", ")}`);
+      }
+
+      // Refuse to unlock if subject has no questions
+      const { count } = await sb
+        .from("exam_questions")
+        .select("*", { count: "exact", head: true })
+        .eq("subject_id", subject.id);
+
+      if (!count || count === 0) {
+        return ctx.reply(`⚠️ ${subject.title} has no questions yet.`);
+      }
+
+      if (subject.is_active === true) {
+        return ctx.reply("Already unlocked.");
+      }
+
+      await sb.from("exam_subjects").update({ is_active: true }).eq("id", subject.id);
+
+      const durFormatted = formatDurationShort(subject.duration_minutes);
+      return ctx.reply(`🔓 ${subject.title} is now UNLOCKED (${count} questions, ${durFormatted}).`);
+    } catch (err) {
+      logger.error(`[ExamBot] /unlockexam error: ${err.message}`);
+      return ctx.reply(`❌ Failed to unlock exam: ${err.message}`);
+    }
+  });
+
+  // ── /exams ────────────────────────────────────────────────────
+  bot.command("exams", async (ctx) => {
+    if (!isExamAdmin(ctx)) return; // Silently ignore non-admin
+
+    try {
+      const { data: subjects, error } = await sb
+        .from("exam_subjects")
+        .select("id, code, title, duration_minutes, question_count, is_active")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const now = new Date().toISOString();
+      const { data: allAttempts } = await sb
+        .from("exam_attempts")
+        .select("subject_id, submitted_at, deadline_at");
+
+      const lines = [];
+
+      for (const sub of subjects || []) {
+        const subAttempts = (allAttempts || []).filter((a) => a.subject_id === sub.id);
+        const doneCount = subAttempts.filter((a) => a.submitted_at != null).length;
+        const inProgressCount = subAttempts.filter(
+          (a) => a.submitted_at == null && new Date(a.deadline_at).getTime() > Date.now()
+        ).length;
+
+        const lockStatus = sub.is_active ? "🔓 UNLOCKED" : "🔒 LOCKED";
+        const qText = `${sub.question_count || 0} q`;
+        const durText = formatDurationShort(sub.duration_minutes);
+
+        let statLine = `${sub.title} (${sub.code}): ${lockStatus} · ${qText} · ${durText} · ${doneCount} done`;
+        if (inProgressCount > 0) {
+          statLine += ` · ${inProgressCount} in progress`;
+        }
+
+        lines.push(statLine);
+      }
+
+      return ctx.reply(lines.join("\n"));
+    } catch (err) {
+      logger.error(`[ExamBot] /exams error: ${err.message}`);
+      return ctx.reply(`❌ Failed to list exams: ${err.message}`);
+    }
+  });
+
+  // ── /results <SUBJECT> ────────────────────────────────────────
+  bot.command("results", async (ctx) => {
+    if (!isExamAdmin(ctx)) return; // Silently ignore non-admin
 
     const text = ctx.message.text || "";
     const arg = text.replace(/^\/results(@\w+)?\s*/i, "").trim();
