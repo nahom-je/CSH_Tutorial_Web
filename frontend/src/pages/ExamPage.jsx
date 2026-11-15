@@ -4,12 +4,17 @@ import { Link, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { normalizeOrderCode } from "../lib/quizAccess";
+import { supabase } from "../lib/supabase";
 import "../exam.css";
 
 // ── Configuration ─────────────────────────────────────────────
 const BOT_API =
   import.meta.env.VITE_BOT_API_URL ||
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
+  (typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname.startsWith("192.168.") ||
+    window.location.hostname.startsWith("172."))
     ? "http://localhost:3000"
     : "https://csh-tutorial-bot.onrender.com");
 
@@ -191,28 +196,104 @@ export default function ExamPage() {
     setSubjectsLoading(true);
 
     try {
-      const res = await fetch(
-        `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}`
-      );
-      const data = await res.json();
+      let verifiedData = null;
 
-      if (!res.ok || !data.valid) {
-        setOrderError(data.message || "Invalid or unapproved order code.");
-        setVerifiedOrder(null);
-        setSubjects([]);
-        return;
+      // 1. First try backend API endpoint
+      try {
+        const res = await fetch(
+          `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.valid) {
+            verifiedData = data;
+          } else if (data && data.valid === false) {
+            setOrderError(data.message || "Invalid or unapproved order code.");
+            setVerifiedOrder(null);
+            setSubjects([]);
+            return;
+          }
+        }
+      } catch (_) {
+        // Fall back to direct Supabase verification below
+      }
+
+      // 2. Direct Supabase verification (resilient fallback for edge / server sleep)
+      if (!verifiedData) {
+        const { data: order, error: orderErr } = await supabase
+          .from("orders")
+          .select("order_code, name, department, status")
+          .eq("order_code", code)
+          .maybeSingle();
+
+        if (orderErr) {
+          console.warn("[Exam] Direct orders query note:", orderErr.message);
+          throw orderErr;
+        }
+
+        if (!order || order.status !== "approved") {
+          setOrderError("Invalid or unapproved order code.");
+          setVerifiedOrder(null);
+          setSubjects([]);
+          return;
+        }
+
+        const orderField = order.department || "Natural";
+
+        // Fetch subjects matching student field (or shared 'Both')
+        const { data: subList, error: subErr } = await supabase
+          .from("exam_subjects")
+          .select("id, code, title, field, duration_minutes, question_count, is_active")
+          .or(`field.eq.${orderField},field.eq.Both`)
+          .order("created_at", { ascending: true });
+
+        if (subErr) throw subErr;
+
+        // Check taken attempts
+        const { data: attempts } = await supabase
+          .from("exam_attempts")
+          .select("subject_id, submitted_at")
+          .eq("order_code", code);
+
+        const takenSubjectIds = new Set(
+          (attempts || []).filter((a) => a.submitted_at != null).map((a) => a.subject_id)
+        );
+
+        const mappedSubjects = (subList || []).map((sub) => {
+          let status = "available";
+          if (sub.is_active === false) {
+            status = "closed";
+          } else if (takenSubjectIds.has(sub.id)) {
+            status = "taken";
+          }
+          return {
+            id: sub.id,
+            code: sub.code,
+            title: sub.title,
+            question_count: sub.question_count,
+            duration_minutes: sub.duration_minutes,
+            status,
+          };
+        });
+
+        verifiedData = {
+          valid: true,
+          name: order.name,
+          field: orderField,
+          subjects: mappedSubjects,
+        };
       }
 
       // Success: order approved!
       const orderData = {
-        name: data.name,
-        field: data.field || "Natural",
+        name: verifiedData.name,
+        field: verifiedData.field || "Natural",
         code,
       };
       setVerifiedOrder(orderData);
       sessionStorage.setItem(SESSION_CODE_KEY, code);
 
-      const subList = data.subjects || [];
+      const subList = verifiedData.subjects || [];
       setSubjects(subList);
 
       // Auto-select first available subject if current selection is invalid
@@ -222,7 +303,8 @@ export default function ExamPage() {
       } else {
         setSelectedSubjectId("");
       }
-    } catch (_) {
+    } catch (err) {
+      console.error("[Exam] Verification error:", err);
       setOrderError("Something went wrong. Please try again.");
     } finally {
       setIsVerifyingCode(false);
@@ -275,7 +357,15 @@ export default function ExamPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {
+        if (!res.ok) {
+          throw new Error("Unable to connect to exam server. Please ensure the backend server is active.");
+        }
+      }
+
       if (!res.ok) {
         throw new Error(data.error || "Failed to start exam.");
       }
@@ -352,7 +442,15 @@ export default function ExamPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {
+        if (!res.ok) {
+          throw new Error("Unable to connect to exam server. Please try submitting again.");
+        }
+      }
+
       if (!res.ok) {
         throw new Error(data.error || "Failed to submit exam.");
       }
