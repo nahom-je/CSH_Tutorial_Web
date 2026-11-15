@@ -1,11 +1,12 @@
 // src/pages/ExamPage.jsx — CSH Tutorial Mock Exam Portal
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { getOrCreateDeviceId, normalizeOrderCode } from "../lib/quizAccess";
 import "../exam.css";
 
-// ── API Endpoint ──────────────────────────────────────────────
+// ── Configuration ─────────────────────────────────────────────
 const BOT_API =
   import.meta.env.VITE_BOT_API_URL ||
   (typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -13,80 +14,22 @@ const BOT_API =
     : "https://csh-tutorial-bot.onrender.com");
 
 const STORAGE_KEY = "csh_active_exam_attempt";
+const SESSION_CODE_KEY = "csh_exam_order_code";
 
-// ── Fallback Subjects Configuration ───────────────────────────
-const DEFAULT_SUBJECTS = [
-  {
-    id: "sub-math",
-    code: "MATH-1011",
-    title: "Mathematics",
-    field: "Both",
-    duration_minutes: 90,
-    question_count: 24,
-    icon: "📐",
-    time_label: "1h 30m"
-  },
-  {
-    id: "sub-phys",
-    code: "PHYS-1011",
-    title: "General Physics",
-    field: "Natural",
-    duration_minutes: 60,
-    question_count: 19,
-    icon: "⚡",
-    time_label: "1 hour"
-  },
-  {
-    id: "sub-logic",
-    code: "PHIL-1011",
-    title: "Logic and Critical Thinking",
-    field: "Both",
-    duration_minutes: 40,
-    question_count: 25,
-    icon: "💡",
-    time_label: "40 min"
-  },
-  {
-    id: "sub-psyc",
-    code: "PSYC-1011",
-    title: "General Psychology",
-    field: "Both",
-    duration_minutes: 30,
-    question_count: 33,
-    icon: "🧠",
-    time_label: "30 min"
-  },
-  {
-    id: "sub-geog",
-    code: "GEOG-1011",
-    title: "Geography",
-    field: "Both",
-    duration_minutes: 40,
-    question_count: 30,
-    icon: "🌍",
-    time_label: "40 min"
-  },
-  {
-    id: "sub-econ",
-    code: "ECON-1011",
-    title: "General Economics",
-    field: "Social",
-    duration_minutes: 40,
-    question_count: 20,
-    icon: "📊",
-    time_label: "40 min"
-  }
-];
+// ── Validation Helpers ────────────────────────────────────────
+function validateOrderCodeFormat(code) {
+  const norm = normalizeOrderCode(code);
+  return /^NT-[A-Z0-9]{6}$/.test(norm);
+}
 
 function validateEthiopianPhone(phone) {
-  const cleaned = (phone || "").replace(/\s+/g, "");
+  const cleaned = (phone || "").replace(/[\s\-]/g, "");
   return /^(09|07)\d{8}$/.test(cleaned) || /^\+251(9|7)\d{8}$/.test(cleaned);
 }
 
 function validateStudentId(id) {
   const cleaned = (id || "").trim();
-  // Format: RUXXXX/19 (case-insensitive, e.g. RU1234/19)
-  return /^RU[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
+  return /^[A-Za-z0-9/\-]{3,20}$/.test(cleaned);
 }
 
 function formatTime(seconds) {
@@ -101,14 +44,27 @@ function formatTime(seconds) {
 }
 
 export default function ExamPage() {
-  const [step, setStep] = useState("register"); // register | select | exam | submitting | result | error
-  const [student, setStudent] = useState({ full_name: "", student_id: "", phone: "" });
-  const [formErrors, setFormErrors] = useState({});
-  const [field, setField] = useState("Natural"); // 'Natural' | 'Social'
-  const [subjects, setSubjects] = useState(DEFAULT_SUBJECTS);
+  const location = useLocation();
+
+  // ── Entry State ─────────────────────────────────────────────
+  const [step, setStep] = useState("entry"); // entry | exam | submitting | result | error
+  const [orderCodeInput, setOrderCodeInput] = useState("");
+  const [verifiedOrder, setVerifiedOrder] = useState(null); // { name, field, code }
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [orderError, setOrderError] = useState("");
+
+  // Student-provided inputs
+  const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [studentId, setStudentId] = useState("");
+  const [studentIdTouched, setStudentIdTouched] = useState(false);
+
+  // Subject state
+  const [subjects, setSubjects] = useState([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
-  
-  // Exam Engine State
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
+
+  // ── Exam Engine State ───────────────────────────────────────
   const [attemptId, setAttemptId] = useState("");
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -116,58 +72,20 @@ export default function ExamPage() {
   const answersRef = useRef({});
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef(null);
-  
-  // Submit Confirmation Modal
+
+  // Modal & Results State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
-  // Result & Review State
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Keep answersRef synced
+  // Sync answersRef
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
 
-  // ── 1. Fetch Subjects from Backend on Load ──────────────────
+  // ── 1. Initialize from URL, Session, or Active Attempt ───────
   useEffect(() => {
-    async function loadSubjects() {
-      try {
-        const res = await fetch(`${BOT_API}/api/exam/subjects`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.subjects && data.subjects.length > 0) {
-            // merge with UI icons & labels
-            const mapped = data.subjects.map((s) => {
-              const def = DEFAULT_SUBJECTS.find((d) => d.code === s.code) || {};
-              return {
-                ...s,
-                icon: def.icon || "📚",
-                time_label: def.time_label || `${s.duration_minutes} min`
-              };
-            });
-            setSubjects(mapped);
-          }
-        }
-      } catch (_) {
-        // Fallback to DEFAULT_SUBJECTS
-      }
-    }
-    loadSubjects();
-  }, []);
-
-  // Filter subjects by chosen field
-  const filteredSubjects = subjects.filter((s) => s.field === "Both" || s.field === field);
-
-  // Keep selection valid when field changes
-  useEffect(() => {
-    if (!filteredSubjects.some((s) => s.id === selectedSubjectId || s.code === selectedSubjectId)) {
-      setSelectedSubjectId(filteredSubjects[0]?.id || filteredSubjects[0]?.code || "");
-    }
-  }, [field, filteredSubjects]); // eslint-disable-line
-
-  // ── 2. Check for In-Progress Exam on Page Mount (Refresh Resilience) ──
-  useEffect(() => {
+    // A) Check for ongoing active attempt (refresh resilience)
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -175,19 +93,19 @@ export default function ExamPage() {
         if (parsed.attempt_id && parsed.deadline_at) {
           const remaining = Math.floor((new Date(parsed.deadline_at).getTime() - Date.now()) / 1000);
           if (remaining > 0) {
-            // Re-sync with server
-            setStudent({
-              full_name: parsed.student_name || "",
-              student_id: parsed.student_id || "",
-              phone: parsed.phone || ""
-            });
-            setField(parsed.field || "Natural");
             setAttemptId(parsed.attempt_id);
+            setOrderCodeInput(parsed.code || "");
+            setVerifiedOrder({
+              name: parsed.student_name,
+              field: parsed.field,
+              code: parsed.code,
+            });
             setQuestions(parsed.questions || []);
             setAnswers(parsed.answers || {});
             answersRef.current = parsed.answers || {};
             setTimeLeft(remaining);
             setStep("exam");
+            return;
           } else {
             localStorage.removeItem(STORAGE_KEY);
           }
@@ -196,9 +114,21 @@ export default function ExamPage() {
     } catch (_) {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
 
-  // ── 3. Warn User Before Leaving / Reloading Active Exam ──────
+    // B) Check URL query parameters (?order=NT-XXXXXX or ?order_code=...)
+    const params = new URLSearchParams(location.search);
+    const urlCode = params.get("order") || params.get("order_code") || "";
+    const sessionCode = sessionStorage.getItem(SESSION_CODE_KEY) || "";
+
+    const codeToVerify = urlCode || sessionCode;
+    if (codeToVerify) {
+      const norm = normalizeOrderCode(codeToVerify);
+      setOrderCodeInput(norm);
+      verifyOrderCode(norm);
+    }
+  }, [location.search]); // eslint-disable-line
+
+  // ── 2. Warn User Before Leaving / Reloading Active Exam ──────
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (step === "exam") {
@@ -210,7 +140,7 @@ export default function ExamPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [step]);
 
-  // ── 4. Total Countdown Timer ────────────────────────────────
+  // ── 3. Total Countdown Timer ────────────────────────────────
   useEffect(() => {
     if (step !== "exam") return;
 
@@ -229,57 +159,114 @@ export default function ExamPage() {
     return () => clearInterval(timerRef.current);
   }, [step]); // eslint-disable-line
 
-  // ── 5. Form Validation ──────────────────────────────────────
-  function validateForm() {
-    const errs = {};
-    if (!student.full_name.trim() || student.full_name.trim().length < 3)
-      errs.full_name = "Full name must be at least 3 characters.";
-    if (!student.student_id.trim()) {
-      errs.student_id = "Student ID is required.";
-    } else if (!validateStudentId(student.student_id)) {
-      errs.student_id = "Student ID must follow format RUXXXX/19 (e.g. RU1234/19).";
-    }
-    if (!validateEthiopianPhone(student.phone))
-      errs.phone = "Enter a valid Ethiopian phone number (e.g. 09XXXXXXXX, 07XXXXXXXX, or +251...).";
-    return errs;
-  }
+  // ── 4. Verify Order Code & Fetch Available Subjects ─────────
+  async function verifyOrderCode(codeToTest) {
+    const code = normalizeOrderCode(codeToTest || orderCodeInput);
+    setOrderError("");
 
-  function handleRegisterSubmit(e) {
-    e.preventDefault();
-    const errs = validateForm();
-    if (Object.keys(errs).length) {
-      setFormErrors(errs);
+    if (!code) {
+      setOrderError("Please enter your order code (e.g. NT-8K3P9Q).");
       return;
     }
-    setFormErrors({});
-    setStep("select");
+
+    if (!validateOrderCodeFormat(code)) {
+      setOrderError("Invalid code format. Expected NT-XXXXXX (e.g. NT-8K3P9Q).");
+      return;
+    }
+
+    setIsVerifyingCode(true);
+    setSubjectsLoading(true);
+    const deviceId = getOrCreateDeviceId();
+
+    try {
+      const res = await fetch(
+        `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}&device_id=${encodeURIComponent(deviceId)}`
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        if (data.device_locked) {
+          setOrderError("This code is linked to another device. Use /resetdevice in the bot.");
+        } else {
+          setOrderError(data.message || "Invalid or unapproved order code.");
+        }
+        setVerifiedOrder(null);
+        setSubjects([]);
+        return;
+      }
+
+      // Success: order approved and device verified!
+      const orderData = {
+        name: data.name,
+        field: data.field || "Natural",
+        code,
+      };
+      setVerifiedOrder(orderData);
+      sessionStorage.setItem(SESSION_CODE_KEY, code);
+
+      const subList = data.subjects || [];
+      setSubjects(subList);
+
+      // Auto-select first available subject if current selection is invalid
+      const firstAvailable = subList.find((s) => s.status === "available");
+      if (firstAvailable) {
+        setSelectedSubjectId(firstAvailable.id);
+      } else {
+        setSelectedSubjectId("");
+      }
+    } catch (_) {
+      setOrderError("Something went wrong. Please try again.");
+    } finally {
+      setIsVerifyingCode(false);
+      setSubjectsLoading(false);
+    }
   }
 
-  // ── 6. Start / Resume Exam ──────────────────────────────────
+  function handleResetOrderCode() {
+    sessionStorage.removeItem(SESSION_CODE_KEY);
+    setVerifiedOrder(null);
+    setOrderCodeInput("");
+    setOrderError("");
+    setSubjects([]);
+    setSelectedSubjectId("");
+  }
+
+  // ── 5. Start Exam ───────────────────────────────────────────
   async function handleStartExam() {
+    setPhoneTouched(true);
+    setStudentIdTouched(true);
+
+    if (!verifiedOrder) {
+      setOrderError("Please verify your order code first.");
+      return;
+    }
+
+    if (!validateEthiopianPhone(phone)) return;
+    if (!validateStudentId(studentId)) return;
+
+    const chosen = subjects.find((s) => s.id === selectedSubjectId);
+    if (!chosen || chosen.status !== "available") {
+      setOrderError("Please select an available subject.");
+      return;
+    }
+
     setStep("submitting");
     setErrorMsg("");
-
-    const targetSub = subjects.find((s) => s.id === selectedSubjectId || s.code === selectedSubjectId);
-    if (!targetSub) {
-      setErrorMsg("Please select a subject.");
-      setStep("select");
-      return;
-    }
+    const deviceId = getOrCreateDeviceId();
 
     try {
       const payload = {
-        student_name: student.full_name.trim(),
-        student_id: student.student_id.trim(),
-        phone: student.phone.trim(),
-        field,
-        subject_id: targetSub.id || targetSub.code
+        code: verifiedOrder.code,
+        device_id: deviceId,
+        phone: phone.trim(),
+        student_id: studentId.trim().toUpperCase(),
+        subject_id: chosen.id,
       };
 
       const res = await fetch(`${BOT_API}/api/exam/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -293,7 +280,7 @@ export default function ExamPage() {
       const initialAnswers = data.saved_answers || {};
       setAnswers(initialAnswers);
       answersRef.current = initialAnswers;
-      setTimeLeft(data.remaining_seconds || targetSub.duration_minutes * 60);
+      setTimeLeft(data.remaining_seconds || (chosen.duration_minutes || 60) * 60);
 
       // Save to localStorage for refresh recovery
       localStorage.setItem(
@@ -301,23 +288,24 @@ export default function ExamPage() {
         JSON.stringify({
           attempt_id: data.attempt_id,
           deadline_at: data.deadline_at,
-          student_name: student.full_name,
-          student_id: student.student_id,
-          phone: student.phone,
-          field,
+          code: verifiedOrder.code,
+          student_name: verifiedOrder.name,
+          field: verifiedOrder.field,
+          phone,
+          student_id: studentId,
           questions: data.questions,
-          answers: initialAnswers
+          answers: initialAnswers,
         })
       );
 
       setStep("exam");
     } catch (err) {
-      setErrorMsg(err.message || "Failed to begin exam.");
+      setErrorMsg(err.message || "Failed to start exam. Please try again.");
       setStep("error");
     }
   }
 
-  // ── 7. Handle Option Selection ──────────────────────────────
+  // ── 6. Select Option ────────────────────────────────────────
   function handleSelectOption(optionId) {
     const q = questions[currentIdx];
     if (!q) return;
@@ -326,7 +314,6 @@ export default function ExamPage() {
       const updated = { ...prev, [q.id]: optionId };
       answersRef.current = updated;
 
-      // Update local storage backup
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -340,50 +327,61 @@ export default function ExamPage() {
     });
   }
 
-  // ── 8. Submit Answers ───────────────────────────────────────
+  // ── 7. Submit Answers ───────────────────────────────────────
   const submitExamToServer = useCallback(async () => {
     clearInterval(timerRef.current);
     setShowConfirmModal(false);
     setStep("submitting");
+    const deviceId = getOrCreateDeviceId();
 
     try {
       const payload = {
+        code: verifiedOrder?.code || orderCodeInput,
+        device_id: deviceId,
         attempt_id: attemptId,
-        answers: answersRef.current
+        answers: answersRef.current,
       };
 
       const res = await fetch(`${BOT_API}/api/exam/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Submission error.");
+        throw new Error(data.error || "Failed to submit exam.");
       }
 
-      // Clear local storage active attempt
       localStorage.removeItem(STORAGE_KEY);
-
       setResult(data);
       setStep("result");
     } catch (err) {
       setErrorMsg(err.message || "Failed to submit exam.");
       setStep("error");
     }
-  }, [attemptId]);
+  }, [attemptId, verifiedOrder, orderCodeInput]);
 
   function handleAutoSubmit() {
     submitExamToServer();
   }
 
-  // ── Current State Calculations ──────────────────────────────
+  // ── Calculations ────────────────────────────────────────────
+  const isPhoneValid = validateEthiopianPhone(phone);
+  const isStudentIdValid = validateStudentId(studentId);
+  const selectedSubject = subjects.find((s) => s.id === selectedSubjectId);
+  const isStartDisabled =
+    !verifiedOrder ||
+    !isPhoneValid ||
+    !isStudentIdValid ||
+    !selectedSubject ||
+    selectedSubject.status !== "available" ||
+    isVerifyingCode;
+
   const currentQ = questions[currentIdx];
-  const activeSubject = subjects.find((s) => s.id === selectedSubjectId || s.code === selectedSubjectId);
   const totalQuestions = questions.length;
   const answeredCount = Object.keys(answers).length;
-  const isTimerDanger = timeLeft <= 300; // last 5 minutes (turns red)
+  const isTimerDanger = timeLeft <= 300; // last 5 minutes
 
   return (
     <>
@@ -391,153 +389,211 @@ export default function ExamPage() {
       <main className="exam-page">
         <div className="exam-shell">
 
-          {/* ── STEP 1: REGISTRATION ────────────────────────── */}
-          {step === "register" && (
+          {/* ── STEP 1: VERIFICATION & REGISTRATION ─────────── */}
+          {step === "entry" && (
             <div className="exam-card">
               <div className="exam-card__icon">📝</div>
               <h1 className="exam-card__title">CSH Mock Exam Portal</h1>
               <p className="exam-card__subtitle">
-                Authentic freshman mid-term and final examination simulator. Please register with your student credentials.
+                Enter your subscription Order Code, Phone Number, and Student ID to begin.
               </p>
 
-              <form className="exam-form" onSubmit={handleRegisterSubmit} noValidate>
-                <div className="exam-field">
-                  <label className="exam-label" htmlFor="full_name">Full Name *</label>
+              {/* 1. Order Code Section */}
+              <div className="exam-field" style={{ marginBottom: "1.25rem" }}>
+                <label className="exam-label" htmlFor="order_code">
+                  Subscription Order Code *
+                </label>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
                   <input
-                    id="full_name"
-                    className={`exam-input${formErrors.full_name ? " exam-input--error" : ""}`}
+                    id="order_code"
+                    className={`exam-input${orderError ? " exam-input--error" : ""}`}
                     type="text"
-                    placeholder="e.g. Abebe Bikila"
-                    value={student.full_name}
-                    onChange={(e) => setStudent({ ...student, full_name: e.target.value })}
-                    autoComplete="name"
+                    placeholder="e.g. NT-8K3P9Q"
+                    value={orderCodeInput}
+                    disabled={!!verifiedOrder || isVerifyingCode}
+                    onChange={(e) => {
+                      setOrderCodeInput(normalizeOrderCode(e.target.value));
+                      setOrderError("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !verifiedOrder) {
+                        e.preventDefault();
+                        verifyOrderCode();
+                      }
+                    }}
+                    autoComplete="off"
                   />
-                  {formErrors.full_name && <span className="exam-error-msg">{formErrors.full_name}</span>}
+                  {!verifiedOrder ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ minWidth: "110px", flexShrink: 0 }}
+                      onClick={() => verifyOrderCode()}
+                      disabled={isVerifyingCode || !orderCodeInput.trim()}
+                    >
+                      {isVerifyingCode ? "Checking…" : "Verify"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ minWidth: "110px", flexShrink: 0 }}
+                      onClick={handleResetOrderCode}
+                    >
+                      Change Code
+                    </button>
+                  )}
                 </div>
+                {orderError && <span className="exam-error-msg">{orderError}</span>}
+              </div>
 
-                <div className="exam-field">
-                  <label className="exam-label" htmlFor="student_id">Student ID (RUXXXX/19) *</label>
-                  <input
-                    id="student_id"
-                    className={`exam-input${formErrors.student_id ? " exam-input--error" : ""}`}
-                    type="text"
-                    placeholder="e.g. RU1234/19"
-                    value={student.student_id}
-                    onChange={(e) => setStudent({ ...student, student_id: e.target.value.toUpperCase() })}
-                  />
-                  {formErrors.student_id && <span className="exam-error-msg">{formErrors.student_id}</span>}
+              {/* 2. Read-Only Order Information (Filled from Order) */}
+              {verifiedOrder && (
+                <div className="exam-readonly-box" style={{ animation: "examFadeIn 0.25s ease" }}>
+                  <div>
+                    <span className="exam-readonly-label">Student Name (from order)</span>
+                    <span className="exam-readonly-val">👤 {verifiedOrder.name}</span>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span className="exam-readonly-label">Field (from order)</span>
+                    <span className="badge" style={{ fontSize: "0.85rem", fontWeight: "700" }}>
+                      {verifiedOrder.field === "Natural" ? "🔬 Natural Science" : "📚 Social Science"}
+                    </span>
+                  </div>
                 </div>
+              )}
 
+              {/* 3. Phone & Student ID (Required) */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", marginTop: "1rem" }}>
                 <div className="exam-field">
-                  <label className="exam-label" htmlFor="phone">Phone Number (Ethiopian) *</label>
+                  <label className="exam-label" htmlFor="phone">Phone Number *</label>
                   <input
                     id="phone"
-                    className={`exam-input${formErrors.phone ? " exam-input--error" : ""}`}
+                    className={`exam-input${phoneTouched && !isPhoneValid ? " exam-input--error" : ""}`}
                     type="tel"
-                    placeholder="e.g. 0912345678, 0712345678, or +251..."
-                    value={student.phone}
-                    onChange={(e) => setStudent({ ...student, phone: e.target.value })}
-                    autoComplete="tel"
+                    placeholder="09XXXXXXXX or 07XXXXXXXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setPhoneTouched(true)}
                   />
-                  {formErrors.phone && <span className="exam-error-msg">{formErrors.phone}</span>}
+                  {phoneTouched && !isPhoneValid && (
+                    <span className="exam-error-msg">
+                      Enter a valid Ethiopian number (09... / 07... / +251...)
+                    </span>
+                  )}
                 </div>
 
-                <button className="btn btn-primary exam-submit-btn" type="submit">
-                  Continue to Exam Selection →
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* ── STEP 2: FIELD & SUBJECT SELECTION ───────────── */}
-          {step === "select" && (
-            <div className="exam-card">
-              <div className="exam-card__icon">🎯</div>
-              <h2 className="exam-card__title">Choose Your Field & Subject</h2>
-              <p className="exam-card__subtitle">
-                Student: <strong>{student.full_name}</strong> ({student.student_id})
-              </p>
-
-              <div className="exam-section-label">1. Choose Field</div>
-              <div className="exam-stream-group">
-                <button
-                  type="button"
-                  className={`exam-stream-btn${field === "Natural" ? " active" : ""}`}
-                  onClick={() => setField("Natural")}
-                >
-                  🔬 Natural Science
-                </button>
-                <button
-                  type="button"
-                  className={`exam-stream-btn${field === "Social" ? " active" : ""}`}
-                  onClick={() => setField("Social")}
-                >
-                  📚 Social Science
-                </button>
-              </div>
-
-              <div className="exam-section-label" style={{ marginTop: "1.75rem" }}>
-                2. Choose Subject ({field} Science)
-              </div>
-              <div className="exam-subject-grid">
-                {filteredSubjects.map((s) => {
-                  const isSelected = selectedSubjectId === s.id || selectedSubjectId === s.code;
-                  return (
-                    <button
-                      key={s.code}
-                      type="button"
-                      className={`exam-subject-btn${isSelected ? " active" : ""}`}
-                      onClick={() => setSelectedSubjectId(s.id || s.code)}
-                    >
-                      <span className="exam-subject-icon">{s.icon || "📚"}</span>
-                      <span className="exam-subject-name">{s.title}</span>
-                      <div className="exam-subject-meta">
-                        <span>📝 {s.question_count || 20} Qs</span>
-                        <span>•</span>
-                        <span>⏱ {s.time_label || `${s.duration_minutes}m`}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="exam-info-box">
-                <span>🛡️</span>
-                <div>
-                  <strong>Strict Exam Rules:</strong> Total countdown timer runs continuously on the server. Refreshing keeps your remaining time. Final score calculated out of <strong>20.0</strong>. Maximum 1 attempt allowed.
+                <div className="exam-field">
+                  <label className="exam-label" htmlFor="student_id">Student ID *</label>
+                  <input
+                    id="student_id"
+                    className={`exam-input${studentIdTouched && !isStudentIdValid ? " exam-input--error" : ""}`}
+                    type="text"
+                    placeholder="e.g. RUXXXX/19 or UGR/..."
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value.toUpperCase())}
+                    onBlur={() => setStudentIdTouched(true)}
+                  />
+                  {studentIdTouched && !isStudentIdValid && (
+                    <span className="exam-error-msg">
+                      Enter valid Student ID (3-20 characters)
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="exam-action-row">
+              {/* 4. Subject Cards for Student's Field */}
+              {verifiedOrder && (
+                <div style={{ marginTop: "1.75rem" }}>
+                  <div className="exam-section-label">
+                    Choose Subject ({verifiedOrder.field} Science)
+                  </div>
+
+                  {subjectsLoading ? (
+                    <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+                      Loading subjects…
+                    </div>
+                  ) : subjects.length === 0 ? (
+                    <div className="exam-info-box" style={{ background: "var(--accent-light)", color: "var(--accent-dark)" }}>
+                      <span>⚠️</span>
+                      <span>No exam is open right now. Please wait for the admin's announcement.</span>
+                    </div>
+                  ) : (
+                    <div className="exam-subject-grid">
+                      {subjects.map((sub) => {
+                        const isSelected = selectedSubjectId === sub.id;
+                        const isAvailable = sub.status === "available";
+
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            className={`exam-subject-btn${isSelected ? " active" : ""}${!isAvailable ? " disabled" : ""}`}
+                            onClick={() => {
+                              if (isAvailable) setSelectedSubjectId(sub.id);
+                            }}
+                            disabled={!isAvailable}
+                          >
+                            <span className="exam-subject-icon">
+                              {sub.code.startsWith("MATH") ? "📐" :
+                               sub.code.startsWith("PHYS") ? "⚡" :
+                               sub.code.startsWith("PHIL") ? "💡" :
+                               sub.code.startsWith("PSYC") ? "🧠" :
+                               sub.code.startsWith("GEOG") ? "🌍" : "📊"}
+                            </span>
+                            <span className="exam-subject-name">{sub.title}</span>
+                            <div className="exam-subject-meta">
+                              <span>📝 {sub.question_count || 20} Qs</span>
+                              <span>•</span>
+                              <span>⏱ {sub.duration_minutes}m</span>
+                            </div>
+
+                            <span className={`exam-status-badge ${sub.status}`}>
+                              {sub.status === "available" ? "● Available" :
+                               sub.status === "taken" ? "✓ Already taken" : "✕ Closed"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 5. Start Exam Action */}
+              <div style={{ marginTop: "2rem" }}>
                 <button
                   type="button"
-                  className="btn btn-outline"
-                  onClick={() => setStep("register")}
-                >
-                  ← Edit Credentials
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary exam-submit-btn"
+                  disabled={isStartDisabled}
                   onClick={handleStartExam}
                 >
                   🚀 Start Exam
                 </button>
+                {isStartDisabled && verifiedOrder && (
+                  <p style={{ textAlign: "center", fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                    {!isPhoneValid || !isStudentIdValid
+                      ? "Please enter a valid phone number and Student ID."
+                      : !selectedSubject || selectedSubject.status !== "available"
+                      ? "Please select an available subject card."
+                      : ""}
+                  </p>
+                )}
               </div>
             </div>
           )}
 
-          {/* ── STEP 3: EXAM SCREEN ─────────────────────────── */}
+          {/* ── STEP 2: ACTIVE EXAM ENGINE ──────────────────── */}
           {step === "exam" && currentQ && (
             <div className="exam-card">
               {/* Top Navigation & Countdown Timer */}
               <div className="exam-topbar">
                 <div className="exam-topbar-info">
                   <span className="exam-subject-badge">
-                    {activeSubject?.title || "Exam"} · {field} Science
+                    {selectedSubject?.title || "Exam"} · {verifiedOrder?.field} Science
                   </span>
                   <span className="exam-student-tag">
-                    {student.full_name} ({student.student_id})
+                    {verifiedOrder?.name} ({studentId}) · {verifiedOrder?.code}
                   </span>
                 </div>
 
@@ -576,7 +632,7 @@ export default function ExamPage() {
                 </div>
               </div>
 
-              {/* Question Display */}
+              {/* Current Question */}
               <div className="exam-question-box">
                 <span className="exam-question-badge">
                   Question {currentIdx + 1} of {totalQuestions}
@@ -601,7 +657,7 @@ export default function ExamPage() {
                 </div>
               </div>
 
-              {/* Action & Navigation Bar */}
+              {/* Question Navigation */}
               <div className="exam-nav-bar">
                 <button
                   type="button"
@@ -613,7 +669,7 @@ export default function ExamPage() {
                 </button>
 
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {currentIdx < totalQuestions - 1 ? (
+                  {currentIdx < totalQuestions - 1 && (
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -621,7 +677,7 @@ export default function ExamPage() {
                     >
                       Next Question →
                     </button>
-                  ) : null}
+                  )}
 
                   <button
                     type="button"
@@ -641,9 +697,9 @@ export default function ExamPage() {
             <div className="exam-modal-overlay">
               <div className="exam-modal">
                 <div className="exam-modal-icon">⚠️</div>
-                <h3 className="exam-modal-title">Ready to Submit?</h3>
+                <h3 className="exam-modal-title">Submit Examination?</h3>
                 <p className="exam-modal-body">
-                  You have answered <strong>{answeredCount}</strong> of <strong>{totalQuestions}</strong> questions.
+                  You answered <strong>{answeredCount}</strong> of <strong>{totalQuestions}</strong> questions.
                   {totalQuestions - answeredCount > 0 && (
                     <div className="exam-modal-warn">
                       Notice: You have {totalQuestions - answeredCount} unanswered questions that will be marked as incorrect.
@@ -663,24 +719,24 @@ export default function ExamPage() {
                     className="btn btn-primary"
                     onClick={submitExamToServer}
                   >
-                    Yes, Submit Now
+                    Yes, Submit
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── STEP 4: SUBMITTING / LOADING ────────────────── */}
+          {/* ── STEP 3: SUBMITTING / LOADING ────────────────── */}
           {step === "submitting" && (
             <div className="exam-card exam-card--center">
               <div className="exam-spinner" aria-label="Loading..." />
               <p className="exam-loading-text">
-                {questions.length === 0 ? "Loading exam questions..." : "Grading your exam & recording results..."}
+                {questions.length === 0 ? "Preparing your exam questions…" : "Grading your submission & recording results…"}
               </p>
             </div>
           )}
 
-          {/* ── STEP 5: RESULT & REVIEW ─────────────────────── */}
+          {/* ── STEP 4: RESULT SCREEN ───────────────────────── */}
           {step === "result" && result && (
             <div className="exam-card exam-card--result">
               <div className="exam-result-emoji">
@@ -713,7 +769,7 @@ export default function ExamPage() {
               {/* Review Section */}
               {result.review && result.review.length > 0 && (
                 <div className="exam-review-section">
-                  <h3 className="exam-review-title">📖 Detailed Question Review & Explanations</h3>
+                  <h3 className="exam-review-title">📖 Question Review & Explanations</h3>
                   {result.review.map((item, idx) => (
                     <div
                       key={item.id}
@@ -751,7 +807,10 @@ export default function ExamPage() {
                   className="btn btn-outline"
                   onClick={() => {
                     setResult(null);
-                    setStep("select");
+                    setStep("entry");
+                    if (verifiedOrder) {
+                      verifyOrderCode(verifiedOrder.code);
+                    }
                   }}
                 >
                   Take Another Subject
@@ -763,25 +822,35 @@ export default function ExamPage() {
             </div>
           )}
 
-          {/* ── STEP 6: ERROR SCREEN ────────────────────────── */}
+          {/* ── STEP 5: ERROR SCREEN ────────────────────────── */}
           {step === "error" && (
             <div className="exam-card exam-card--center">
               <div className="exam-error-icon">⚠️</div>
-              <h2 className="exam-card__title">Unable to Proceed</h2>
-              <p className="exam-error-body">{errorMsg || "An unexpected error occurred. Please try again."}</p>
+              <h2 className="exam-card__title">Notice</h2>
+              <p className="exam-error-body">{errorMsg || "Something went wrong. Please try again."}</p>
 
               <div className="exam-action-row exam-action-row--center">
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => setStep("select")}
+                  onClick={() => {
+                    setErrorMsg("");
+                    setStep("entry");
+                    if (verifiedOrder) {
+                      verifyOrderCode(verifiedOrder.code);
+                    }
+                  }}
                 >
                   ← Back to Selection
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => setStep("register")}
+                  onClick={() => {
+                    setErrorMsg("");
+                    handleResetOrderCode();
+                    setStep("entry");
+                  }}
                 >
                   Start Over
                 </button>

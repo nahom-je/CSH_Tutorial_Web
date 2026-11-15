@@ -1,11 +1,19 @@
 // src/handlers/examApi.js — Mock Exam API & Telegram Admin Handlers
 import { createClient } from "@supabase/supabase-js";
+import { getOrderByCode, setOrderDeviceId } from "../db/database.js";
+import { normalizeOrderCode } from "../utils/token.js";
 import { logger } from "../utils/logger.js";
 
 // ── Configuration ─────────────────────────────────────────────
-export const MAX_ATTEMPTS_PER_SUBJECT = 1;
 export const SHOW_REVIEW = process.env.SHOW_REVIEW !== "false"; // default true
 const GRACE_PERIOD_MS = 15000; // 15 seconds network grace period
+
+// Allowed CORS Origins (Security rule: restricted to production web and local dev)
+const ALLOWED_ORIGINS = [
+  "https://csh-tutorial-web.vercel.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
 
 // ── Supabase Client (Service Role for full backend authority) ─
 const sb = createClient(
@@ -30,7 +38,6 @@ function isRateLimited(ip) {
   return record.count > maxReq;
 }
 
-// Clean old rate limit entries every 10 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [ip, data] of rateLimitMap.entries()) {
@@ -38,16 +45,67 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-// ── Ethiopian Phone Validator ─────────────────────────────────
-function isValidEthiopianPhone(phone) {
-  const cleaned = (phone || "").replace(/\s+/g, "");
+// ── Validation Helpers ────────────────────────────────────────
+export function normalizePhone(phone) {
+  if (!phone) return "";
+  let p = phone.replace(/[\s\-]/g, "");
+  if (p.startsWith("+251")) return p;
+  if (p.startsWith("251")) return "+" + p;
+  if (p.startsWith("0")) return "+251" + p.slice(1);
+  return p;
+}
+
+export function isValidEthiopianPhone(phone) {
+  const cleaned = (phone || "").replace(/[\s\-]/g, "");
   return /^(09|07)\d{8}$/.test(cleaned) || /^\+251(9|7)\d{8}$/.test(cleaned);
 }
 
-// ── Student ID Validator (Format: RUXXXX/19) ──────────────────
-function isValidStudentId(id) {
+export function isValidStudentId(id) {
   const cleaned = (id || "").trim();
-  return /^RU[A-Z0-9]{3,6}\/\d{2}$/i.test(cleaned);
+  return /^[A-Za-z0-9/\-]{3,20}$/.test(cleaned);
+}
+
+export function isValidOrderCodeFormat(code) {
+  const norm = normalizeOrderCode(code);
+  return /^NT-[A-Z0-9]{6}$/.test(norm);
+}
+
+// ── Helper: Order and Device Verification ─────────────────────
+async function verifyOrderAndDevice(rawCode, rawDeviceId) {
+  const normalized = normalizeOrderCode(rawCode);
+  if (!isValidOrderCodeFormat(normalized)) {
+    return { valid: false, error: "Invalid or unapproved order code.", status: 400 };
+  }
+
+  const deviceId = (rawDeviceId || "").trim();
+  let order;
+  try {
+    order = await getOrderByCode(normalized);
+  } catch (err) {
+    logger.error(`[ExamApi] getOrderByCode error: ${err.message}`);
+    return { valid: false, error: "Database verification error.", status: 500 };
+  }
+
+  if (!order || order.status !== "approved") {
+    return { valid: false, error: "Invalid or unapproved order code.", status: 403 };
+  }
+
+  // Device Lock check
+  if (order.device_id) {
+    if (deviceId && order.device_id !== deviceId) {
+      return {
+        valid: false,
+        device_locked: true,
+        error: "This code is linked to another device. Use /resetdevice in the bot.",
+        status: 403,
+      };
+    }
+  } else if (deviceId) {
+    // Bind device on first use
+    await setOrderDeviceId(normalized, deviceId);
+  }
+
+  return { valid: true, order, normalizedCode: normalized };
 }
 
 // ── Helper to Read JSON Body ──────────────────────────────────
@@ -74,7 +132,27 @@ function readJsonBody(req) {
 
 // ── Main HTTP API Handler for /api/exam/* ─────────────────────
 export async function handleExamApi(req, res, url, bot) {
-  const clientIp = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  // CORS configuration (allow only verified origins)
+  const origin = req.headers.origin || "";
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else if (!origin) {
+    // Non-browser or local direct request
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
+
+  const clientIp =
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.socket.remoteAddress ||
+    "unknown";
 
   if (isRateLimited(clientIp)) {
     res.writeHead(429, { "Content-Type": "application/json" });
@@ -82,114 +160,217 @@ export async function handleExamApi(req, res, url, bot) {
     return true;
   }
 
-  // 1. GET /api/exam/subjects
+  // ─────────────────────────────────────────────────────────────
+  // 1. GET /api/exam/subjects?code=NT-XXXXXX&device_id=dev_xxxxxx
+  // ─────────────────────────────────────────────────────────────
   if (req.method === "GET" && url.pathname === "/api/exam/subjects") {
     try {
-      const field = url.searchParams.get("field"); // 'Natural' or 'Social' (optional)
-      let query = sb
-        .from("exam_subjects")
-        .select("id, code, title, field, duration_minutes, question_count, is_active")
-        .eq("is_active", true)
-        .order("created_at", { ascending: true });
+      const code = url.searchParams.get("code") || "";
+      const deviceId = url.searchParams.get("device_id") || "";
 
-      if (field && ["Natural", "Social"].includes(field)) {
-        query = query.or(`field.eq.${field},field.eq.Both`);
+      const auth = await verifyOrderAndDevice(code, deviceId);
+      if (!auth.valid) {
+        res.writeHead(auth.status, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            valid: false,
+            device_locked: !!auth.device_locked,
+            message: auth.error,
+          })
+        );
+        return true;
       }
 
-      const { data: subjects, error } = await query;
-      if (error) throw error;
+      const { order, normalizedCode } = auth;
+      const orderField = order.department || "Natural"; // 'Natural' or 'Social'
+
+      // Fetch subjects matching student's field (or shared 'Both')
+      const { data: subjects, error: subErr } = await sb
+        .from("exam_subjects")
+        .select("id, code, title, field, duration_minutes, question_count, is_active")
+        .or(`field.eq.${orderField},field.eq.Both`)
+        .order("created_at", { ascending: true });
+
+      if (subErr) throw subErr;
+
+      // Check existing attempts for this order_code to flag already taken subjects
+      let attempts = [];
+      try {
+        const { data: attData, error: attErr } = await sb
+          .from("exam_attempts")
+          .select("subject_id, submitted_at")
+          .eq("order_code", normalizedCode);
+        if (!attErr && attData) {
+          attempts = attData;
+        } else if (attErr) {
+          logger.warn(`[ExamApi] attempts query note: ${attErr.message}`);
+        }
+      } catch (err) {
+        logger.warn(`[ExamApi] attempts query fallback: ${err.message}`);
+      }
+
+      const takenSubjectIds = new Set(
+        (attempts || [])
+          .filter((a) => a.submitted_at != null)
+          .map((a) => a.subject_id)
+      );
+
+      // Map subjects with status: 'available' | 'taken' | 'closed'
+      const mappedSubjects = (subjects || []).map((sub) => {
+        let status = "available";
+        if (sub.is_active === false) {
+          status = "closed";
+        } else if (takenSubjectIds.has(sub.id)) {
+          status = "taken";
+        }
+        return {
+          id: sub.id,
+          code: sub.code,
+          title: sub.title,
+          question_count: sub.question_count,
+          duration_minutes: sub.duration_minutes,
+          status, // 'available' | 'taken' | 'closed'
+        };
+      });
 
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ subjects: subjects || [] }));
+      res.end(
+        JSON.stringify({
+          valid: true,
+          name: order.name,
+          field: orderField,
+          subjects: mappedSubjects,
+        })
+      );
     } catch (err) {
       logger.error(`[ExamApi] /api/exam/subjects error: ${err.message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Failed to load subjects." }));
+      res.end(JSON.stringify({ error: "Something went wrong. Please try again." }));
     }
     return true;
   }
 
+  // ─────────────────────────────────────────────────────────────
   // 2. POST /api/exam/start
+  // ─────────────────────────────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/exam/start") {
     try {
       const body = await readJsonBody(req);
-      const { student_name, student_id, phone, field, subject_id } = body;
+      const { code, device_id, phone, student_id, subject_id } = body;
 
-      // Validation
-      if (!student_name?.trim() || student_name.trim().length < 3) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Full name must be at least 3 characters." }));
+      // 1. Verify Order & Device
+      const auth = await verifyOrderAndDevice(code, device_id);
+      if (!auth.valid) {
+        res.writeHead(auth.status, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: auth.error,
+            device_locked: !!auth.device_locked,
+          })
+        );
         return true;
       }
-      if (!student_id?.trim() || !isValidStudentId(student_id)) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Student ID must be in the format RUXXXX/19 (e.g. RU1234/19)." }));
-        return true;
-      }
+
+      const { order, normalizedCode } = auth;
+      const orderField = order.department || "Natural";
+
+      // 2. Validate student-typed inputs
       if (!isValidEthiopianPhone(phone)) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Valid Ethiopian phone number required (e.g. 09XXXXXXXX, 07XXXXXXXX, or +251...)." }));
+        res.end(
+          JSON.stringify({
+            error: "Please enter a valid Ethiopian phone number (e.g. 09XXXXXXXX, 07XXXXXXXX, or +251...).",
+          })
+        );
         return true;
       }
-      if (!["Natural", "Social"].includes(field)) {
+
+      if (!isValidStudentId(student_id)) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Field must be Natural or Social." }));
+        res.end(
+          JSON.stringify({
+            error: "Please enter a valid Student ID (3 to 20 characters).",
+          })
+        );
         return true;
       }
+
       if (!subject_id) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "subject_id is required." }));
+        res.end(JSON.stringify({ error: "Please select an exam subject." }));
         return true;
       }
 
-      const cleanName = student_name.trim();
-      const cleanId = student_id.trim().toUpperCase();
-      const cleanPhone = phone.trim();
+      const normalizedPhone = normalizePhone(phone);
+      const cleanStudentId = student_id.trim();
 
-      // Verify subject
+      // 3. Verify Subject
       const { data: subject, error: subErr } = await sb
         .from("exam_subjects")
         .select("id, code, title, field, duration_minutes, is_active")
         .eq("id", subject_id)
-        .eq("is_active", true)
         .single();
 
       if (subErr || !subject) {
         res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Subject not found or currently inactive." }));
+        res.end(JSON.stringify({ error: "Subject not found." }));
         return true;
       }
 
-      // Check stream alignment
-      if (subject.field !== "Both" && subject.field !== field) {
+      if (subject.is_active === false) {
         res.writeHead(403, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: `Subject ${subject.title} is not available for ${field} Science.` }));
+        res.end(
+          JSON.stringify({
+            error: "This exam is currently closed. Please wait for the admin's announcement.",
+          })
+        );
         return true;
       }
 
-      // Check existing attempts for (student_id, subject_id)
-      const { data: existingAttempts, error: attErr } = await sb
-        .from("exam_attempts")
-        .select("id, started_at, deadline_at, submitted_at, answers")
-        .eq("student_id", cleanId)
-        .eq("subject_id", subject_id)
-        .order("started_at", { ascending: false });
+      if (subject.field !== "Both" && subject.field !== orderField) {
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: `Subject ${subject.title} is not available for ${orderField} Science.`,
+          })
+        );
+        return true;
+      }
 
-      if (attErr) throw attErr;
+      // 4. Check Attempts for this (order_code, subject_id)
+      let existingAttempts = [];
+      try {
+        const { data: attData, error: attErr } = await sb
+          .from("exam_attempts")
+          .select("id, started_at, deadline_at, submitted_at, answers")
+          .eq("order_code", normalizedCode)
+          .eq("subject_id", subject.id)
+          .order("started_at", { ascending: false });
+
+        if (!attErr && attData) {
+          existingAttempts = attData;
+        } else if (attErr) {
+          logger.warn(`[ExamApi] existingAttempts query note: ${attErr.message}`);
+        }
+      } catch (err) {
+        logger.warn(`[ExamApi] existingAttempts query fallback: ${err.message}`);
+      }
 
       const now = new Date();
-      const submitted = existingAttempts?.find((a) => a.submitted_at != null);
+      const finished = existingAttempts?.find((a) => a.submitted_at != null);
 
-      if (submitted && MAX_ATTEMPTS_PER_SUBJECT <= 1) {
+      if (finished) {
         res.writeHead(403, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          error: `You have already completed the exam for ${subject.title}. Maximum ${MAX_ATTEMPTS_PER_SUBJECT} attempt allowed per student.`,
-          completed: true
-        }));
+        res.end(
+          JSON.stringify({
+            error: `You have already taken the exam for ${subject.title}. Only 1 attempt is allowed.`,
+            already_taken: true,
+          })
+        );
         return true;
       }
 
-      // Check for active in-progress attempt to RESUME
+      // 5. Active in-progress attempt (Resume seamlessly with the same deadline!)
       const activeAttempt = existingAttempts?.find(
         (a) => a.submitted_at == null && new Date(a.deadline_at).getTime() > now.getTime()
       );
@@ -200,31 +381,51 @@ export async function handleExamApi(req, res, url, bot) {
       if (activeAttempt) {
         attemptRecord = activeAttempt;
         isResume = true;
+        // Keep phone and student_id updated
+        await sb
+          .from("exam_attempts")
+          .update({ phone: normalizedPhone, student_id: cleanStudentId })
+          .eq("id", activeAttempt.id);
       } else {
         // Create new attempt
         const durationMinutes = subject.duration_minutes || 60;
         const deadline = new Date(now.getTime() + durationMinutes * 60 * 1000);
 
-        const { data: newAtt, error: createErr } = await sb
+        const attemptInsertData = {
+          order_code: normalizedCode,
+          student_name: order.name, // from order
+          field: orderField,        // from order
+          phone: normalizedPhone,   // student-typed
+          student_id: cleanStudentId, // student-typed
+          subject_id: subject.id,
+          started_at: now.toISOString(),
+          deadline_at: deadline.toISOString(),
+          answers: {},
+        };
+
+        let { data: newAtt, error: createErr } = await sb
           .from("exam_attempts")
-          .insert({
-            student_name: cleanName,
-            student_id: cleanId,
-            phone: cleanPhone,
-            field,
-            subject_id: subject.id,
-            started_at: now.toISOString(),
-            deadline_at: deadline.toISOString(),
-            answers: {}
-          })
+          .insert(attemptInsertData)
           .select()
           .single();
+
+        if (createErr && createErr.message?.includes("order_code")) {
+          // If order_code column hasn't been added yet, insert without it
+          delete attemptInsertData.order_code;
+          const retry = await sb
+            .from("exam_attempts")
+            .insert(attemptInsertData)
+            .select()
+            .single();
+          newAtt = retry.data;
+          createErr = retry.error;
+        }
 
         if (createErr) throw createErr;
         attemptRecord = newAtt;
       }
 
-      // Fetch questions — NEVER send correct_option or explanation to browser!
+      // 6. Fetch questions — NEVER send correct_option or explanation to client!
       const { data: questions, error: qErr } = await sb
         .from("exam_questions")
         .select("id, question_number, question_text, options")
@@ -239,11 +440,9 @@ export async function handleExamApi(req, res, url, bot) {
         return true;
       }
 
-      // Pseudo-random deterministic shuffle of questions based on attempt ID
-      // Keeps option order fixed as required!
-      const seeded = questions
-        .map((q, idx) => {
-          // hash attempt ID + question id
+      // Deterministic question shuffle based on attempt ID, preserving fixed option order
+      const seededQuestions = questions
+        .map((q) => {
           let hash = 0;
           const str = (attemptRecord.id || "") + q.id;
           for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
@@ -254,41 +453,60 @@ export async function handleExamApi(req, res, url, bot) {
           id: item.q.id,
           display_number: idx + 1,
           question_text: item.q.question_text,
-          options: item.q.options // kept fixed order
+          options: item.q.options, // fixed options order
         }));
 
       const deadlineMs = new Date(attemptRecord.deadline_at).getTime();
       const remainingSeconds = Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000));
 
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        attempt_id: attemptRecord.id,
-        is_resume: isResume,
-        subject: {
-          id: subject.id,
-          code: subject.code,
-          title: subject.title,
-          duration_minutes: subject.duration_minutes
-        },
-        started_at: attemptRecord.started_at,
-        deadline_at: attemptRecord.deadline_at,
-        remaining_seconds: remainingSeconds,
-        saved_answers: attemptRecord.answers || {},
-        questions: seeded
-      }));
+      res.end(
+        JSON.stringify({
+          attempt_id: attemptRecord.id,
+          is_resume: isResume,
+          student_name: order.name,
+          field: orderField,
+          subject: {
+            id: subject.id,
+            code: subject.code,
+            title: subject.title,
+            duration_minutes: subject.duration_minutes,
+          },
+          started_at: attemptRecord.started_at,
+          deadline_at: attemptRecord.deadline_at,
+          remaining_seconds: remainingSeconds,
+          saved_answers: attemptRecord.answers || {},
+          questions: seededQuestions,
+        })
+      );
     } catch (err) {
       logger.error(`[ExamApi] /api/exam/start error: ${err.message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Failed to initiate exam attempt. Please try again." }));
+      res.end(JSON.stringify({ error: "Failed to begin exam. Please try again." }));
     }
     return true;
   }
 
+  // ─────────────────────────────────────────────────────────────
   // 3. POST /api/exam/submit
+  // ─────────────────────────────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/exam/submit") {
     try {
       const body = await readJsonBody(req);
-      const { attempt_id, answers } = body;
+      const { code, device_id, attempt_id, answers } = body;
+
+      // 1. Verify Order & Device
+      const auth = await verifyOrderAndDevice(code, device_id);
+      if (!auth.valid) {
+        res.writeHead(auth.status, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: auth.error,
+            device_locked: !!auth.device_locked,
+          })
+        );
+        return true;
+      }
 
       if (!attempt_id) {
         res.writeHead(400, { "Content-Type": "application/json" });
@@ -296,7 +514,7 @@ export async function handleExamApi(req, res, url, bot) {
         return true;
       }
 
-      // Fetch attempt
+      // 2. Fetch attempt
       const { data: attempt, error: attErr } = await sb
         .from("exam_attempts")
         .select("*, exam_subjects(title, code, field)")
@@ -309,30 +527,45 @@ export async function handleExamApi(req, res, url, bot) {
         return true;
       }
 
+      if (attempt.order_code && attempt.order_code !== auth.normalizedCode) {
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Attempt does not match this order code." }));
+        return true;
+      }
+
+      // If already submitted, return saved result
       if (attempt.submitted_at != null) {
-        // Already submitted: return saved result
         res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          already_submitted: true,
-          score: attempt.score,
-          correct_count: attempt.correct_count,
-          total: attempt.total,
-          time_used_minutes: Math.max(1, Math.round((new Date(attempt.submitted_at) - new Date(attempt.started_at)) / 60000)),
-          student_name: attempt.student_name,
-          subject_title: attempt.exam_subjects?.title || "Exam"
-        }));
+        res.end(
+          JSON.stringify({
+            already_submitted: true,
+            score: attempt.score,
+            correct_count: attempt.correct_count,
+            total: attempt.total,
+            time_used_minutes: Math.max(
+              1,
+              Math.round(
+                (new Date(attempt.submitted_at) - new Date(attempt.started_at)) / 60000
+              )
+            ),
+            student_name: attempt.student_name,
+            subject_title: attempt.exam_subjects?.title || "Exam",
+          })
+        );
         return true;
       }
 
       const now = Date.now();
       const deadline = new Date(attempt.deadline_at).getTime();
 
-      // Grace period check (15 seconds)
+      // Grace period check
       if (now > deadline + GRACE_PERIOD_MS) {
-        logger.warn(`[ExamApi] Attempt ${attempt_id} submitted after grace period (${Math.round((now - deadline)/1000)}s late)`);
+        logger.warn(
+          `[ExamApi] Attempt ${attempt_id} submitted after deadline grace period (${Math.round((now - deadline) / 1000)}s late)`
+        );
       }
 
-      // Fetch official answer key server-side from exam_questions
+      // 3. Fetch questions and grade on server
       const { data: officialQuestions, error: qErr } = await sb
         .from("exam_questions")
         .select("id, question_number, question_text, options, correct_option, explanation")
@@ -347,9 +580,11 @@ export async function handleExamApi(req, res, url, bot) {
 
       const review = [];
 
-      for (const q of (officialQuestions || [])) {
+      for (const q of officialQuestions || []) {
         const studentChoice = normalizedAnswers[q.id] || null;
-        const isCorrect = studentChoice && studentChoice.trim().toUpperCase() === q.correct_option?.trim().toUpperCase();
+        const isCorrect =
+          studentChoice &&
+          studentChoice.trim().toUpperCase() === q.correct_option?.trim().toUpperCase();
 
         if (isCorrect) correctCount++;
 
@@ -362,19 +597,19 @@ export async function handleExamApi(req, res, url, bot) {
             student_answer: studentChoice,
             correct_answer: q.correct_option,
             is_correct: isCorrect,
-            explanation: q.explanation
+            explanation: q.explanation,
           });
         }
       }
 
-      // Score formula: (correct / total) * 20, rounded to 1 decimal place
+      // Score = (correct / total) * 20, rounded to 1 decimal
       const rawScore = total > 0 ? (correctCount / total) * 20 : 0;
       const score = Math.round(rawScore * 10) / 10;
       const submittedAt = new Date().toISOString();
       const startedAt = new Date(attempt.started_at);
       const timeUsedMinutes = Math.max(1, Math.round((new Date(submittedAt) - startedAt) / 60000));
 
-      // Save to exam_attempts
+      // 4. Update attempt record
       const { error: updateErr } = await sb
         .from("exam_attempts")
         .update({
@@ -382,16 +617,18 @@ export async function handleExamApi(req, res, url, bot) {
           answers: normalizedAnswers,
           correct_count: correctCount,
           total,
-          score
+          score,
         })
         .eq("id", attempt_id);
 
       if (updateErr) throw updateErr;
 
-      // Send Telegram alert to ADMIN_CHAT_ID
+      // 5. Send Telegram alert to admin
       const subjectTitle = attempt.exam_subjects?.title || "Exam";
       const subjectField = attempt.field || "Science";
-      const submissionTimeFormatted = new Date().toLocaleString("en-US", { timeZone: "Africa/Addis_Ababa" });
+      const submissionTimeFormatted = new Date().toLocaleString("en-US", {
+        timeZone: "Africa/Addis_Ababa",
+      });
 
       try {
         const adminMsg =
@@ -403,25 +640,28 @@ export async function handleExamApi(req, res, url, bot) {
 📚 Subject: ${subjectTitle}
 ⭐ Score: ${score.toFixed(1)} / 20 (${correctCount} of ${total} correct)
 ⏱ Time used: ${timeUsedMinutes} min
-🕒 Submitted: ${submissionTimeFormatted}`;
+🕒 Submitted: ${submissionTimeFormatted}
+🔑 Order: ${attempt.order_code || auth.normalizedCode}`;
 
         await bot.telegram.sendMessage(process.env.ADMIN_CHAT_ID, adminMsg);
       } catch (tgErr) {
         logger.error(`[ExamApi] Telegram notification failed: ${tgErr.message}`);
-        // Telegram failure does NOT break the student's submission response
+        // Telegram failure does not break the student response
       }
 
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        success: true,
-        student_name: attempt.student_name,
-        subject_title: subjectTitle,
-        score,
-        correct_count: correctCount,
-        total,
-        time_used_minutes: timeUsedMinutes,
-        review: SHOW_REVIEW ? review : null
-      }));
+      res.end(
+        JSON.stringify({
+          success: true,
+          student_name: attempt.student_name,
+          subject_title: subjectTitle,
+          score,
+          correct_count: correctCount,
+          total,
+          time_used_minutes: timeUsedMinutes,
+          review: SHOW_REVIEW ? review : null,
+        })
+      );
     } catch (err) {
       logger.error(`[ExamApi] /api/exam/submit error: ${err.message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
@@ -430,13 +670,12 @@ export async function handleExamApi(req, res, url, bot) {
     return true;
   }
 
-  return false; // Not handled by this sub-router
+  return false;
 }
 
 // ── Register Bot Admin Commands (/results <SUBJECT>) ──────────
 export function registerExamBotHandlers(bot) {
   bot.command("results", async (ctx) => {
-    // Only admin can view exam results
     const adminChatId = String(process.env.ADMIN_CHAT_ID);
     if (String(ctx.chat.id) !== adminChatId) {
       return ctx.reply("⛔ This command is restricted to platform administrators.");
@@ -449,7 +688,7 @@ export function registerExamBotHandlers(bot) {
       let query = sb
         .from("exam_attempts")
         .select(`
-          id, student_name, student_id, phone, field, score, correct_count, total, started_at, submitted_at,
+          id, order_code, student_name, student_id, phone, field, score, correct_count, total, started_at, submitted_at,
           exam_subjects!inner(title, code)
         `)
         .not("submitted_at", "is", null)
@@ -480,7 +719,7 @@ export function registerExamBotHandlers(bot) {
           `${idx + 1}. *${att.student_name}* (${att.student_id})\n` +
           `   📚 ${subTitle} (${att.field})\n` +
           `   ⭐ *${att.score} / 20* (${att.correct_count}/${att.total} correct) · ⏱ ${timeMin}m\n` +
-          `   📞 \`${att.phone}\``
+          `   🔑 \`${att.order_code || "N/A"}\` · 📞 \`${att.phone}\``
         );
       });
 
@@ -491,4 +730,3 @@ export function registerExamBotHandlers(bot) {
     }
   });
 }
-

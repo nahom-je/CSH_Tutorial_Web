@@ -48,6 +48,7 @@ export default function Navbar() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
+                  flexDirection: "row",
                   gap: "6px",
                   fontWeight: "600",
                   color: "var(--primary)",
@@ -58,11 +59,12 @@ export default function Navbar() {
                   transition: "var(--transition)",
                   whiteSpace: "nowrap",
                   flexShrink: 0,
-                  lineHeight: 1.2,
+                  lineHeight: 1,
+                  textDecoration: "none",
                 }}
               >
-                <span style={{ whiteSpace: "nowrap" }}>📝 Quizzes</span>
-                <span style={{
+                <span style={{ whiteSpace: "nowrap", display: "inline-flex", alignItems: "center" }}>{"📝\u00A0Quizzes"}</span>
+                <span className="nav-quiz-badge" style={{
                   fontSize: "0.68rem",
                   background: "var(--primary)",
                   color: "#fff",
@@ -73,7 +75,8 @@ export default function Navbar() {
                   display: "inline-flex",
                   alignItems: "center",
                   lineHeight: 1,
-                }}>1,005 Qs</span>
+                  flexShrink: 0,
+                }}>{"1,005\u00A0Qs"}</span>
               </Link>
             </li>
             <li>
@@ -84,6 +87,7 @@ export default function Navbar() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
+                  flexDirection: "row",
                   gap: "6px",
                   fontWeight: "600",
                   color: "var(--accent-dark)",
@@ -94,10 +98,11 @@ export default function Navbar() {
                   transition: "var(--transition)",
                   whiteSpace: "nowrap",
                   flexShrink: 0,
-                  lineHeight: 1.2,
+                  lineHeight: 1,
+                  textDecoration: "none",
                 }}
               >
-                <span style={{ whiteSpace: "nowrap" }}>🎯 Mock Exam</span>
+                <span style={{ whiteSpace: "nowrap", display: "inline-flex", alignItems: "center" }}>{"🎯\u00A0Mock\u00A0Exam"}</span>
               </Link>
             </li>
           </ul>
