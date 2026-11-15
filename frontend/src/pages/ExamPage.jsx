@@ -18,16 +18,26 @@ const BOT_API =
     ? "http://localhost:3000"
     : "");
 
+const RENDER_BACKEND_URL = "https://csh-tutorial-web.onrender.com";
+
 async function callExamApi(endpoint, options = {}) {
   const primaryUrl = BOT_API ? `${BOT_API}${endpoint}` : endpoint;
   try {
     const res = await fetch(primaryUrl, options);
+    if (!res.ok && res.status >= 500 && !BOT_API) {
+      try {
+        return await fetch(`${RENDER_BACKEND_URL}${endpoint}`, options);
+      } catch (_) {}
+    }
     return res;
   } catch (err) {
     if (BOT_API) {
       try {
-        const fallbackRes = await fetch(endpoint, options);
-        return fallbackRes;
+        return await fetch(endpoint, options);
+      } catch (_) {}
+    } else {
+      try {
+        return await fetch(`${RENDER_BACKEND_URL}${endpoint}`, options);
       } catch (_) {}
     }
     throw err;
