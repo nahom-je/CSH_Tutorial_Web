@@ -106,6 +106,7 @@ export default function ExamPage() {
   const answersRef = useRef({});
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef(null);
+  const [paletteExpanded, setPaletteExpanded] = useState(false);
 
   // Modal & Results State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -702,50 +703,76 @@ export default function ExamPage() {
           {/* ── STEP 2: ACTIVE EXAM ENGINE ──────────────────── */}
           {step === "exam" && currentQ && (
             <div className="exam-card">
-              {/* Top Navigation & Countdown Timer */}
+              {/* Top Navigation & Sticky Countdown Timer */}
               <div className="exam-topbar">
                 <div className="exam-topbar-info">
                   <span className="exam-subject-badge">
-                    {selectedSubject?.title || "Exam"} · {verifiedOrder?.field} Science
+                    {selectedSubject?.title || "Exam"} · Q {currentIdx + 1}/{totalQuestions}
                   </span>
                   <span className="exam-student-tag">
-                    {verifiedOrder?.name} ({studentId}) · {verifiedOrder?.code}
+                    {verifiedOrder?.name} · {studentId}
                   </span>
                 </div>
 
-                <div className={`exam-timer-box${isTimerDanger ? " danger" : timeLeft <= 600 ? " warning" : ""}`}>
-                  <span>⏱</span>
-                  <span>{formatTime(timeLeft)}</span>
+                <div
+                  className={`exam-timer-box${isTimerDanger ? " danger" : timeLeft <= 600 ? " warning" : ""}`}
+                  title="Remaining Exam Time"
+                >
+                  <span className="timer-icon">{isTimerDanger ? "🚨" : timeLeft <= 600 ? "⏳" : "⏱"}</span>
+                  <span className="timer-digits">{formatTime(timeLeft)}</span>
                 </div>
               </div>
 
-              {/* Question Palette */}
+              {/* Question Navigator (Collapsible on Mobile to Save Screen Space) */}
               <div className="exam-palette-container">
-                <div className="exam-palette-header">
-                  <span>Question Palette</span>
-                  <div className="exam-palette-legend">
-                    <span><i className="palette-dot cur" /> Current</span>
-                    <span><i className="palette-dot ans" /> Answered</span>
-                    <span><i className="palette-dot unans" /> Unanswered</span>
+                <button
+                  type="button"
+                  className="exam-palette-toggle"
+                  onClick={() => setPaletteExpanded((p) => !p)}
+                  aria-expanded={paletteExpanded}
+                >
+                  <div className="exam-palette-toggle-left">
+                    <span className="exam-palette-toggle-title">🗺️ Question Navigator</span>
+                    <span className="exam-palette-badge">
+                      {answeredCount} of {totalQuestions} answered
+                    </span>
                   </div>
-                </div>
-                <div className="exam-palette-grid">
-                  {questions.map((q, idx) => {
-                    const isAnswered = !!answers[q.id];
-                    const isCurrent = idx === currentIdx;
-                    return (
-                      <button
-                        key={q.id}
-                        type="button"
-                        className={`exam-palette-num${isCurrent ? " current" : isAnswered ? " answered" : ""}`}
-                        onClick={() => setCurrentIdx(idx)}
-                        title={`Question ${idx + 1}`}
-                      >
-                        {idx + 1}
-                      </button>
-                    );
-                  })}
-                </div>
+                  <span className="exam-palette-toggle-arrow">
+                    {paletteExpanded ? "▴ Hide Grid" : "▾ View All Questions"}
+                  </span>
+                </button>
+
+                {paletteExpanded && (
+                  <div className="exam-palette-body">
+                    <div className="exam-palette-legend">
+                      <span><i className="palette-dot cur" /> Current</span>
+                      <span><i className="palette-dot ans" /> Answered</span>
+                      <span><i className="palette-dot unans" /> Unanswered</span>
+                    </div>
+                    <div className="exam-palette-grid">
+                      {questions.map((q, idx) => {
+                        const isAnswered = !!answers[q.id];
+                        const isCurrent = idx === currentIdx;
+                        return (
+                          <button
+                            key={q.id}
+                            type="button"
+                            className={`exam-palette-num${isCurrent ? " current" : isAnswered ? " answered" : ""}`}
+                            onClick={() => {
+                              setCurrentIdx(idx);
+                              if (typeof window !== "undefined" && window.innerWidth <= 640) {
+                                setPaletteExpanded(false);
+                              }
+                            }}
+                            title={`Jump to Question ${idx + 1}`}
+                          >
+                            {idx + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Current Question */}

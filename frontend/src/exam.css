@@ -341,22 +341,29 @@
   justify-content: center;
 }
 
-/* ── Top Exam Navigation Bar ─────────────────────────────────── */
+/* ── Sticky Top Exam Navigation Bar ─────────────────────────── */
 .exam-topbar {
+  position: sticky;
+  top: 72px;
+  z-index: 40;
+  background: var(--bg-card);
+  padding: 0.75rem 1rem;
+  margin: -1.25rem -1rem 1rem -1rem;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-bottom: 2px solid var(--border);
+  box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
   gap: 0.75rem;
+  transition: all 0.2s ease;
 }
 
 .exam-topbar-info {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  min-width: 0;
 }
 
 .exam-subject-badge {
@@ -369,41 +376,63 @@
   padding: 0.25rem 0.75rem;
   display: inline-block;
   width: fit-content;
+  white-space: nowrap;
 }
 
 .exam-student-tag {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Countdown Timer (Total Exam Timer) ───────────────────────── */
+/* ── Countdown Timer (High Contrast Digital Display) ───────── */
 .exam-timer-box {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-md);
-  background: var(--bg-subtle);
-  border: 1.5px solid var(--border);
-  font-family: var(--font-display);
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  background: #0f172a;
+  border: 1.5px solid #1e293b;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.exam-timer-box .timer-icon {
   font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.exam-timer-box .timer-digits {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #38bdf8;
+  line-height: 1;
 }
 
 .exam-timer-box.warning {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent-dark);
+  background: #78350f;
+  border-color: #b45309;
+}
+
+.exam-timer-box.warning .timer-digits {
+  color: #fde047;
 }
 
 .exam-timer-box.danger {
-  background: var(--danger-light);
-  border-color: var(--danger);
-  color: var(--danger);
-  animation: timerPulse 1s infinite alternate;
+  background: #7f1d1d;
+  border-color: #dc2626;
+  animation: timerPulse 0.9s infinite alternate;
+}
+
+.exam-timer-box.danger .timer-digits {
+  color: #fca5a5;
 }
 
 @keyframes timerPulse {
@@ -411,29 +440,82 @@
   to   { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.1); }
 }
 
-/* ── Question Palette ────────────────────────────────────────── */
+/* ── Question Palette / Navigator (Collapsible) ─────────────── */
 .exam-palette-container {
   margin-bottom: var(--space-4);
-  padding: 0.85rem 1rem;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
 }
 
-.exam-palette-header {
+.exam-palette-container:hover {
+  border-color: var(--primary);
+}
+
+.exam-palette-toggle {
+  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.exam-palette-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.exam-palette-toggle-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.exam-palette-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+.exam-palette-toggle-arrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--bg-card);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.exam-palette-body {
+  padding: 0.65rem 1rem 0.85rem;
+  border-top: 1px solid var(--border);
+  animation: examFadeIn 0.2s ease;
 }
 
 .exam-palette-legend {
   display: flex;
   gap: 0.75rem;
   font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .palette-dot {
@@ -908,13 +990,22 @@
   }
 
   .exam-topbar {
-    padding-bottom: 0.6rem;
-    margin-bottom: 0.6rem;
+    position: sticky;
+    top: 64px;
+    z-index: 60;
+    background: var(--bg-card);
+    padding: 0.65rem 0.75rem;
+    margin: -1.25rem -1rem 0.85rem -1rem;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 2px solid var(--border);
+    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.12);
+    display: flex;
     align-items: center;
+    justify-content: space-between;
   }
 
   .exam-topbar-info {
-    max-width: calc(100% - 95px);
+    max-width: calc(100% - 130px);
   }
 
   .exam-subject-badge {
@@ -927,8 +1018,11 @@
   }
 
   .exam-timer-box {
-    font-size: 0.92rem;
-    padding: 0.35rem 0.65rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .exam-timer-box .timer-digits {
+    font-size: 1.05rem;
   }
 
   .exam-palette-container {
