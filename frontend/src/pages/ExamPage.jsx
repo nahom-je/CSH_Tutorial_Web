@@ -521,7 +521,7 @@ export default function ExamPage() {
                 <label className="exam-label" htmlFor="order_code">
                   Subscription Order Code *
                 </label>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div className="exam-code-verify-row">
                   <input
                     id="order_code"
                     className={`exam-input${orderError ? " exam-input--error" : ""}`}
@@ -544,8 +544,7 @@ export default function ExamPage() {
                   {!verifiedOrder ? (
                     <button
                       type="button"
-                      className="btn btn-primary"
-                      style={{ minWidth: "110px", flexShrink: 0 }}
+                      className="btn btn-primary exam-code-verify-btn"
                       onClick={() => verifyOrderCode()}
                       disabled={isVerifyingCode || !orderCodeInput.trim()}
                     >
@@ -554,8 +553,7 @@ export default function ExamPage() {
                   ) : (
                     <button
                       type="button"
-                      className="btn btn-outline"
-                      style={{ minWidth: "110px", flexShrink: 0 }}
+                      className="btn btn-outline exam-code-verify-btn"
                       onClick={handleResetOrderCode}
                     >
                       Change Code
@@ -572,7 +570,7 @@ export default function ExamPage() {
                     <span className="exam-readonly-label">Student Name (from order)</span>
                     <span className="exam-readonly-val">👤 {verifiedOrder.name}</span>
                   </div>
-                  <div style={{ textAlign: "right" }}>
+                  <div className="exam-readonly-field">
                     <span className="exam-readonly-label">Field (from order)</span>
                     <span className="badge" style={{ fontSize: "0.85rem", fontWeight: "700" }}>
                       {verifiedOrder.field === "Natural" ? "🔬 Natural Science" : "📚 Social Science"}
@@ -582,7 +580,7 @@ export default function ExamPage() {
               )}
 
               {/* 3. Phone & Student ID (Required) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", marginTop: "1rem" }}>
+              <div className="exam-form-row">
                 <div className="exam-field">
                   <label className="exam-label" htmlFor="phone">Phone Number *</label>
                   <input
@@ -777,35 +775,34 @@ export default function ExamPage() {
 
               {/* Question Navigation */}
               <div className="exam-nav-bar">
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  disabled={currentIdx === 0}
-                  onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
-                >
-                  ← Previous
-                </button>
+                <div className="exam-nav-arrows">
+                  <button
+                    type="button"
+                    className="btn btn-outline exam-nav-btn exam-nav-prev-btn"
+                    disabled={currentIdx === 0}
+                    onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
+                  >
+                    ← Previous
+                  </button>
 
-                <div style={{ display: "flex", gap: "0.5rem" }}>
                   {currentIdx < totalQuestions - 1 && (
                     <button
                       type="button"
-                      className="btn btn-primary"
+                      className="btn btn-primary exam-nav-btn exam-nav-next-btn"
                       onClick={() => setCurrentIdx((p) => Math.min(totalQuestions - 1, p + 1))}
                     >
                       Next Question →
                     </button>
                   )}
-
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ background: "var(--success)", borderColor: "var(--success)" }}
-                    onClick={() => setShowConfirmModal(true)}
-                  >
-                    Submit Exam 🏁
-                  </button>
                 </div>
+
+                <button
+                  type="button"
+                  className="btn btn-primary exam-nav-btn exam-submit-action-btn"
+                  onClick={() => setShowConfirmModal(true)}
+                >
+                  Submit Exam 🏁
+                </button>
               </div>
             </div>
           )}
