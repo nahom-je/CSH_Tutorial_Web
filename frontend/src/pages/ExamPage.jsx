@@ -16,7 +16,23 @@ const BOT_API =
     window.location.hostname.startsWith("192.168.") ||
     window.location.hostname.startsWith("172."))
     ? "http://localhost:3000"
-    : "https://csh-tutorial-bot.onrender.com");
+    : "");
+
+async function callExamApi(endpoint, options = {}) {
+  const primaryUrl = BOT_API ? `${BOT_API}${endpoint}` : endpoint;
+  try {
+    const res = await fetch(primaryUrl, options);
+    return res;
+  } catch (err) {
+    if (BOT_API) {
+      try {
+        const fallbackRes = await fetch(endpoint, options);
+        return fallbackRes;
+      } catch (_) {}
+    }
+    throw err;
+  }
+}
 
 const STORAGE_KEY = "csh_active_exam_attempt";
 const SESSION_CODE_KEY = "csh_exam_order_code";
@@ -200,8 +216,8 @@ export default function ExamPage() {
 
       // 1. First try backend API endpoint
       try {
-        const res = await fetch(
-          `${BOT_API}/api/exam/subjects?code=${encodeURIComponent(code)}`
+        const res = await callExamApi(
+          `/api/exam/subjects?code=${encodeURIComponent(code)}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -351,7 +367,7 @@ export default function ExamPage() {
         subject_id: chosen.id,
       };
 
-      const res = await fetch(`${BOT_API}/api/exam/start`, {
+      const res = await callExamApi("/api/exam/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -436,7 +452,7 @@ export default function ExamPage() {
         answers: answersRef.current,
       };
 
-      const res = await fetch(`${BOT_API}/api/exam/submit`, {
+      const res = await callExamApi("/api/exam/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
