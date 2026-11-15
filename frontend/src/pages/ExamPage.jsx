@@ -504,8 +504,8 @@ export default function ExamPage() {
 
   return (
     <>
-      <Navbar />
-      <main className="exam-page">
+      {step !== "exam" && <Navbar />}
+      <main className={`exam-page${step === "exam" ? " exam-page--active" : ""}`}>
         <div className="exam-shell">
 
           {/* ── STEP 1: VERIFICATION & REGISTRATION ─────────── */}
@@ -706,9 +706,15 @@ export default function ExamPage() {
               {/* Top Navigation & Sticky Countdown Timer */}
               <div className="exam-topbar">
                 <div className="exam-topbar-info">
-                  <span className="exam-subject-badge">
-                    {selectedSubject?.title || "Exam"} · Q {currentIdx + 1}/{totalQuestions}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "1.1rem" }}>🎓</span>
+                    <span className="exam-subject-badge">
+                      {selectedSubject?.title || "Exam"}
+                    </span>
+                    <span className="exam-q-counter">
+                      Q {currentIdx + 1}/{totalQuestions}
+                    </span>
+                  </div>
                   <span className="exam-student-tag">
                     {verifiedOrder?.name} · {studentId}
                   </span>
@@ -964,7 +970,7 @@ export default function ExamPage() {
 
         </div>
       </main>
-      <Footer />
+      {step !== "exam" && <Footer />}
     </>
   );
 }

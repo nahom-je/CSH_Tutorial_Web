@@ -112,25 +112,10 @@ export default function Navbar() {
           </ul>
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <Link
-              to="/quizzes"
-              className="btn btn-outline nav-quiz-btn-mobile"
-              style={{
-                display: "none",
-                padding: "0.5rem 0.9rem",
-                fontSize: "0.85rem",
-                borderColor: "var(--primary)",
-                color: "var(--primary)",
-                fontWeight: "600",
-              }}
-            >
-              📝 Quizzes
-            </Link>
-
             <a
               href={`https://t.me/${BOT_USERNAME}?start=full`}
               className="btn btn-primary"
-              style={{ padding: "0.55rem 1.25rem", fontSize: "0.9rem" }}
+              style={{ padding: "0.55rem 1.1rem", fontSize: "0.88rem", whiteSpace: "nowrap" }}
               id="nav-cta"
               target="_blank"
               rel="noopener noreferrer"
