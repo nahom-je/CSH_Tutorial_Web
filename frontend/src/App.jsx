@@ -56,8 +56,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/quizzes" element={<QuizHome />} />
-      <Route path="/quiz/:chapterId" element={<QuizRunner />} />
+      <Route path="/quizzes" element={<Navigate to="/exam" replace />} />
+      <Route path="/quiz/:chapterId" element={<Navigate to="/exam" replace />} />
       <Route path="/exam" element={<ExamPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -7,7 +7,7 @@ import {
 import { formatOrderSummary, escapeMd, escapeHtml } from "../utils/helpers.js";
 import { deliverAccess } from "../utils/delivery.js";
 import { normalizeOrderCode } from "../utils/token.js";
-import { PLAN_LABELS, QUIZ_PLATFORM_URL } from "../../config.js";
+import { PLAN_LABELS, EXAM_PLATFORM_URL } from "../../config.js";
 import { clearQuizChapterCache } from "../utils/quizApi.js";
 import { logger } from "../utils/logger.js";
 
@@ -155,7 +155,7 @@ export function registerAdminHandlers(bot) {
         `✅ <b>Device Lock Cleared Successfully!</b>\n\n` +
         `Your device binding for order <code>${escapeHtml(resetCodes[0])}</code> has been reset.\n\n` +
         `👉 You can now enter your code on your new phone, laptop, or browser to lock it there:\n` +
-        `🌐 <b>Website:</b> <a href="${QUIZ_PLATFORM_URL}">${QUIZ_PLATFORM_URL}</a>`,
+        `🌐 <b>Exam Portal:</b> <a href="${EXAM_PLATFORM_URL}">${EXAM_PLATFORM_URL}</a>`,
         { parse_mode: "HTML" }
       );
     } catch (err) {

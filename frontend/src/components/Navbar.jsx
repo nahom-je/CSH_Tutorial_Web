@@ -42,47 +42,6 @@ export default function Navbar() {
             ))}
             <li>
               <Link
-                to="/quizzes"
-                className="nav-quiz-link"
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  gap: "6px",
-                  fontWeight: "600",
-                  color: "var(--primary)",
-                  padding: "0 0.75rem",
-                  height: "32px",
-                  boxSizing: "border-box",
-                  borderRadius: "9999px",
-                  background: "var(--primary-light)",
-                  border: "1px solid rgba(79, 70, 229, 0.2)",
-                  transition: "var(--transition)",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  lineHeight: "1",
-                  textDecoration: "none",
-                }}
-              >
-                <span style={{ whiteSpace: "nowrap", display: "inline-flex", alignItems: "center" }}>{"📝\u00A0Quizzes"}</span>
-                <span className="nav-quiz-badge" style={{
-                  fontSize: "0.68rem",
-                  background: "var(--primary)",
-                  color: "#fff",
-                  padding: "0.15rem 0.45rem",
-                  borderRadius: "9999px",
-                  fontWeight: "700",
-                  whiteSpace: "nowrap",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: 1,
-                  flexShrink: 0,
-                }}>{"1,005\u00A0Qs"}</span>
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/exam"
                 className="nav-exam-link"
                 onClick={() => setMenuOpen(false)}
@@ -140,20 +99,12 @@ export default function Navbar() {
       {/* Mobile menu */}
       <nav className={`mobile-nav ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen}>
         <Link
-          to="/quizzes"
+          to="/exam"
           className="btn btn-primary"
           style={{ marginBottom: "0.5rem", display: "flex", justifyContent: "center", gap: "8px" }}
           onClick={() => setMenuOpen(false)}
         >
-          📝 Take Chapter Quizzes (1,005 Qs)
-        </Link>
-        <Link
-          to="/exam"
-          className="btn btn-outline"
-          style={{ marginBottom: "0.5rem", display: "flex", justifyContent: "center", gap: "8px", borderColor: "var(--accent)", color: "var(--accent-dark)" }}
-          onClick={() => setMenuOpen(false)}
-        >
-          🎯 Mock Exam
+          🎯 Mock Exam Portal
         </Link>
         {navLinks.map((l) => (
           <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a>

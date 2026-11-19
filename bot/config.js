@@ -43,5 +43,6 @@ export const ORDER_CODE_PREFIX = "NT";
 // ──────────────────────────────────────────────
 export const MAX_OPEN_ORDERS = 3;           // per student
 export const INVITE_LINK_EXPIRY_HOURS = 48; // hours before invite link expires
-export const QUIZ_PLATFORM_URL = process.env.QUIZ_PLATFORM_URL || "https://csh-tutorial-web.vercel.app/quizzes";
+export const EXAM_PLATFORM_URL = process.env.EXAM_PLATFORM_URL || "https://csh-tutorial-web.vercel.app/exam";
+export const QUIZ_PLATFORM_URL = process.env.QUIZ_PLATFORM_URL || EXAM_PLATFORM_URL;
 
