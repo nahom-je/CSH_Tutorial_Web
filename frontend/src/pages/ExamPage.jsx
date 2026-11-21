@@ -898,23 +898,23 @@ export default function ExamPage() {
           {step === "result" && result && (
             <div className="exam-card exam-card--result">
               <div className="exam-result-emoji">
-                {result.score >= 16 ? "🏆" : result.score >= 14 ? "🎉" : result.score >= 10 ? "👍" : "📚"}
+                {result.score >= 24 ? "🏆" : result.score >= 21 ? "🎉" : result.score >= 15 ? "👍" : "📚"}
               </div>
               <h2 className="exam-card__title">Exam Completed!</h2>
               <p className="exam-result-meta">
                 Student: <strong>{result.student_name}</strong> · Subject: <strong>{result.subject_title}</strong> · Time used: <strong>{result.time_used_minutes} min</strong>
               </p>
 
-              <div className={`exam-score-display ${result.score >= 14 ? "pass" : "below"}`}>
+              <div className={`exam-score-display ${result.score >= 21 ? "pass" : "below"}`}>
                 <span className="exam-score-num">{result.score?.toFixed(1)}</span>
-                <span className="exam-score-denom">/ 20</span>
+                <span className="exam-score-denom">/ 30</span>
               </div>
 
               <p className="exam-result-detail">
                 You correctly answered <strong>{result.correct_count}</strong> out of <strong>{result.total}</strong> questions.
               </p>
 
-              {result.score >= 14 ? (
+              {result.score >= 21 ? (
                 <div className="exam-result-congrats">
                   🌟 Congratulations! You have successfully passed this subject exam.
                 </div>

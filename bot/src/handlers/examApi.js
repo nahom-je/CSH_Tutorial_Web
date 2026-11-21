@@ -565,8 +565,8 @@ export async function handleExamApi(req, res, url, bot) {
         if (isCorrect) correctCount++;
       }
 
-      // Score = (correct / total) * 20, rounded to 1 decimal
-      const rawScore = total > 0 ? (correctCount / total) * 20 : 0;
+      // Score = (correct / total) * 30, rounded to 1 decimal
+      const rawScore = total > 0 ? (correctCount / total) * 30 : 0;
       const score = Math.round(rawScore * 10) / 10;
       const submittedAt = new Date().toISOString();
       const startedAt = new Date(attempt.started_at);
@@ -601,7 +601,7 @@ export async function handleExamApi(req, res, url, bot) {
 📞 Phone: ${attempt.phone}
 🎓 Field: ${subjectField}
 📚 Subject: ${subjectTitle}
-⭐ Score: ${score.toFixed(1)} / 20 (${correctCount} of ${total} correct)
+⭐ Score: ${score.toFixed(1)} / 30 (${correctCount} of ${total} correct)
 ⏱ Time used: ${timeUsedMinutes} min
 🕒 Submitted: ${submissionTimeFormatted}
 🔑 Order: ${attempt.order_code || auth.normalizedCode}`;
@@ -683,7 +683,7 @@ async function forceSubmitAttempts(attempts, bot) {
         }
       }
 
-      const score = total > 0 ? Math.round(((correct / total) * 20) * 10) / 10 : 0;
+      const score = total > 0 ? Math.round(((correct / total) * 30) * 10) / 10 : 0;
       const submittedAt = new Date().toISOString();
       const timeUsed = Math.max(1, Math.round((new Date(submittedAt) - new Date(att.started_at)) / 60000));
 
@@ -704,7 +704,7 @@ async function forceSubmitAttempts(attempts, bot) {
 📞 Phone: ${att.phone}
 🎓 Field: ${att.field}
 📚 Subject: ${subTitle}
-⭐ Score: ${score.toFixed(1)} / 20 (${correct} of ${total} correct)
+⭐ Score: ${score.toFixed(1)} / 30 (${correct} of ${total} correct)
 ⏱ Time used: ${timeUsed} min
 🕒 Submitted: ${new Date().toLocaleString("en-US", { timeZone: "Africa/Addis_Ababa" })}
 🔑 Order: ${att.order_code || "N/A"}`;
@@ -962,7 +962,7 @@ export function registerExamBotHandlers(bot) {
         lines.push(
           `${idx + 1}. *${att.student_name}* (${att.student_id})\n` +
           `   📚 ${subTitle} (${att.field})\n` +
-          `   ⭐ *${att.score} / 20* (${att.correct_count}/${att.total} correct) · ⏱ ${timeMin}m\n` +
+          `   ⭐ *${att.score} / 30* (${att.correct_count}/${att.total} correct) · ⏱ ${timeMin}m\n` +
           `   🔑 \`${att.order_code || "N/A"}\` · 📞 \`${att.phone}\``
         );
       });

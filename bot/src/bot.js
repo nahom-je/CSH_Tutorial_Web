@@ -280,7 +280,7 @@ async function startBot() {
 
             const total = answers.length;
             const correct = answers.filter((a) => a.selected_option === correctMap[a.question_id]).length;
-            const score = Math.round((correct / total) * 20 * 10) / 10;
+            const score = Math.round((correct / total) * 30 * 10) / 10;
 
             // Save to exam_results
             const { error: insertErr } = await sb.from("exam_results").insert({
@@ -298,7 +298,7 @@ async function startBot() {
 
             // Send Telegram admin notification
             try {
-              const tgText = `📝 New Exam Result\nName: ${full_name}\nID: ${student_id}\nPhone: ${phone}\nSubject: ${subject}\nScore: ${score} / 20`;
+              const tgText = `📝 New Exam Result\nName: ${full_name}\nID: ${student_id}\nPhone: ${phone}\nSubject: ${subject}\nScore: ${score} / 30`;
               await bot.telegram.sendMessage(process.env.ADMIN_CHAT_ID, tgText);
             } catch (tgErr) {
               logger.warn(`Telegram notify failed: ${tgErr.message}`);

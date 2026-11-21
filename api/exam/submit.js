@@ -88,8 +88,8 @@ export default async function handler(req, res) {
       if (isCorrect) correctCount++;
     }
 
-    // Score out of 20, rounded to 1 decimal place
-    const rawScore = total > 0 ? (correctCount / total) * 20 : 0;
+    // Score out of 30, rounded to 1 decimal place
+    const rawScore = total > 0 ? (correctCount / total) * 30 : 0;
     const score = Math.round(rawScore * 10) / 10;
     const submittedAt = new Date().toISOString();
     const startedAt = new Date(attempt.started_at);
@@ -124,7 +124,7 @@ export default async function handler(req, res) {
 📞 Phone: ${attempt.phone}
 🎓 Field: ${subjectField}
 📚 Subject: ${subjectTitle}
-⭐ Score: ${score.toFixed(1)} / 20 (${correctCount} of ${total} correct)
+⭐ Score: ${score.toFixed(1)} / 30 (${correctCount} of ${total} correct)
 ⏱ Time used: ${timeUsedMinutes} min
 🕒 Submitted: ${submissionTimeFormatted}
 🔑 Order: ${attempt.order_code || normCode}`;
