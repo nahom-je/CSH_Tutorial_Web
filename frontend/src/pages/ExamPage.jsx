@@ -11,10 +11,10 @@ import "../exam.css";
 const BOT_API =
   import.meta.env.VITE_BOT_API_URL ||
   (typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname.startsWith("192.168.") ||
-    window.location.hostname.startsWith("172."))
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.startsWith("192.168.") ||
+      window.location.hostname.startsWith("172."))
     ? "http://localhost:3000"
     : "");
 
@@ -27,18 +27,18 @@ async function callExamApi(endpoint, options = {}) {
     if (!res.ok && res.status >= 500 && !BOT_API) {
       try {
         return await fetch(`${RENDER_BACKEND_URL}${endpoint}`, options);
-      } catch (_) {}
+      } catch (_) { }
     }
     return res;
   } catch (err) {
     if (BOT_API) {
       try {
         return await fetch(endpoint, options);
-      } catch (_) {}
+      } catch (_) { }
     } else {
       try {
         return await fetch(`${RENDER_BACKEND_URL}${endpoint}`, options);
-      } catch (_) {}
+      } catch (_) { }
     }
     throw err;
   }
@@ -444,7 +444,7 @@ export default function ExamPage() {
           parsed.answers = updated;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
         }
-      } catch (_) {}
+      } catch (_) { }
 
       return updated;
     });
@@ -663,10 +663,10 @@ export default function ExamPage() {
                           >
                             <span className="exam-subject-icon">
                               {sub.code.startsWith("MATH") ? "📐" :
-                               sub.code.startsWith("PHYS") ? "⚡" :
-                               sub.code.startsWith("LOGIC") || sub.code.startsWith("PHIL") ? "💡" :
-                               sub.code.startsWith("PSYC") ? "🧠" :
-                               sub.code.startsWith("GEOG") ? "🌍" : "📊"}
+                                sub.code.startsWith("PHYS") ? "⚡" :
+                                  sub.code.startsWith("LOGIC") || sub.code.startsWith("PHIL") ? "💡" :
+                                    sub.code.startsWith("PSYC") ? "🧠" :
+                                      sub.code.startsWith("GEOG") ? "🌍" : "📊"}
                             </span>
                             <span className="exam-subject-name">{sub.title}</span>
                             <div className="exam-subject-meta">
@@ -677,7 +677,7 @@ export default function ExamPage() {
 
                             <span className={`exam-status-badge ${sub.status}`}>
                               {sub.status === "available" ? "● Available" :
-                               sub.status === "taken" ? "✓ Already taken" : "✕ Closed"}
+                                sub.status === "taken" ? "✓ Already taken" : "✕ Closed"}
                             </span>
                           </button>
                         );
@@ -702,8 +702,8 @@ export default function ExamPage() {
                     {!isPhoneValid || !isStudentIdValid
                       ? "Please enter a valid phone number and Student ID."
                       : !selectedSubject || selectedSubject.status !== "available"
-                      ? "Please select an available subject card."
-                      : ""}
+                        ? "Please select an available subject card."
+                        : ""}
                   </p>
                 )}
               </div>

@@ -1,4 +1,4 @@
-// seed_exam_data.js — Seed all 6 Exam Subjects & 151 Authentic Exam Questions into Supabase
+// seed_exam_data.js — Seed all 7 Exam Subjects & 185 Authentic Exam Questions into Supabase
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 
@@ -9,1969 +9,4503 @@ const supabase = createClient(
 
 export const EXAM_SUBJECTS = [
   {
-    code: "MATH-1011",
-    title: "Mathematics",
-    field: "Both",
-    duration_minutes: 90,
-    question_count: 24,
+    code: "MATH-NAT",
+    title: "Mathematics (Natural)",
+    field: "Natural",
+    duration_minutes: 60,
+    question_count: 20,
   },
   {
-    code: "PHYS-1011",
+    code: "MATH-SOC",
+    title: "Mathematics (Social)",
+    field: "Social",
+    duration_minutes: 60,
+    question_count: 20,
+  },
+  {
+    code: "PHYS",
     title: "General Physics",
     field: "Natural",
     duration_minutes: 60,
-    question_count: 19,
-  },
-  {
-    code: "PHIL-1011",
-    title: "Logic and Critical Thinking",
-    field: "Both",
-    duration_minutes: 40,
-    question_count: 25,
-  },
-  {
-    code: "PSYC-1011",
-    title: "General Psychology",
-    field: "Both",
-    duration_minutes: 30,
-    question_count: 33,
-  },
-  {
-    code: "GEOG-1011",
-    title: "Geography",
-    field: "Both",
-    duration_minutes: 40,
     question_count: 30,
   },
   {
-    code: "ECON-1011",
+    code: "LOGIC",
+    title: "Logic and Critical Thinking",
+    field: "Both",
+    duration_minutes: 60,
+    question_count: 25,
+  },
+  {
+    code: "PSYC",
+    title: "General Psychology",
+    field: "Both",
+    duration_minutes: 60,
+    question_count: 30,
+  },
+  {
+    code: "GEOG",
+    title: "Geography",
+    field: "Both",
+    duration_minutes: 60,
+    question_count: 30,
+  },
+  {
+    code: "ECON",
     title: "General Economics",
     field: "Social",
-    duration_minutes: 40,
-    question_count: 20,
+    duration_minutes: 60,
+    question_count: 30,
   },
 ];
 
-// --- 1. MATHEMATICS (24 Qs) ---
-export const MATH_QUESTIONS = [
+export const MATH_NAT_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "Suppose p ⇒ (r ∨ ¬q) is false, then which one of the following is true?",
-    options: [
-      { id: "A", text: "q ⇔ r" },
-      { id: "B", text: "¬p ∨ r" },
-      { id: "C", text: "p ⇒ r" },
-      { id: "D", text: "r ⇒ q" }
+    "question_number": 1,
+    "question_text": "Let A = {∅, {1}, 2, {2, 3}}. Which one of the following is not true?",
+    "options": [
+      {
+        "id": "A",
+        "text": "∅ ⊆ A"
+      },
+      {
+        "id": "B",
+        "text": "{∅, 2} ⊆ A"
+      },
+      {
+        "id": "C",
+        "text": "{1} ⊆ A"
+      },
+      {
+        "id": "D",
+        "text": "{{1}} ⊆ A"
+      }
     ],
-    correct_option: "D",
-    explanation: "p ⇒ (r ∨ ¬q) is false means p is True and (r ∨ ¬q) is False, so r is False and q is True. Then r ⇒ q is False ⇒ True, which is True.",
-    needs_review: true // Fixed from original key A to D
+    "correct_option": "C",
+    "explanation": "{1} ⊆ A requires 1 ∈ A, but 1 ∉ A (the element of A is the set {1}). So C is not true.",
+    "explanation_am": "{1} ⊆ A እንዲሆን 1 ∈ A መሆን አለበት፤ ግን 1 የ A አባል አይደለም (አባሉ {1} የተባለው ስብስብ ነው)። ስለዚህ C እውነት አይደለም።"
   },
   {
-    question_number: 2,
-    question_text: "Which one of the following propositions is a Tautology?",
-    options: [
-      { id: "A", text: "(p ∨ q) ⇒ (q ∧ r)" },
-      { id: "B", text: "(p ∧ q) ⇒ (q ∨ r)" },
-      { id: "C", text: "(p ∨ q) ⇒ (q ⇒ r)" },
-      { id: "D", text: "None" }
+    "question_number": 2,
+    "question_text": "A set A has 63 proper subsets. The number of elements of A is",
+    "options": [
+      {
+        "id": "A",
+        "text": "5"
+      },
+      {
+        "id": "B",
+        "text": "6"
+      },
+      {
+        "id": "C",
+        "text": "7"
+      },
+      {
+        "id": "D",
+        "text": "8"
+      }
     ],
-    correct_option: "B",
-    explanation: "If (p ∧ q) is True, q must be True, making (q ∨ r) True. Thus (p ∧ q) ⇒ (q ∨ r) is always True."
+    "correct_option": "B",
+    "explanation": "Proper subsets = 2^n − 1 = 63, so 2^n = 64 = 2^6 and n = 6.",
+    "explanation_am": "n አባላት ያለው ስብስብ ትክክለኛ ንዑስ ስብስቦች ብዛት 2^n − 1 ነው፤ 2^n = 64 ስለዚህ n = 6።"
   },
   {
-    question_number: 3,
-    question_text: "Let p, q and r have truth value F, T and T respectively, then which of the following compound statements has truth value true?",
-    options: [
-      { id: "A", text: "(p ∧ q) ⇔ (r ⇒ (p ∧ ¬r))" },
-      { id: "B", text: "(p ∨ q) ⇒ (¬p ⇒ ¬r)" },
-      { id: "C", text: "(¬p ∧ q) ⇔ (r ⇒ (p ∧ ¬r))" },
-      { id: "D", text: "(¬p ∧ q) ⇔ (p ∧ ¬r)" }
+    "question_number": 3,
+    "question_text": "Let U = {0, 1, 2, …, 8}, A = {x ∈ U : x is even} and B = {x ∈ U : x is a multiple of 3}. Then (A ∪ B)′ =",
+    "options": [
+      {
+        "id": "A",
+        "text": "{1, 5, 7}"
+      },
+      {
+        "id": "B",
+        "text": "{1, 5, 7, 8}"
+      },
+      {
+        "id": "C",
+        "text": "{3, 4}"
+      },
+      {
+        "id": "D",
+        "text": "{1, 3, 5, 7}"
+      }
     ],
-    correct_option: "A",
-    explanation: "(p ∧ q) is False. r ⇒ (p ∧ ¬r) is True ⇒ False, which is False. False ⇔ False is True."
+    "correct_option": "A",
+    "explanation": "A = {0,2,4,6,8}, B = {0,3,6}, A ∪ B = {0,2,3,4,6,8}, so the complement in U is {1,5,7}.",
+    "explanation_am": "መጀመሪያ A እና B ን እንዘረዝራለን፤ ህብረታቸውን A ∪ B = {0,2,3,4,6,8} እናገኛለን፤ ከ U ላይ ስናወጣ (A ∪ B)′ = {1, 5, 7}።"
   },
   {
-    question_number: 4,
-    question_text: "If ¬p ⇒ r is false and p ⇔ q is true, then which one of the following has truth value True?",
-    options: [
-      { id: "A", text: "p ∧ (¬q ∧ r)" },
-      { id: "B", text: "¬p ⇒ (q ∨ r)" },
-      { id: "C", text: "p ⇔ (q ⇒ r)" },
-      { id: "D", text: "¬p ∧ (q ⇒ r)" }
+    "question_number": 4,
+    "question_text": "If n(A ∪ B) = 70, n(A) = 45 and n(B) = 40, then n(A Δ B) =",
+    "options": [
+      {
+        "id": "A",
+        "text": "15"
+      },
+      {
+        "id": "B",
+        "text": "25"
+      },
+      {
+        "id": "C",
+        "text": "55"
+      },
+      {
+        "id": "D",
+        "text": "70"
+      }
     ],
-    correct_option: "D",
-    explanation: "¬p ⇒ r is false means ¬p is True (so p is False) and r is False. p ⇔ q is True means q is False. Then ¬p is True and (q ⇒ r) is False ⇒ False (True). Thus ¬p ∧ (q ⇒ r) is True.",
-    needs_review: true
+    "correct_option": "C",
+    "explanation": "n(A ∩ B) = 45 + 40 − 70 = 15. n(A Δ B) = n(A ∪ B) − n(A ∩ B) = 70 − 15 = 55.",
+    "explanation_am": "n(A ∩ B) = 45 + 40 − 70 = 15፤ n(A Δ B) = 70 − 15 = 55።"
   },
   {
-    question_number: 5,
-    question_text: "If the truth value of p ⇒ (q ∧ ¬p) is false, then which of the following propositions has truth value true?",
-    options: [
-      { id: "A", text: "(p ∧ ¬q) ∧ q" },
-      { id: "B", text: "(¬p ∨ q) ∧ ¬p" },
-      { id: "C", text: "¬p ⇔ (q ⇒ p)" },
-      { id: "D", text: "¬q ⇒ (p ∨ ¬q)" }
+    "question_number": 5,
+    "question_text": "Let A, B and C be sets such that A ∩ B = ∅ and C ⊆ B. Then (A ∪ C) \\ B is equal to",
+    "options": [
+      {
+        "id": "A",
+        "text": "∅"
+      },
+      {
+        "id": "B",
+        "text": "A"
+      },
+      {
+        "id": "C",
+        "text": "C"
+      },
+      {
+        "id": "D",
+        "text": "A ∪ B"
+      }
     ],
-    correct_option: "D",
-    explanation: "p ⇒ (q ∧ ¬p) false means p is True and (q ∧ ¬p) is False. Since p is True, p ∨ ¬q is always True, so ¬q ⇒ (p ∨ ¬q) is True."
+    "correct_option": "B",
+    "explanation": "C ⊆ B gives C \\ B = ∅; A ∩ B = ∅ gives A \\ B = A. So (A ∪ C) \\ B = A ∪ ∅ = A.",
+    "explanation_am": "C ⊆ B ስለሆነ C \\ B = ∅፤ A ∩ B = ∅ ስለሆነ A \\ B = A። ስለዚህ (A ∪ C) \\ B = A።"
   },
   {
-    question_number: 6,
-    question_text: "Which one of the following is true?",
-    options: [
-      { id: "A", text: "(∀x ∈ ℕ)(∃y ∈ ℕ)(xy = 1)" },
-      { id: "B", text: "(∃x ∈ ℝ)(∀y ∈ ℝ)(x + y = y)" },
-      { id: "C", text: "(∀x ∈ ℝ)(∃y ∈ ℝ)(xy = 2)" },
-      { id: "D", text: "(∀x ∈ ℕ)(∀y ∈ ℕ)(x ≠ y ⇒ x < y)" }
+    "question_number": 6,
+    "question_text": "How many subsets of {1, 2, 3, 4, 5} contain both 1 and 2?",
+    "options": [
+      {
+        "id": "A",
+        "text": "4"
+      },
+      {
+        "id": "B",
+        "text": "6"
+      },
+      {
+        "id": "C",
+        "text": "8"
+      },
+      {
+        "id": "D",
+        "text": "16"
+      }
     ],
-    correct_option: "B",
-    explanation: "For x = 0 ∈ ℝ, 0 + y = y for every y ∈ ℝ (additive identity)."
+    "correct_option": "C",
+    "explanation": "1 and 2 are fixed in; each of 3, 4, 5 is in or out: 2^3 = 8.",
+    "explanation_am": "1 እና 2 ሁልጊዜ ይገባሉ፤ የቀሩት 3 አባላት ሊገቡም ላይገቡም ይችላሉ፤ 2^3 = 8።"
   },
   {
-    question_number: 7,
-    question_text: "Which of the following compound propositions is a contradiction?",
-    options: [
-      { id: "A", text: "(p ⇒ q) ⇔ (¬q ⇒ ¬p)" },
-      { id: "B", text: "[(¬p ∨ q) ⇒ (p ∧ ¬q)] ∧ [(p ∧ ¬q) ⇒ (¬p ∨ q)]" },
-      { id: "C", text: "¬(p ⇒ q) ∨ (¬p ∨ q)" },
-      { id: "D", text: "All of the above" }
+    "question_number": 7,
+    "question_text": "In a class of 80 students, 50 like mathematics, 45 like physics and 20 like both. How many students like neither subject?",
+    "options": [
+      {
+        "id": "A",
+        "text": "5"
+      },
+      {
+        "id": "B",
+        "text": "10"
+      },
+      {
+        "id": "C",
+        "text": "15"
+      },
+      {
+        "id": "D",
+        "text": "25"
+      }
     ],
-    correct_option: "B",
-    explanation: "Notice (p ∧ ¬q) is the exact negation of (¬p ∨ q). An equivalence between a statement and its negation (A ⇔ ¬A) is a contradiction."
+    "correct_option": "A",
+    "explanation": "n(M ∪ P) = 50 + 45 − 20 = 75. Neither = 80 − 75 = 5.",
+    "explanation_am": "n(M ∪ P) = 50 + 45 − 20 = 75፤ ሁለቱንም የማይወዱ = 80 − 75 = 5።"
   },
   {
-    question_number: 8,
-    question_text: "Let U = the set of natural numbers, P(x): x is a prime number, Q(x): x is a composite number, and E(x): x is an even number. Then which of the following has truth value false?",
-    options: [
-      { id: "A", text: "(∃x)[P(x) ∧ ¬Q(x)]" },
-      { id: "B", text: "(∀x)[P(x) ⇒ ¬E(x)]" },
-      { id: "C", text: "(∀x)[Q(x) ⇒ ¬P(x)]" },
-      { id: "D", text: "(∃x)[¬P(x) ∧ ¬Q(x)]" }
+    "question_number": 8,
+    "question_text": "A survey of 200 people showed that 110 drink tea, 90 drink coffee, 70 drink juice, 40 drink tea and coffee, 30 drink coffee and juice, 25 drink tea and juice, and 10 drink all three. How many people drink at least one of the three?",
+    "options": [
+      {
+        "id": "A",
+        "text": "110"
+      },
+      {
+        "id": "B",
+        "text": "175"
+      },
+      {
+        "id": "C",
+        "text": "15"
+      },
+      {
+        "id": "D",
+        "text": "185"
+      }
     ],
-    correct_option: "B",
-    explanation: "2 is a prime number and even, so P(2) ⇒ ¬E(2) is True ⇒ False, which is False.",
-    needs_review: true
+    "correct_option": "D",
+    "explanation": "110 + 90 + 70 − 40 − 30 − 25 + 10 = 270 − 95 + 10 = 185.",
+    "explanation_am": "የሦስት ስብስብ ህብረት ቀመር (inclusion–exclusion) እንጠቀማለን፦ 110 + 90 + 70 − 40 − 30 − 25 + 10 = 185።"
   },
   {
-    question_number: 9,
-    question_text: "For the proposition: \"If a triangle ABC is a right triangle, then |AB|² + |BC|² = |AC|²\". Which of the following is not true?",
-    options: [
-      { id: "A", text: "The converse is: If |AB|² + |BC|² = |AC|², then triangle ABC is a right triangle." },
-      { id: "B", text: "The contrapositive is: If |AB|² + |BC|² ≠ |AC|², then triangle ABC is not a right triangle." },
-      { id: "C", text: "The negation is: If a triangle ABC is not a right triangle, then |AB|² + |BC|² < or > |AC|²." },
-      { id: "D", text: "The inverse is: If triangle ABC is not a right triangle, then |AB|² + |BC|² ≠ |AC|²." }
+    "question_number": 9,
+    "question_text": "Of the students in a club, 40 play football, 15 play chess and 20 play athletics. A total of 50 students took part and only 3 play all three games. How many students play exactly two of the games?",
+    "options": [
+      {
+        "id": "A",
+        "text": "16"
+      },
+      {
+        "id": "B",
+        "text": "19"
+      },
+      {
+        "id": "C",
+        "text": "28"
+      },
+      {
+        "id": "D",
+        "text": "22"
+      }
     ],
-    correct_option: "C",
-    explanation: "The negation of p ⇒ q is p ∧ ¬q, not another conditional statement.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "50 = 40 + 15 + 20 − S + 3, so the sum of pairwise intersections S = 28. Each pairwise intersection includes the 3 who play all, so exactly two = 28 − 3×3 = 19.",
+    "explanation_am": "ጥንድ መጋጠሚያዎች ድምር = 75 + 3 − 50 = 28፤ ሦስቱንም የሚጫወቱ በእያንዳንዱ ጥንድ ውስጥ ስለሚካተቱ ሁለት ብቻ = 28 − 9 = 19።"
   },
   {
-    question_number: 10,
-    question_text: "Which of the following statements is neither a tautology nor a contradiction?",
-    options: [
-      { id: "A", text: "p ⇒ (q ∨ p)" },
-      { id: "B", text: "((p ⇒ q) ∧ (p ⇒ r)) ⇒ (p ⇒ r)" },
-      { id: "C", text: "(p ∧ (p ⇒ q)) ⇒ q" },
-      { id: "D", text: "(q ∨ ¬q) ⇒ (q ∧ p)" }
+    "question_number": 10,
+    "question_text": "How many subsets does the set A = {x ∈ ℤ : −2 < x ≤ 3} have?",
+    "options": [
+      {
+        "id": "A",
+        "text": "16"
+      },
+      {
+        "id": "B",
+        "text": "31"
+      },
+      {
+        "id": "C",
+        "text": "32"
+      },
+      {
+        "id": "D",
+        "text": "64"
+      }
     ],
-    correct_option: "D",
-    explanation: "(q ∨ ¬q) is True, so (q ∨ ¬q) ⇒ (q ∧ p) reduces to (q ∧ p), which is a contingency."
+    "correct_option": "C",
+    "explanation": "A = {−1, 0, 1, 2, 3} has 5 elements, so 2^5 = 32 subsets.",
+    "explanation_am": "A = {−1, 0, 1, 2, 3} ማለትም 5 አባላት፤ ንዑስ ስብስቦች = 2^5 = 32።"
   },
   {
-    question_number: 11,
-    question_text: "Which of the following pairs of propositions are not logically equivalent?",
-    options: [
-      { id: "A", text: "p ⇒ (q ∨ r) and ¬q ⇒ (¬p ∨ r)" },
-      { id: "B", text: "(p ∨ q) ⇒ r and (p ⇒ q) ∧ (q ⇒ r)" },
-      { id: "C", text: "p ⇒ (q ∨ r) and (¬r) ⇒ (p ⇒ q)" },
-      { id: "D", text: "p ∧ (¬q ∧ ¬r) and ¬(p ⇒ (q ∨ r))" }
+    "question_number": 11,
+    "question_text": "To prove by induction that 2 + 6 + 10 + … + (4n − 2) = 2n², in the inductive step the sum 2k² + (4k + 2) simplifies to",
+    "options": [
+      {
+        "id": "A",
+        "text": "2(k + 1)²"
+      },
+      {
+        "id": "B",
+        "text": "2(k² + 1)"
+      },
+      {
+        "id": "C",
+        "text": "2k(k + 2)"
+      },
+      {
+        "id": "D",
+        "text": "(k + 1)²"
+      }
     ],
-    correct_option: "B",
-    explanation: "(p ∨ q) ⇒ r is equivalent to (p ⇒ r) ∧ (q ⇒ r), not (p ⇒ q) ∧ (q ⇒ r).",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "2k² + 4k + 2 = 2(k² + 2k + 1) = 2(k + 1)².",
+    "explanation_am": "2k² + 4k + 2 = 2(k² + 2k + 1) = 2(k + 1)²።"
   },
   {
-    question_number: 12,
-    question_text: "Which one of the following statements is true?",
-    options: [
-      { id: "A", text: "(∀x ∈ ℝ)(∃y ∈ ℝ)(x + y = y)" },
-      { id: "B", text: "(∃x ∈ ℝ)(∀y ∈ ℝ)(x + y = 10)" },
-      { id: "C", text: "(∀x ∈ ℝ)(√x² = x)" },
-      { id: "D", text: "(∀x ∈ ℝ)(∃y ∈ ℝ)(x + y = 10)" }
+    "question_number": 12,
+    "question_text": "In proving that 3^(2n+2) + 8n − 9 is divisible by 16, write 3^(2k+4) + 8(k + 1) − 9 = 9(3^(2k+2) + 8k − 9) + R. Then R =",
+    "options": [
+      {
+        "id": "A",
+        "text": "64k − 80"
+      },
+      {
+        "id": "B",
+        "text": "72k − 81"
+      },
+      {
+        "id": "C",
+        "text": "−72k + 81"
+      },
+      {
+        "id": "D",
+        "text": "−64k + 80"
+      }
     ],
-    correct_option: "D",
-    explanation: "For any real number x, choose y = 10 − x ∈ ℝ, then x + y = 10."
+    "correct_option": "D",
+    "explanation": "9(3^(2k+2) + 8k − 9) = 9·3^(2k+2) + 72k − 81. R = (8k − 1) − (72k − 81) = −64k + 80 = −16(4k − 5), divisible by 16.",
+    "explanation_am": "R = (8k − 1) − (72k − 81) = −64k + 80 = −16(4k − 5)፤ ይህም በ 16 ይካፈላል፤ ስለዚህ የኢንዳክሽን ደረጃ ተጠናቋል።"
   },
   {
-    question_number: 13,
-    question_text: "\"If Solomon is healthy or rich, then he is happy.\" Then the contrapositive of the above statement is:",
-    options: [
-      { id: "A", text: "If Solomon is not happy, then he is neither healthy nor rich." },
-      { id: "B", text: "If Solomon is not happy, then he is either healthy or rich." },
-      { id: "C", text: "If Solomon is not healthy and not rich, then he is not happy." },
-      { id: "D", text: "If Solomon is happy, then he is either healthy or rich." }
+    "question_number": 13,
+    "question_text": "Which one of the following statements is true (well-ordering axiom)?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Every non-empty subset of ℤ has a least element."
+      },
+      {
+        "id": "B",
+        "text": "Every non-empty subset of ℚ has a least element."
+      },
+      {
+        "id": "C",
+        "text": "Every non-empty subset of ℕ has a least element."
+      },
+      {
+        "id": "D",
+        "text": "Every non-empty subset of ℝ has a least element."
+      }
     ],
-    correct_option: "A",
-    explanation: "p: Solomon is healthy or rich (H ∨ R). q: he is happy. Contrapositive: ¬q ⇒ ¬(H ∨ R) ≡ ¬q ⇒ (¬H ∧ ¬R).",
-    needs_review: true
+    "correct_option": "C",
+    "explanation": "The well-ordering axiom applies to ℕ. ℤ, ℚ, ℝ fail: {…, −2, −1} ⊆ ℤ and (0, 1) have no least element.",
+    "explanation_am": "የ well-ordering axiom መሠረት እያንዳንዱ ባዶ ያልሆነ የ ℕ ንዑስ ስብስብ ትንሽ አባል አለው። ለ ℤ፣ ℚ፣ ℝ አይሰራም (ለምሳሌ (0, 1) ትንሽ አባል የለውም)።"
   },
   {
-    question_number: 14,
-    question_text: "Suppose that the statements p, q, r, and s are assigned the truth values T, F, F, and T respectively. Then which of the following statements has truth value false?",
-    options: [
-      { id: "A", text: "(p ∨ r) ⇔ (r ∧ ¬s)" },
-      { id: "B", text: "(q ∧ ¬s) ⇒ (p ⇔ s)" },
-      { id: "C", text: "(s ⇔ p) ⇒ (¬p ∨ s)" },
-      { id: "D", text: "(r ∧ s) ⇒ (p ⇒ (¬q ∨ s))" }
+    "question_number": 14,
+    "question_text": "If GCF(x, 90) = 15 and LCM(x, 90) = 450, then x =",
+    "options": [
+      {
+        "id": "A",
+        "text": "45"
+      },
+      {
+        "id": "B",
+        "text": "75"
+      },
+      {
+        "id": "C",
+        "text": "60"
+      },
+      {
+        "id": "D",
+        "text": "150"
+      }
     ],
-    correct_option: "A",
-    explanation: "(p ∨ r) is True. (r ∧ ¬s) is False. True ⇔ False is False."
+    "correct_option": "B",
+    "explanation": "GCF × LCM = x × 90, so 15 × 450 = 90x, 6750 = 90x, x = 75.",
+    "explanation_am": "ለሁለት ቁጥሮች GCF × LCM = የሁለቱ ቁጥሮች ብዜት፤ 15 × 450 = 90x ስለዚህ x = 75።"
   },
   {
-    question_number: 15,
-    question_text: "Let U = {3, 5, 11} be the universal set. Which one of the following is true?",
-    options: [
-      { id: "A", text: "¬(∃x)(∃y)(xy − 2 is composite)" },
-      { id: "B", text: "¬(∀x)(∀y)(xy − 2 is prime)" },
-      { id: "C", text: "(∀x)(∃y)(x/y < 1)" },
-      { id: "D", text: "(∃x)(∀y)(x/y > 1)" }
+    "question_number": 15,
+    "question_text": "If x = GCF(36, 60, 84, 108) and y = LCM(36, 60, 84, 108), then xy =",
+    "options": [
+      {
+        "id": "A",
+        "text": "3780"
+      },
+      {
+        "id": "B",
+        "text": "12"
+      },
+      {
+        "id": "C",
+        "text": "22680"
+      },
+      {
+        "id": "D",
+        "text": "45360"
+      }
     ],
-    correct_option: "B",
-    explanation: "For x = 3, y = 11, xy − 2 = 33 − 2 = 31 (prime), but for x = 3, y = 3, 3(3) − 2 = 7 (prime). For x = 11, y = 11, 121 − 2 = 119 = 7 × 17 (composite!). Thus not all are prime."
+    "correct_option": "D",
+    "explanation": "36 = 2²·3², 60 = 2²·3·5, 84 = 2²·3·7, 108 = 2²·3³. GCF = 2²·3 = 12; LCM = 2²·3³·5·7 = 3780; xy = 12 × 3780 = 45360.",
+    "explanation_am": "GCF = የጋራ ምክንያቶች ዝቅተኛ ሃይል = 12፤ LCM = ሁሉም ምክንያቶች ከፍተኛ ሃይል = 3780። xy = 12 × 3780 = 45360።"
   },
   {
-    question_number: 16,
-    question_text: "Let U = {1, 2, 3} be the universal set. Which one of the following is not true?",
-    options: [
-      { id: "A", text: "(∃x)(∀y)(x² + 2y < 10)" },
-      { id: "B", text: "(∃x)(∃y)(x² + 2y < 10)" },
-      { id: "C", text: "(∀x)(∃y)(x² + 2y < 12)" },
-      { id: "D", text: "(∃x)(∃y)(x² + y² < 2xy)" }
+    "question_number": 16,
+    "question_text": "Which one of the following statements is true?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Every non-empty subset of ℝ that is bounded above has a least upper bound."
+      },
+      {
+        "id": "B",
+        "text": "The sum of any two irrational numbers is irrational."
+      },
+      {
+        "id": "C",
+        "text": "The product of any rational number and any irrational number is irrational."
+      },
+      {
+        "id": "D",
+        "text": "For any real numbers a, b, c, if a < b then ac < bc."
+      }
     ],
-    correct_option: "D",
-    explanation: "x² + y² ≥ 2xy for all real numbers, so x² + y² < 2xy is impossible.",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "B is false: √2 + (−√2) = 0. C is false: 0·√2 = 0. D is false when c ≤ 0. A is the completeness property of ℝ.",
+    "explanation_am": "ሐሰቶቹ፦ √2 + (−√2) = 0 ምክንያታዊ ነው፤ 0 · √2 = 0 ምክንያታዊ ነው፤ c ≤ 0 ሲሆን ac < bc አይሰራም። ትክክለኛው የ ℝ የሙላት (completeness) ባሕርይ ነው።"
   },
   {
-    question_number: 17,
-    question_text: "Which one of the following is true?",
-    options: [
-      { id: "A", text: "(∀x ∈ ℕ)(x < x²)" },
-      { id: "B", text: "(∀x ∈ ℝ)(x < x²)" },
-      { id: "C", text: "(∀x ∈ ℕ)((x − 1)/(x − 1) = 1)" },
-      { id: "D", text: "(∀x ∈ ℕ)(√x² = x)" }
+    "question_number": 17,
+    "question_text": "The least upper bound of A = {x ∈ ℝ : x² < 5} is",
+    "options": [
+      {
+        "id": "A",
+        "text": "5"
+      },
+      {
+        "id": "B",
+        "text": "−√5"
+      },
+      {
+        "id": "C",
+        "text": "√5"
+      },
+      {
+        "id": "D",
+        "text": "5/2"
+      }
     ],
-    correct_option: "D",
-    explanation: "For all natural numbers x ∈ ℕ, x ≥ 1 > 0, so √x² = |x| = x."
+    "correct_option": "C",
+    "explanation": "x² < 5 ⇔ −√5 < x < √5, so A = (−√5, √5) and lub A = √5 (not attained).",
+    "explanation_am": "x² < 5 ማለት −√5 < x < √5፤ ስለዚህ ትንሹ የላይኛው ወሰን = √5 (በስብስቡ ውስጥ የለም)።"
   },
   {
-    question_number: 18,
-    question_text: "Which of the following compound propositions is a contradiction?",
-    options: [
-      { id: "A", text: "(p ∧ q) ∨ (¬p ∧ ¬q)" },
-      { id: "B", text: "(p ∧ ¬p) ∨ (q ∧ ¬q)" },
-      { id: "C", text: "(p → q) ∧ (¬p → ¬q)" },
-      { id: "D", text: "(p ∨ q) ∧ (¬p ∨ ¬q)" }
+    "question_number": 18,
+    "question_text": "The repeating decimal 0.363636… written as a fraction in lowest terms is",
+    "options": [
+      {
+        "id": "A",
+        "text": "3/11"
+      },
+      {
+        "id": "B",
+        "text": "7/22"
+      },
+      {
+        "id": "C",
+        "text": "36/100"
+      },
+      {
+        "id": "D",
+        "text": "4/11"
+      }
     ],
-    correct_option: "B",
-    explanation: "(p ∧ ¬p) is False, and (q ∧ ¬q) is False. False ∨ False is always False."
+    "correct_option": "D",
+    "explanation": "x = 0.3636…, 100x − x = 36, so 99x = 36 and x = 36/99 = 4/11.",
+    "explanation_am": "x = 0.3636… ይሁን፤ 100x − x = 36 ስለዚህ 99x = 36፤ x = 36/99 = 4/11።"
   },
   {
-    question_number: 19,
-    question_text: "Which of the following compound propositions is a tautology?",
-    options: [
-      { id: "A", text: "(p ∨ q) ∧ (¬p ∨ ¬q)" },
-      { id: "B", text: "(p ∨ q) ∨ ¬(p ∨ q)" },
-      { id: "C", text: "p ∨ (q ∧ ¬q)" },
-      { id: "D", text: "(p → q) ∨ (¬q → ¬p)" }
+    "question_number": 19,
+    "question_text": "The least upper bound of A = {(−1)^n (2 + 1/n) : n ∈ ℕ} is",
+    "options": [
+      {
+        "id": "A",
+        "text": "3"
+      },
+      {
+        "id": "B",
+        "text": "5/2"
+      },
+      {
+        "id": "C",
+        "text": "2"
+      },
+      {
+        "id": "D",
+        "text": "−3"
+      }
     ],
-    correct_option: "B",
-    explanation: "A ∨ ¬A is the law of excluded middle, always True (Tautology).",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "For even n the value is 2 + 1/n, largest at n = 2: 5/2. For odd n the value is negative. So lub A = 5/2.",
+    "explanation_am": "n በ 2 ሲካፈል (even) 2 + 1/n ትልቁ n = 2 ላይ 5/2 ነው፤ n ጎዶሎ ሲሆን እሴቱ አሉታዊ ነው። ስለዚህ lub = 5/2።"
   },
   {
-    question_number: 20,
-    question_text: "What is the negation of the compound proposition (p → (q ∨ r))?",
-    options: [
-      { id: "A", text: "(¬p ∧ ¬q) ∨ r" },
-      { id: "B", text: "p ∧ (¬q ∧ ¬r)" },
-      { id: "C", text: "(¬p ∨ q) ∧ ¬r" },
-      { id: "D", text: "¬p ∨ (¬q ∧ ¬r)" }
+    "question_number": 20,
+    "question_text": "The greatest lower bound of A = {2 + n/(n + 1)² : n ∈ ℕ} is",
+    "options": [
+      {
+        "id": "A",
+        "text": "2"
+      },
+      {
+        "id": "B",
+        "text": "9/4"
+      },
+      {
+        "id": "C",
+        "text": "0"
+      },
+      {
+        "id": "D",
+        "text": "1/4"
+      }
     ],
-    correct_option: "B",
-    explanation: "¬(A → B) ≡ A ∧ ¬B. Here B = (q ∨ r), so ¬B = (¬q ∧ ¬r). Thus p ∧ (¬q ∧ ¬r)."
-  },
-  {
-    question_number: 21,
-    question_text: "Which of the following best differentiates a proposition from a sentence?",
-    options: [
-      { id: "A", text: "A proposition must be a declarative sentence with a definite truth value." },
-      { id: "B", text: "A proposition must include at least one logical connective." },
-      { id: "C", text: "A sentence is a type of proposition with uncertain truth value." },
-      { id: "D", text: "Every proposition is a question or a command." }
-    ],
-    correct_option: "A",
-    explanation: "A proposition is a declarative sentence that is either true or false, but not both."
-  },
-  {
-    question_number: 22,
-    question_text: "Evaluate the truth value of (p ∧ q) → (p ∨ s), where p is true and s is false.",
-    options: [
-      { id: "A", text: "True" },
-      { id: "B", text: "False" },
-      { id: "C", text: "Can't be determined" },
-      { id: "D", text: "True only if q is true." }
-    ],
-    correct_option: "A",
-    explanation: "Since p is true, (p ∨ s) is True. Any conditional with a True conclusion (→ True) has truth value True."
-  },
-  {
-    question_number: 23,
-    question_text: "Evaluate the truth value of ∀x∃y∀z(x + y = z), where x, y, z ∈ ℝ.",
-    options: [
-      { id: "A", text: "True" },
-      { id: "B", text: "False" },
-      { id: "C", text: "Can't be determined" },
-      { id: "D", text: "True only if z = x + y." }
-    ],
-    correct_option: "B",
-    explanation: "A single chosen y cannot satisfy x + y = z for EVERY possible real number z."
-  },
-  {
-    question_number: 24,
-    question_text: "Identify the hypothesis and conclusion in the argument: \"If it rains, the ground will be wet. It is raining. Therefore, the ground is wet.\"",
-    options: [
-      { id: "A", text: "Hypothesis: \"It is raining.\" Conclusion: \"The ground will be wet.\"" },
-      { id: "B", text: "Hypothesis: \"If it rains, the ground will be wet.\" Conclusion: \"It is raining.\"" },
-      { id: "C", text: "Hypothesis: \"If it rains, the ground will be wet\" and \"It is raining.\" Conclusion: \"The ground will be wet.\"" },
-      { id: "D", text: "Hypothesis: \"The ground is wet.\" Conclusion: \"It is raining.\"" }
-    ],
-    correct_option: "C",
-    explanation: "The premises (hypotheses) are the given conditional and affirmation, and the conclusion is 'the ground is wet'."
+    "correct_option": "A",
+    "explanation": "n/(n+1)²: 1/4, 2/9, 3/16, … decreases toward 0, so the terms 2.25, 2.22, 2.19, … approach 2 without reaching it. glb A = 2.",
+    "explanation_am": "n/(n + 1)² እየቀነሰ ወደ 0 ይጠጋል፤ የ A አባላት ወደ 2 ይጠጋሉ እንጂ አይደርሱበትም። ስለዚህ glb = 2።"
   }
 ];
-
-// --- 2. GENERAL PHYSICS (19 Qs) ---
+export const MATH_SOC_QUESTIONS = [
+  {
+    "question_number": 1,
+    "question_text": "Let A = {x : x² − 5x + 6 = 0} and B = {x : x² − x − 6 = 0}. Then A − B is",
+    "options": [
+      {
+        "id": "A",
+        "text": "{3}"
+      },
+      {
+        "id": "B",
+        "text": "{2}"
+      },
+      {
+        "id": "C",
+        "text": "{2, 3}"
+      },
+      {
+        "id": "D",
+        "text": "{−2}"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "A = {2, 3} since (x−2)(x−3) = 0. B = {3, −2} since (x−3)(x+2) = 0. A − B = {2}.",
+    "explanation_am": "A = {2, 3}፣ B = {3, −2} ብለን እንፈታለን፤ A − B ከ A ውስጥ በ B ውስጥ ያሉትን ማውጣት ነው፤ ስለዚህ A − B = {2}።"
+  },
+  {
+    "question_number": 2,
+    "question_text": "Let n(U) = 500, n(A) = 180, n(B) = 220 and n(A ∩ B) = 60. Then n(A′ ∩ B′) =",
+    "options": [
+      {
+        "id": "A",
+        "text": "340"
+      },
+      {
+        "id": "B",
+        "text": "200"
+      },
+      {
+        "id": "C",
+        "text": "160"
+      },
+      {
+        "id": "D",
+        "text": "400"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "n(A ∪ B) = 180 + 220 − 60 = 340. By De Morgan, A′ ∩ B′ = (A ∪ B)′, so 500 − 340 = 160.",
+    "explanation_am": "A′ ∩ B′ = (A ∪ B)′ (የዲ ሞርጋን ሕግ)፤ n(A ∪ B) = 340 ስለዚህ 500 − 340 = 160።"
+  },
+  {
+    "question_number": 3,
+    "question_text": "In a class of 60 students, 35 play football, 28 play volleyball and 12 play both. How many students play exactly one of the two games?",
+    "options": [
+      {
+        "id": "A",
+        "text": "39"
+      },
+      {
+        "id": "B",
+        "text": "51"
+      },
+      {
+        "id": "C",
+        "text": "27"
+      },
+      {
+        "id": "D",
+        "text": "9"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Football only = 35 − 12 = 23; volleyball only = 28 − 12 = 16; exactly one = 23 + 16 = 39.",
+    "explanation_am": "እግር ኳስ ብቻ = 35 − 12 = 23፤ ቮሊቦል ብቻ = 28 − 12 = 16፤ አንድ ብቻ = 23 + 16 = 39።"
+  },
+  {
+    "question_number": 4,
+    "question_text": "Of 120 employees, 60 use Excel, 50 use Word and 40 use PowerPoint. Also 20 use Excel and Word, 15 use Word and PowerPoint, 12 use Excel and PowerPoint, and 6 use all three. How many employees use at least one of the three programs?",
+    "options": [
+      {
+        "id": "A",
+        "text": "103"
+      },
+      {
+        "id": "B",
+        "text": "11"
+      },
+      {
+        "id": "C",
+        "text": "120"
+      },
+      {
+        "id": "D",
+        "text": "109"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "60 + 50 + 40 − 20 − 15 − 12 + 6 = 150 − 47 + 6 = 109.",
+    "explanation_am": "የሦስት ስብስብ ህብረት ቀመር፦ 60 + 50 + 40 − 20 − 15 − 12 + 6 = 109።"
+  },
+  {
+    "question_number": 5,
+    "question_text": "Using the data of the previous question, how many employees use exactly two of the three programs?",
+    "options": [
+      {
+        "id": "A",
+        "text": "47"
+      },
+      {
+        "id": "B",
+        "text": "29"
+      },
+      {
+        "id": "C",
+        "text": "35"
+      },
+      {
+        "id": "D",
+        "text": "23"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Each pair includes the 6 who use all three: (20 − 6) + (15 − 6) + (12 − 6) = 14 + 9 + 6 = 29.",
+    "explanation_am": "በእያንዳንዱ ጥንድ ውስጥ ሦስቱንም የሚጠቀሙ 6 ሰዎች ስላሉ እናወጣለን፦ 14 + 9 + 6 = 29።"
+  },
+  {
+    "question_number": 6,
+    "question_text": "Which one of the following is true about A Δ B, where Δ is the symmetric difference?",
+    "options": [
+      {
+        "id": "A",
+        "text": "A Δ B = A ∩ B"
+      },
+      {
+        "id": "B",
+        "text": "A Δ B ⊆ A ∩ B"
+      },
+      {
+        "id": "C",
+        "text": "A ∪ B ⊆ A Δ B"
+      },
+      {
+        "id": "D",
+        "text": "A Δ B = (A ∪ B) \\ (A ∩ B)"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "By definition A Δ B = (A \\ B) ∪ (B \\ A) = (A ∪ B) \\ (A ∩ B). Example: A = {1,2}, B = {2,3} gives A Δ B = {1,3} while A ∩ B = {2}.",
+    "explanation_am": "የ symmetric difference ትርጓሜ፦ A Δ B = (A ∪ B) \\ (A ∩ B)። ሌሎቹ በምሳሌ ሐሰት ናቸው (A = {1,2}፣ B = {2,3} ሲሆን A Δ B = {1,3})።"
+  },
+  {
+    "question_number": 7,
+    "question_text": "Let A = {1, {2}, {1, 2}}. Which one of the following is true?",
+    "options": [
+      {
+        "id": "A",
+        "text": "{{2}} ⊆ A"
+      },
+      {
+        "id": "B",
+        "text": "{2} ⊆ A"
+      },
+      {
+        "id": "C",
+        "text": "{1, 2} ⊆ A"
+      },
+      {
+        "id": "D",
+        "text": "2 ∈ A"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "{2} is an element of A, so {{2}} ⊆ A. But 2 ∉ A, so {2} ⊆ A and {1, 2} ⊆ A are false.",
+    "explanation_am": "{2} የ A አባል ነው፤ ስለዚህ {{2}} ⊆ A እውነት ነው። 2 ራሱ የ A አባል አይደለም፤ ስለዚህ ሌሎቹ ሐሰት ናቸው።"
+  },
+  {
+    "question_number": 8,
+    "question_text": "A set A has 127 proper subsets. The number of elements of A is",
+    "options": [
+      {
+        "id": "A",
+        "text": "6"
+      },
+      {
+        "id": "B",
+        "text": "8"
+      },
+      {
+        "id": "C",
+        "text": "7"
+      },
+      {
+        "id": "D",
+        "text": "127"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "2^n − 1 = 127, so 2^n = 128 = 2^7 and n = 7.",
+    "explanation_am": "ትክክለኛ ንዑስ ስብስቦች = 2^n − 1 = 127፤ 2^n = 128 ስለዚህ n = 7።"
+  },
+  {
+    "question_number": 9,
+    "question_text": "Let U = {1, 2, …, 10}, A = {x ∈ U : x is prime} and B = {x ∈ U : x is odd}. Then (A ∪ B)′ =",
+    "options": [
+      {
+        "id": "A",
+        "text": "{2, 4, 6, 8, 10}"
+      },
+      {
+        "id": "B",
+        "text": "{4, 6, 8, 10}"
+      },
+      {
+        "id": "C",
+        "text": "{4, 6, 8}"
+      },
+      {
+        "id": "D",
+        "text": "{1, 9}"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "A = {2,3,5,7}, B = {1,3,5,7,9}, A ∪ B = {1,2,3,5,7,9}, so the complement is {4,6,8,10}.",
+    "explanation_am": "A እና B ን እንዘረዝራለን፤ A ∪ B = {1,2,3,5,7,9}፤ ከ U የቀሩት (A ∪ B)′ = {4, 6, 8, 10}።"
+  },
+  {
+    "question_number": 10,
+    "question_text": "The repeating decimal 0.272727… written as a fraction in lowest terms is",
+    "options": [
+      {
+        "id": "A",
+        "text": "27/100"
+      },
+      {
+        "id": "B",
+        "text": "1/4"
+      },
+      {
+        "id": "C",
+        "text": "2/7"
+      },
+      {
+        "id": "D",
+        "text": "3/11"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "x = 0.2727…, 100x − x = 27, so 99x = 27 and x = 27/99 = 3/11.",
+    "explanation_am": "x = 0.2727… ይሁን፤ 100x − x = 27 ስለዚህ 99x = 27፤ x = 27/99 = 3/11።"
+  },
+  {
+    "question_number": 11,
+    "question_text": "If r1 and r2 are the roots of x² − 4x − 3 = 0, then r1² + r2² =",
+    "options": [
+      {
+        "id": "A",
+        "text": "22"
+      },
+      {
+        "id": "B",
+        "text": "10"
+      },
+      {
+        "id": "C",
+        "text": "16"
+      },
+      {
+        "id": "D",
+        "text": "19"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Sum = 4, product = −3. r1² + r2² = (sum)² − 2(product) = 16 + 6 = 22.",
+    "explanation_am": "የሥሮች ድምር = −b/a = 4፣ ብዜት = c/a = −3። r1² + r2² = (ድምር)² − 2(ብዜት) = 16 + 6 = 22።"
+  },
+  {
+    "question_number": 12,
+    "question_text": "For what value of k does the equation kx² − 6x + 9 = 0 have two equal real roots?",
+    "options": [
+      {
+        "id": "A",
+        "text": "3"
+      },
+      {
+        "id": "B",
+        "text": "9"
+      },
+      {
+        "id": "C",
+        "text": "1"
+      },
+      {
+        "id": "D",
+        "text": "−1"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "Equal roots need discriminant 0: (−6)² − 4(k)(9) = 36 − 36k = 0, so k = 1.",
+    "explanation_am": "እኩል ሥሮች እንዲኖሩ ዲስክሪሚናንት D = b² − 4ac = 0 መሆን አለበት፤ 36 − 36k = 0 ስለዚህ k = 1።"
+  },
+  {
+    "question_number": 13,
+    "question_text": "The solution set of x² − x − 12 < 0 is",
+    "options": [
+      {
+        "id": "A",
+        "text": "(−4, 3)"
+      },
+      {
+        "id": "B",
+        "text": "(−3, 4)"
+      },
+      {
+        "id": "C",
+        "text": "(−∞, −3) ∪ (4, ∞)"
+      },
+      {
+        "id": "D",
+        "text": "[−3, 4]"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "x² − x − 12 = (x − 4)(x + 3) < 0 between the roots: −3 < x < 4.",
+    "explanation_am": "(x − 4)(x + 3) < 0 የሚሆነው በሁለቱ ሥሮች መካከል ነው፤ ስለዚህ −3 < x < 4 ማለትም (−3, 4)።"
+  },
+  {
+    "question_number": 14,
+    "question_text": "Let A = {1, 2, 3} and B = {a, b}. The number of relations from A to B is",
+    "options": [
+      {
+        "id": "A",
+        "text": "6"
+      },
+      {
+        "id": "B",
+        "text": "36"
+      },
+      {
+        "id": "C",
+        "text": "32"
+      },
+      {
+        "id": "D",
+        "text": "64"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "n(A × B) = 3 × 2 = 6. A relation is any subset of A × B, so 2^6 = 64.",
+    "explanation_am": "n(A × B) = 6፤ ከ A ወደ B ያለ ማንኛውም ግንኙነት የ A × B ንዑስ ስብስብ ነው፤ ስለዚህ 2^6 = 64።"
+  },
+  {
+    "question_number": 15,
+    "question_text": "The domain of f(x) = √(x − 3)/(x − 5) is",
+    "options": [
+      {
+        "id": "A",
+        "text": "[3, 5) ∪ (5, ∞)"
+      },
+      {
+        "id": "B",
+        "text": "[3, ∞)"
+      },
+      {
+        "id": "C",
+        "text": "(3, 5) ∪ (5, ∞)"
+      },
+      {
+        "id": "D",
+        "text": "ℝ \\ {5}"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Need x − 3 ≥ 0 (x ≥ 3) and x − 5 ≠ 0 (x ≠ 5). Domain = [3, 5) ∪ (5, ∞).",
+    "explanation_am": "ከካሬ ሥሩ ስር x − 3 ≥ 0 መሆን አለበት፤ ተከፋዩ x − 5 ≠ 0 መሆን አለበት። Domain = [3, 5) ∪ (5, ∞)።"
+  },
+  {
+    "question_number": 16,
+    "question_text": "The range of f(x) = x² − 4x + 5 is",
+    "options": [
+      {
+        "id": "A",
+        "text": "(1, ∞)"
+      },
+      {
+        "id": "B",
+        "text": "(−∞, 1]"
+      },
+      {
+        "id": "C",
+        "text": "[1, ∞)"
+      },
+      {
+        "id": "D",
+        "text": "[5, ∞)"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "f(x) = (x − 2)² + 1 ≥ 1, and the value 1 is reached at x = 2. Range = [1, ∞).",
+    "explanation_am": "ካሬውን በማሟላት f(x) = (x − 2)² + 1 ≥ 1፤ x = 2 ላይ 1 ስለሚደርስ Range = [1, ∞)።"
+  },
+  {
+    "question_number": 17,
+    "question_text": "If f(x) = 2x − 3 and g(x) = x² + 1, then (f ∘ g)(x) =",
+    "options": [
+      {
+        "id": "A",
+        "text": "4x² − 12x + 10"
+      },
+      {
+        "id": "B",
+        "text": "2x² − 1"
+      },
+      {
+        "id": "C",
+        "text": "2x² + 1"
+      },
+      {
+        "id": "D",
+        "text": "2x² − 3"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "(f ∘ g)(x) = f(x² + 1) = 2(x² + 1) − 3 = 2x² − 1. (4x² − 12x + 10 is (g ∘ f)(x).)",
+    "explanation_am": "(f ∘ g)(x) = f(g(x)) = 2(x² + 1) − 3 = 2x² − 1። (4x² − 12x + 10 የ (g ∘ f)(x) ነው።)"
+  },
+  {
+    "question_number": 18,
+    "question_text": "Which one of the following functions f : ℝ → ℝ is one-to-one?",
+    "options": [
+      {
+        "id": "A",
+        "text": "f(x) = 2x + 5"
+      },
+      {
+        "id": "B",
+        "text": "f(x) = x²"
+      },
+      {
+        "id": "C",
+        "text": "f(x) = |x|"
+      },
+      {
+        "id": "D",
+        "text": "f(x) = x⁴"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "2x + 5 is strictly increasing, so a ≠ b gives f(a) ≠ f(b). For x², |x|, x⁴: f(−1) = f(1) but −1 ≠ 1.",
+    "explanation_am": "2x + 5 ሁልጊዜ እየጨመረ ስለሚሄድ አንድ-ለአንድ ነው። x²፣ |x|፣ x⁴: f(−1) = f(1) ስለሆነ አንድ-ለአንድ አይደሉም።"
+  },
+  {
+    "question_number": 19,
+    "question_text": "The inverse of f(x) = 2x − 3 is f⁻¹(x) =",
+    "options": [
+      {
+        "id": "A",
+        "text": "(x − 3)/2"
+      },
+      {
+        "id": "B",
+        "text": "2x + 3"
+      },
+      {
+        "id": "C",
+        "text": "1/(2x − 3)"
+      },
+      {
+        "id": "D",
+        "text": "(x + 3)/2"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "y = 2x − 3; swap: x = 2y − 3; 2y = x + 3; y = (x + 3)/2.",
+    "explanation_am": "y = 2x − 3 ብለን x እና y ን እንለዋወጣለን፤ x = 2y − 3 ⇒ y = (x + 3)/2።"
+  },
+  {
+    "question_number": 20,
+    "question_text": "The inverse of f(x) = (3x − 1)/(x + 2) is f⁻¹(x) =",
+    "options": [
+      {
+        "id": "A",
+        "text": "(2x + 1)/(x − 3)"
+      },
+      {
+        "id": "B",
+        "text": "(x + 2)/(3x − 1)"
+      },
+      {
+        "id": "C",
+        "text": "(2x + 1)/(3 − x)"
+      },
+      {
+        "id": "D",
+        "text": "(2x − 1)/(3 − x)"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "Swap: x = (3y − 1)/(y + 2); xy + 2x = 3y − 1; xy − 3y = −1 − 2x; y(x − 3) = −(2x + 1); y = (2x + 1)/(3 − x).",
+    "explanation_am": "x እና y ን እንለዋወጣለን፤ y ን ለይተን እንፈታለን፦ y(x − 3) = −(2x + 1) ስለዚህ f⁻¹(x) = (2x + 1)/(3 − x)።"
+  }
+];
 export const PHYS_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "Which one of the following statements is not true?",
-    options: [
-      { id: "A", text: "Physical property is intrinsic in nature." },
-      { id: "B", text: "Unit of measure is intrinsic to natural phenomena." },
-      { id: "C", text: "Accuracy does not mean exact measurement." },
-      { id: "D", text: "Precision refers to uncertainty in measuring." },
-      { id: "E", text: "None." }
+    "question_number": 1,
+    "question_text": "An object can have zero average velocity over a time interval while its average speed over the same interval is not zero.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "B",
-    explanation: "Units of measurement are human-defined conventions, not intrinsic natural phenomena."
+    "correct_option": "A",
+    "explanation": "Example: a walker returns to the start. Displacement = 0 ⇒ average velocity = 0, but distance ≠ 0 ⇒ average speed ≠ 0. (ወደ መነሻ ነጥብ ሲመለስ መፈናቀል 0 ነው፤ አማካይ ፍጥነት ከአቅጣጫ ጋር 0 ነው፤ የተጓዘው ርቀት ግን 0 ስላልሆነ አማካይ ፍጥነት 0 አይደለም።)"
   },
   {
-    question_number: 2,
-    question_text: "A student uses a meterstick to measure the thickness of a textbook and obtains 4.3 ± 0.1 cm. Other students use vernier calipers and obtain: (a) 4.32 ± 0.01 cm, (b) 4.31 ± 0.01 cm, (c) 4.24 ± 0.01 cm, and (d) 4.43 ± 0.01 cm. Which measurement will not agree with the first student's result?",
-    options: [
-      { id: "A", text: "(a)" },
-      { id: "B", text: "(b)" },
-      { id: "C", text: "(c)" },
-      { id: "D", text: "(d)" },
-      { id: "E", text: "None of the above." }
+    "question_number": 2,
+    "question_text": "The slope of a velocity–time graph gives the displacement of the object.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "D",
-    explanation: "The first student's range is [4.20, 4.40] cm. Measurement (d) is 4.43 cm, which lies outside this uncertainty interval."
+    "correct_option": "B",
+    "explanation": "Slope of a v–t graph gives acceleration; the area under the v–t graph gives displacement. (የ v–t ግራፍ ዳገት ማፍጠኛን ይሰጣል፤ ከግራፉ በታች ያለው ስፋት መፈናቀልን ይሰጣል።)"
   },
   {
-    question_number: 3,
-    question_text: "The number of significant figures in 0.00150 is:",
-    options: [
-      { id: "A", text: "2" },
-      { id: "B", text: "3" },
-      { id: "C", text: "4" },
-      { id: "D", text: "5" },
-      { id: "E", text: "None." }
+    "question_number": 3,
+    "question_text": "At the highest point of its path, the acceleration of a projectile is zero (neglect air resistance).",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "B",
-    explanation: "Leading zeros are placeholders; 1, 5, and the trailing 0 after the decimal are significant (3 figures: 1, 5, 0)."
+    "correct_option": "B",
+    "explanation": "At every point (including the top) a = g = 10 m/s² downward; only the vertical velocity vy is zero at the top. (በመንገዱ ሁሉ ማፍጠኛው g ወደ ታች ነው፤ በከፍተኛው ነጥብ ላይ ዜሮ የሚሆነው ቀጥታ ፍጥነት ብቻ ነው።)"
   },
   {
-    question_number: 4,
-    question_text: "Measurement of two physical quantities, along with the precision of their respective measuring instruments, is: A = (2.5 ± 0.5) m/s and B = (0.10 ± 0.01) s. The value of AB will be:",
-    options: [
-      { id: "A", text: "(0.25 ± 0.135) m" },
-      { id: "B", text: "(0.25 ± 0.08) m" },
-      { id: "C", text: "(0.25 ± 0.05) m" },
-      { id: "D", text: "(0.25 ± 0.5) m" }
+    "question_number": 4,
+    "question_text": "Two vectors of magnitudes 3 units and 4 units can have a resultant of magnitude 8 units.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "B",
-    explanation: "AB = 0.25. Relative uncertainty: ΔA/A + ΔB/B = 0.5/2.5 + 0.01/0.10 = 0.20 + 0.10 = 0.30. Δ(AB) = 0.25 × 0.30 = 0.075 ≈ 0.08 m."
+    "correct_option": "B",
+    "explanation": "Maximum resultant = 3 + 4 = 7 < 8, so 8 is impossible. The allowable range is 1 ≤ R ≤ 7. (ከፍተኛው ውጤት 3 + 4 = 7 ነው፤ ስለዚህ 8 ሊሆን አይችልም።)"
   },
   {
-    question_number: 5,
-    question_text: "Which statement about measurement is true?",
-    options: [
-      { id: "A", text: "Accuracy is closeness to the exact value in physical measurements." },
-      { id: "B", text: "Unit of measure is an intrinsic natural phenomenon." },
-      { id: "C", text: "Random error arises from instruments, while systematic error comes from unexpected environmental factors." },
-      { id: "D", text: "A precise instrument consistently gives the same measurement under the same conditions, minimizing random errors and offering high reproducibility." }
+    "question_number": 5,
+    "question_text": "The speed of a projectile launched at an angle θ (0° < θ < 90°) is minimum at the highest point of its path.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "D",
-    explanation: "A precise instrument provides high repeatability/reproducibility with minimal random variation.",
-    needs_review: true // Both A and D are arguably true; D retained per key
+    "correct_option": "A",
+    "explanation": "At the top vy = 0, so speed = vx = u cos θ, which is the minimum speed along the path. (በከፍተኛው ነጥብ vy = 0 ስለሆነ ፍጥነቱ vx = u cos θ ብቻ ነው፤ ይህ በመንገዱ ላይ ያለው ትንሹ ፍጥነት ነው።)"
   },
   {
-    question_number: 6,
-    question_text: "Which of the following statements about significant figures is not true?",
-    options: [
-      { id: "A", text: "Trailing zeros in a number without a decimal point are always significant." },
-      { id: "B", text: "A change of unit of measurement cannot change the number of significant figures." },
-      { id: "C", text: "All non-zero digits are significant." },
-      { id: "D", text: "Zeros between two non-zero digits are significant." }
+    "question_number": 6,
+    "question_text": "A car travels 120 km at 60 km/h and then another 120 km at 40 km/h in the same direction. Its average speed for the whole trip is",
+    "options": [
+      {
+        "id": "A",
+        "text": "50 km/h"
+      },
+      {
+        "id": "B",
+        "text": "48 km/h"
+      },
+      {
+        "id": "C",
+        "text": "52 km/h"
+      },
+      {
+        "id": "D",
+        "text": "45 km/h"
+      }
     ],
-    correct_option: "A",
-    explanation: "Trailing zeros in a whole number without a decimal point (e.g. 500) are ambiguous and generally not considered significant."
+    "correct_option": "B",
+    "explanation": "t1 = 120/60 = 2 h; t2 = 120/40 = 3 h. Average speed = total distance / total time = 240 / (2 + 3) = 240 / 5 = 48 km/h. (Taking (60 + 40)/2 = 50 is incorrect because times spent are different)."
   },
   {
-    question_number: 7,
-    question_text: "Which of the following units is not an SI base unit?",
-    options: [
-      { id: "A", text: "Kilogram (kg)" },
-      { id: "B", text: "Ampere (A)" },
-      { id: "C", text: "Joule (J)" },
-      { id: "D", text: "Meter (m)" }
+    "question_number": 7,
+    "question_text": "Two vectors have magnitudes 5 units and 9 units. Which one of the following can not be the magnitude of their resultant?",
+    "options": [
+      {
+        "id": "A",
+        "text": "3 units"
+      },
+      {
+        "id": "B",
+        "text": "4 units"
+      },
+      {
+        "id": "C",
+        "text": "9 units"
+      },
+      {
+        "id": "D",
+        "text": "14 units"
+      }
     ],
-    correct_option: "C",
-    explanation: "Joule is a derived unit (kg·m²/s²), whereas kg, A, and m are base units."
+    "correct_option": "A",
+    "explanation": "Resultant range: |9 − 5| ≤ R ≤ 9 + 5 ⇒ 4 ≤ R ≤ 14. 3 units is outside this range."
   },
   {
-    question_number: 8,
-    question_text: "The length of the path travelled by an object in a given interval of time is:",
-    options: [
-      { id: "A", text: "Distance" },
-      { id: "B", text: "Displacement" },
-      { id: "C", text: "Speed" },
-      { id: "D", text: "Velocity" }
+    "question_number": 8,
+    "question_text": "If A = 3î + 4ĵ and B = 2î − ĵ, then A · B =",
+    "options": [
+      {
+        "id": "A",
+        "text": "10"
+      },
+      {
+        "id": "B",
+        "text": "−2"
+      },
+      {
+        "id": "C",
+        "text": "2"
+      },
+      {
+        "id": "D",
+        "text": "6"
+      }
     ],
-    correct_option: "A",
-    explanation: "Distance is the total length of the path traveled, whereas displacement is the change in position."
+    "correct_option": "C",
+    "explanation": "A · B = (3)(2) + (4)(−1) = 6 − 4 = 2."
   },
   {
-    question_number: 9,
-    question_text: "Which statement is true about dimensional analysis in physics?",
-    options: [
-      { id: "A", text: "If an equation is dimensionally correct, then it must be true." },
-      { id: "B", text: "If an equation is not dimensionally correct, then it cannot be true." },
-      { id: "C", text: "Dimensions cannot be treated as algebraic quantities." },
-      { id: "D", text: "Dimensional analysis can provide an exact solution to physics problems completely." },
-      { id: "E", text: "None." }
+    "question_number": 9,
+    "question_text": "A unit vector parallel to A = 3î − 4ĵ is",
+    "options": [
+      {
+        "id": "A",
+        "text": "3î − 4ĵ"
+      },
+      {
+        "id": "B",
+        "text": "(3î − 4ĵ)/25"
+      },
+      {
+        "id": "C",
+        "text": "(3î − 4ĵ)/7"
+      },
+      {
+        "id": "D",
+        "text": "(3î − 4ĵ)/5"
+      }
     ],
-    correct_option: "B",
-    explanation: "Dimensional consistency is a necessary condition for an equation to be physically valid. If dimensions do not match, it cannot be true."
+    "correct_option": "D",
+    "explanation": "|A| = √(3² + (−4)²) = √(9 + 16) = 5. Unit vector = A / |A| = (3î − 4ĵ)/5."
   },
   {
-    question_number: 10,
-    question_text: "Which of the following is not an application of dimensional analysis?",
-    options: [
-      { id: "A", text: "Conversion of one system of units into another system." },
-      { id: "B", text: "Checking the dimensional balance of an equation." },
-      { id: "C", text: "Establishing relationships among various physical quantities." },
-      { id: "D", text: "Finding the value of the dimensional constant." }
+    "question_number": 10,
+    "question_text": "A car increases its speed uniformly from 10 m/s to 30 m/s in 5 s. The distance covered in this time is",
+    "options": [
+      {
+        "id": "A",
+        "text": "75 m"
+      },
+      {
+        "id": "B",
+        "text": "100 m"
+      },
+      {
+        "id": "C",
+        "text": "150 m"
+      },
+      {
+        "id": "D",
+        "text": "200 m"
+      }
     ],
-    correct_option: "D",
-    explanation: "Dimensionless or dimensional numerical proportionality constants cannot be determined by dimensional analysis alone."
+    "correct_option": "B",
+    "explanation": "d = ((vi + vf)/2) · t = ((10 + 30)/2)(5) = 20 × 5 = 100 m."
   },
   {
-    question_number: 11,
-    question_text: "Which pair of physical quantities does not have the same dimensional formula?",
-    options: [
-      { id: "A", text: "Angular momentum and Planck's constant." },
-      { id: "B", text: "Impulse and linear momentum." },
-      { id: "C", text: "Tension and surface tension." },
-      { id: "D", text: "Work and torque." }
+    "question_number": 11,
+    "question_text": "A stone is dropped from rest from a height of 80 m. Taking g = 10 m/s², its speed just before hitting the ground is",
+    "options": [
+      {
+        "id": "A",
+        "text": "40 m/s"
+      },
+      {
+        "id": "B",
+        "text": "80 m/s"
+      },
+      {
+        "id": "C",
+        "text": "20 m/s"
+      },
+      {
+        "id": "D",
+        "text": "160 m/s"
+      }
     ],
-    correct_option: "C",
-    explanation: "Tension is a force [M L T⁻²], while surface tension is force per unit length [M T⁻²]."
+    "correct_option": "A",
+    "explanation": "v² = 2gh = 2(10)(80) = 1600 ⇒ v = √1600 = 40 m/s."
   },
   {
-    question_number: 12,
-    question_text: "A vector lies in the second quadrant of the xy-plane, with its tail at the origin. What can you conclude about its components?",
-    options: [
-      { id: "A", text: "Both components are positive." },
-      { id: "B", text: "The x-component is positive, while the y-component is negative." },
-      { id: "C", text: "The x-component is negative, while the y-component is positive." },
-      { id: "D", text: "Both components are negative." },
-      { id: "E", text: "Impossible to judge." }
+    "question_number": 12,
+    "question_text": "A ball is thrown vertically upward with a speed of 20 m/s (g = 10 m/s²). The maximum height reached is",
+    "options": [
+      {
+        "id": "A",
+        "text": "10 m"
+      },
+      {
+        "id": "B",
+        "text": "40 m"
+      },
+      {
+        "id": "C",
+        "text": "20 m"
+      },
+      {
+        "id": "D",
+        "text": "80 m"
+      }
     ],
-    correct_option: "C",
-    explanation: "In quadrant II, x < 0 and y > 0."
+    "correct_option": "C",
+    "explanation": "H = u² / (2g) = 20² / (2 × 10) = 400 / 20 = 20 m."
   },
   {
-    question_number: 13,
-    question_text: "If |A + B| = |A| + |B| and neither A nor B is zero, then:",
-    options: [
-      { id: "A", text: "A and B are parallel and in opposite directions." },
-      { id: "B", text: "A is perpendicular to B." },
-      { id: "C", text: "A and B are opposite." },
-      { id: "D", text: "A and B are parallel and in the same direction." },
-      { id: "E", text: "None of the above." }
+    "question_number": 13,
+    "question_text": "The velocity of a car increases uniformly from 0 to 8 m/s in 4 s, stays constant at 8 m/s for 6 s, and then decreases uniformly to 0 in 2 s. The total distance travelled is",
+    "options": [
+      {
+        "id": "A",
+        "text": "64 m"
+      },
+      {
+        "id": "B",
+        "text": "56 m"
+      },
+      {
+        "id": "C",
+        "text": "80 m"
+      },
+      {
+        "id": "D",
+        "text": "72 m"
+      }
     ],
-    correct_option: "D",
-    explanation: "|A + B| equals |A| + |B| only when the angle between them is 0° (parallel in the same direction)."
+    "correct_option": "D",
+    "explanation": "Stage 1 (triangle): ½ × 4 × 8 = 16 m. Stage 2 (rectangle): 8 × 6 = 48 m. Stage 3 (triangle): ½ × 2 × 8 = 8 m. Total distance = 16 + 48 + 8 = 72 m."
   },
   {
-    question_number: 14,
-    question_text: "Which of the following is a unit vector?",
-    options: [
-      { id: "A", text: "i + j" },
-      { id: "B", text: "(1/√2)i + 2j" },
-      { id: "C", text: "i + (1/√2)j" },
-      { id: "D", text: "(1/√2)i + (1/√2)j" }
+    "question_number": 14,
+    "question_text": "A projectile is launched with a speed of 20 m/s at 30° above the horizontal (g = 10 m/s²). Its time of flight is",
+    "options": [
+      {
+        "id": "A",
+        "text": "1 s"
+      },
+      {
+        "id": "B",
+        "text": "2 s"
+      },
+      {
+        "id": "C",
+        "text": "4 s"
+      },
+      {
+        "id": "D",
+        "text": "3 s"
+      }
     ],
-    correct_option: "D",
-    explanation: "|v| = √((1/√2)² + (1/√2)²) = √(1/2 + 1/2) = √1 = 1."
+    "correct_option": "B",
+    "explanation": "T = 2u sin θ / g = 2(20)(sin 30°) / 10 = 2(20)(0.5) / 10 = 2 s."
   },
   {
-    question_number: 15,
-    question_text: "A line makes angles α, β and γ with the x-, y- and z-axes, respectively. Then sin²α + sin²β + sin²γ equals:",
-    options: [
-      { id: "A", text: "1" },
-      { id: "B", text: "−1" },
-      { id: "C", text: "0" },
-      { id: "D", text: "2" }
+    "question_number": 15,
+    "question_text": "A stone is thrown horizontally at 15 m/s from the top of a 45 m high cliff (g = 10 m/s²). It lands at a horizontal distance of",
+    "options": [
+      {
+        "id": "A",
+        "text": "45 m"
+      },
+      {
+        "id": "B",
+        "text": "30 m"
+      },
+      {
+        "id": "C",
+        "text": "60 m"
+      },
+      {
+        "id": "D",
+        "text": "90 m"
+      }
     ],
-    correct_option: "D",
-    explanation: "cos²α + cos²β + cos²γ = 1. Therefore sin²α + sin²β + sin²γ = (1 − cos²α) + (1 − cos²β) + (1 − cos²γ) = 3 − 1 = 2."
+    "correct_option": "A",
+    "explanation": "Vertical motion: h = ½gt² ⇒ 45 = 5t² ⇒ t² = 9 ⇒ t = 3 s. Horizontal distance = vx · t = 15 × 3 = 45 m."
   },
   {
-    question_number: 16,
-    question_text: "If a = i + j + k, b = 2i − j + 3k and c = i − 2j + k, a unit vector parallel to 2a − b + 3c is:",
-    options: [
-      { id: "A", text: "(1/√22)(9i − 3j + k)" },
-      { id: "B", text: "(1/√22)(i − 3j + 2k)" },
-      { id: "C", text: "(1/√22)(3i − 3j − 2k)" },
-      { id: "D", text: "(1/√22)(3i − 3j + 2k)" }
+    "question_number": 16,
+    "question_text": "A projectile is launched at 50 m/s at 37° above the horizontal (sin 37° = 0.6, cos 37° = 0.8, g = 10 m/s²). Its maximum height is",
+    "options": [
+      {
+        "id": "A",
+        "text": "90 m"
+      },
+      {
+        "id": "B",
+        "text": "30 m"
+      },
+      {
+        "id": "C",
+        "text": "45 m"
+      },
+      {
+        "id": "D",
+        "text": "22.5 m"
+      }
     ],
-    correct_option: "D",
-    explanation: "2a − b + 3c = 2(i+j+k) − (2i−j+3k) + 3(i−2j+k) = (2−2+3)i + (2+1−6)j + (2−3+3)k = 3i − 3j + 2k. Magnitude = √(9+9+4) = √22."
+    "correct_option": "C",
+    "explanation": "uy = 50 sin 37° = 50(0.6) = 30 m/s. H = uy² / (2g) = 30² / 20 = 900 / 20 = 45 m."
   },
   {
-    question_number: 17,
-    question_text: "Which of the following is true when two vectors are added using the triangle method?",
-    options: [
-      { id: "A", text: "The resultant vector lies along the line connecting the tail of the first vector to the head of the second vector." },
-      { id: "B", text: "The magnitude of the sum is always the same as the sum of the magnitudes of the vectors." },
-      { id: "C", text: "The resultant vector is the diagonal of the parallelogram formed by the two vectors." },
-      { id: "D", text: "The direction of the resultant vector depends only on the direction of the first vector." }
+    "question_number": 17,
+    "question_text": "The horizontal range of a projectile launched at 20 m/s at 45° above the horizontal (g = 10 m/s²) is",
+    "options": [
+      {
+        "id": "A",
+        "text": "20 m"
+      },
+      {
+        "id": "B",
+        "text": "80 m"
+      },
+      {
+        "id": "C",
+        "text": "10 m"
+      },
+      {
+        "id": "D",
+        "text": "40 m"
+      }
     ],
-    correct_option: "A",
-    explanation: "In the head-to-tail triangle rule, the resultant connects the tail of the first to the head of the second vector."
+    "correct_option": "D",
+    "explanation": "R = u² sin(2θ) / g = 20² · sin(90°) / 10 = 400(1) / 10 = 40 m."
   },
   {
-    question_number: 18,
-    question_text: "If the displacement of an object is represented by vector d, what is the correct way to find its x- and y-components, when θ is measured from the positive x-axis?",
-    options: [
-      { id: "A", text: "dₓ = d sin θ, d_y = d cos θ" },
-      { id: "B", text: "dₓ = d cos θ, d_y = d cos θ" },
-      { id: "C", text: "dₓ = d cos θ, d_y = d sin θ" },
-      { id: "D", text: "dₓ = d tan θ, d_y = d cot θ" }
+    "question_number": 18,
+    "question_text": "Two projectiles are launched with the same speed, one at 30° and the other at 60° above the horizontal. The ratio of their maximum heights, H₃₀° : H₆₀°, is",
+    "options": [
+      {
+        "id": "A",
+        "text": "1 : 3"
+      },
+      {
+        "id": "B",
+        "text": "1 : 2"
+      },
+      {
+        "id": "C",
+        "text": "1 : 1"
+      },
+      {
+        "id": "D",
+        "text": "3 : 1"
+      }
     ],
-    correct_option: "C",
-    explanation: "By trigonometry, adjacent component is d cos θ and vertical is d sin θ."
+    "correct_option": "A",
+    "explanation": "H = u² sin²θ / (2g). Ratio = sin²(30°) : sin²(60°) = (0.5)² : (√3/2)² = 0.25 : 0.75 = 1 : 3."
   },
   {
-    question_number: 19,
-    question_text: "In two-dimensional motion, the velocity vector of an object can be expressed as:",
-    options: [
-      { id: "A", text: "The product of its horizontal and vertical velocity components." },
-      { id: "B", text: "The difference between the horizontal and vertical velocity components." },
-      { id: "C", text: "The square of its horizontal and vertical components." },
-      { id: "D", text: "The sum (vector addition) of its horizontal and vertical velocity components." }
+    "question_number": 19,
+    "question_text": "If A = 2î + 3ĵ and B = −5î + ĵ, the magnitude of A + B is",
+    "options": [
+      {
+        "id": "A",
+        "text": "7"
+      },
+      {
+        "id": "B",
+        "text": "1"
+      },
+      {
+        "id": "C",
+        "text": "5"
+      },
+      {
+        "id": "D",
+        "text": "25"
+      }
     ],
-    correct_option: "D",
-    explanation: "v = v_x i + v_y j, which is the vector sum of its rectangular components."
+    "correct_option": "C",
+    "explanation": "A + B = (2 − 5)î + (3 + 1)ĵ = −3î + 4ĵ. |A + B| = √((−3)² + 4²) = √(9 + 16) = √25 = 5."
+  },
+  {
+    "question_number": 20,
+    "question_text": "A car moving at 20 m/s brakes with a uniform deceleration of 5 m/s² until it stops. The stopping distance is",
+    "options": [
+      {
+        "id": "A",
+        "text": "20 m"
+      },
+      {
+        "id": "B",
+        "text": "40 m"
+      },
+      {
+        "id": "C",
+        "text": "80 m"
+      },
+      {
+        "id": "D",
+        "text": "100 m"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "v² = u² − 2ad ⇒ 0 = 20² − 2(5)d ⇒ 10d = 400 ⇒ d = 40 m."
+  },
+  {
+    "question_number": 21,
+    "question_text": "Which of the following correctly distinguishes distance from displacement?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Distance is the total path length (scalar), while displacement is the straight-line position change with direction (vector)."
+      },
+      {
+        "id": "B",
+        "text": "Distance is a vector quantity with direction, while displacement is a scalar quantity."
+      },
+      {
+        "id": "C",
+        "text": "Displacement is always greater than or equal to distance."
+      },
+      {
+        "id": "D",
+        "text": "Distance can be zero after moving, but displacement cannot be zero."
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Distance is the total length of the path travelled; a scalar, always positive. Displacement is the straight-line change in position from start to end, with direction; a vector (can be zero)."
+  },
+  {
+    "question_number": 22,
+    "question_text": "If A = 3î + 2ĵ and B = î − 2ĵ, then 2A − B =",
+    "options": [
+      {
+        "id": "A",
+        "text": "5î + 6ĵ"
+      },
+      {
+        "id": "B",
+        "text": "5î + 4ĵ"
+      },
+      {
+        "id": "C",
+        "text": "7î + 6ĵ"
+      },
+      {
+        "id": "D",
+        "text": "2î + 4ĵ"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "2A = 6î + 4ĵ. 2A − B = (6 − 1)î + (4 − (−2))ĵ = 5î + 6ĵ."
+  },
+  {
+    "question_number": 23,
+    "question_text": "For a projectile (neglecting air resistance), what are the horizontal acceleration (ax) and vertical acceleration (ay)?",
+    "options": [
+      {
+        "id": "A",
+        "text": "ax = 0 and ay = 10 m/s² downward"
+      },
+      {
+        "id": "B",
+        "text": "ax = 10 m/s² forward and ay = 0"
+      },
+      {
+        "id": "C",
+        "text": "ax = 10 m/s² forward and ay = 10 m/s² downward"
+      },
+      {
+        "id": "D",
+        "text": "ax = 0 and ay = 0"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Only gravity acts downwards: horizontal acceleration ax = 0, and vertical acceleration ay = −g = 10 m/s² downward."
+  },
+  {
+    "question_number": 24,
+    "question_text": "A ball thrown vertically upward returns to the thrower's hand after 6 s. Its initial speed is (taking g = 10 m/s²):",
+    "options": [
+      {
+        "id": "A",
+        "text": "60 m/s"
+      },
+      {
+        "id": "B",
+        "text": "30 m/s"
+      },
+      {
+        "id": "C",
+        "text": "20 m/s"
+      },
+      {
+        "id": "D",
+        "text": "15 m/s"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Time up = time down = 6 / 2 = 3 s. At the top v = 0 ⇒ u = gt = 10 × 3 = 30 m/s."
+  },
+  {
+    "question_number": 25,
+    "question_text": "What do the slope of a velocity–time graph and the area under it represent, respectively?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Acceleration and displacement"
+      },
+      {
+        "id": "B",
+        "text": "Displacement and acceleration"
+      },
+      {
+        "id": "C",
+        "text": "Speed and distance"
+      },
+      {
+        "id": "D",
+        "text": "Velocity and impulse"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Slope of a v–t graph = acceleration. Area under a v–t graph = displacement (change in position)."
+  },
+  {
+    "question_number": 26,
+    "question_text": "Given A = 8î + 6ĵ and B = −2î + 2ĵ, what are the magnitude of resultant R = A + B and the scalar product A · B?",
+    "options": [
+      {
+        "id": "A",
+        "text": "|R| = 10 and A · B = −4"
+      },
+      {
+        "id": "B",
+        "text": "|R| = 10 and A · B = 4"
+      },
+      {
+        "id": "C",
+        "text": "|R| = 14 and A · B = −4"
+      },
+      {
+        "id": "D",
+        "text": "|R| = 8 and A · B = 12"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "R = (8 − 2)î + (6 + 2)ĵ = 6î + 8ĵ. |R| = √(6² + 8²) = 10. A · B = (8)(−2) + (6)(2) = −16 + 12 = −4."
+  },
+  {
+    "question_number": 27,
+    "question_text": "A hiker walks 8 km east, then 6 km north, and finally 8 km west, taking a total time of 4 h. What are the total distance and average velocity?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Distance = 22 km; Average velocity = 1.5 km/h north"
+      },
+      {
+        "id": "B",
+        "text": "Distance = 6 km; Average velocity = 5.5 km/h north"
+      },
+      {
+        "id": "C",
+        "text": "Distance = 22 km; Average velocity = 5.5 km/h north"
+      },
+      {
+        "id": "D",
+        "text": "Distance = 16 km; Average velocity = 1.5 km/h north"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Distance = 8 + 6 + 8 = 22 km. East and west cancel (8 − 8 = 0), so net displacement = 6 km due north. Average velocity = displacement / time = 6 / 4 = 1.5 km/h north."
+  },
+  {
+    "question_number": 28,
+    "question_text": "A car starts from rest and accelerates uniformly at 2 m/s² for 10 s, moves at constant speed for 20 s, and finally brakes uniformly to a stop in 5 s. What are the maximum speed and total distance travelled?",
+    "options": [
+      {
+        "id": "A",
+        "text": "vmax = 20 m/s; Total distance = 550 m"
+      },
+      {
+        "id": "B",
+        "text": "vmax = 20 m/s; Total distance = 400 m"
+      },
+      {
+        "id": "C",
+        "text": "vmax = 10 m/s; Total distance = 550 m"
+      },
+      {
+        "id": "D",
+        "text": "vmax = 25 m/s; Total distance = 600 m"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "vmax = at = 2 × 10 = 20 m/s. Stage 1 distance: ½(2)(10²) = 100 m. Stage 2 distance: 20 × 20 = 400 m. Stage 3 distance: ½(20)(5) = 50 m. Total distance = 100 + 400 + 50 = 550 m."
+  },
+  {
+    "question_number": 29,
+    "question_text": "A stone is thrown vertically upward from the ground with a speed of 30 m/s (g = 10 m/s²). What are the maximum height and the total time of flight?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Hmax = 45 m; Time of flight = 6 s"
+      },
+      {
+        "id": "B",
+        "text": "Hmax = 90 m; Time of flight = 3 s"
+      },
+      {
+        "id": "C",
+        "text": "Hmax = 45 m; Time of flight = 3 s"
+      },
+      {
+        "id": "D",
+        "text": "Hmax = 30 m; Time of flight = 6 s"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Time to top = u / g = 30 / 10 = 3 s. Total time of flight = 2 × 3 = 6 s. Hmax = u² / (2g) = 30² / (2 × 10) = 900 / 20 = 45 m."
+  },
+  {
+    "question_number": 30,
+    "question_text": "A ball is kicked from the ground with a speed of 25 m/s at 53° above horizontal (sin 53° = 0.8, cos 53° = 0.6, g = 10 m/s²). What are the initial velocity components (ux, uy), time of flight T, and horizontal range R?",
+    "options": [
+      {
+        "id": "A",
+        "text": "ux = 15 m/s, uy = 20 m/s; T = 4 s; R = 60 m"
+      },
+      {
+        "id": "B",
+        "text": "ux = 20 m/s, uy = 15 m/s; T = 3 s; R = 60 m"
+      },
+      {
+        "id": "C",
+        "text": "ux = 15 m/s, uy = 20 m/s; T = 2 s; R = 30 m"
+      },
+      {
+        "id": "D",
+        "text": "ux = 25 m/s, uy = 20 m/s; T = 4 s; R = 80 m"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "ux = 25 cos 53° = 15 m/s; uy = 25 sin 53° = 20 m/s. Time of flight T = 2uy / g = 2(20)/10 = 4 s. Range R = ux · T = 15 × 4 = 60 m."
   }
 ];
-
-// --- 3. LOGIC AND CRITICAL THINKING (25 Qs) ---
 export const LOGIC_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "According to the ancient Greek etymological definition of philosophy, what does the term \"Sophia\" (wisdom) specifically exclude, and what does it encompass?",
-    options: [
-      { id: "A", text: "It excludes speculative religious thought and encompasses only empirical scientific methods." },
-      { id: "B", text: "It excludes theoretical mathematics and encompasses practical civic duties and law." },
-      { id: "C", text: "It excludes technical skills and encompasses truth and theoretical knowledge of any sort." },
-      { id: "D", text: "It excludes traditional customs and encompasses experimental observation and data collection." }
+    "question_number": 1,
+    "question_text": "The consequent of a conditional sentence is a necessary condition for the antecedent.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "C",
-    explanation: "Sophia refers to truth and theoretical knowledge of any sort, excluding technical skills."
+    "correct_option": "A",
+    "explanation": "In 'If A then B', B is a necessary condition for A."
   },
   {
-    question_number: 2,
-    question_text: "Which of the following best explains the historical relationship between philosophy and specialized empirical sciences such as physics and psychology?",
-    options: [
-      { id: "A", text: "Philosophy originally encompassed all systematic searches for knowledge until disciplines developed their own experimental techniques starting in the 16th century." },
-      { id: "B", text: "Specialized sciences originated independently of philosophy and later merged into it during the 16th century." },
-      { id: "C", text: "Philosophy was created in the 16th century by Galileo, Newton, and Kepler to unify mathematics and natural astronomy." },
-      { id: "D", text: "Psychology was the very first discipline to leave philosophy, followed much later by physics and astronomy." }
+    "question_number": 2,
+    "question_text": "Proving a claim to be true, in essence, is the hallmark of an argument.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "A",
-    explanation: "All systematic knowledge belonged to philosophy; from the 16th century, disciplines like physics and astronomy developed their own experimental techniques and 'left home.'"
+    "correct_option": "B",
+    "explanation": "The hallmark of an argument is claiming that something is proved (an inferential claim), not actually proving it."
   },
   {
-    question_number: 3,
-    question_text: "How does the \"formal sense\" of philosophy (\"doing\" philosophy) fundamentally differ from the \"informal sense\" (\"having\" a philosophy)?",
-    options: [
-      { id: "A", text: "The formal sense relies on uncritically held personal attitudes, whereas the informal sense relies on empirical data." },
-      { id: "B", text: "The formal sense accepts common sense as the ultimate reality, whereas the informal sense rejects all sensory perception." },
-      { id: "C", text: "The informal sense is restricted to academic philosophers, whereas the formal sense applies to everyday personal opinions." },
-      { id: "D", text: "The informal sense involves a set of views often held uncritically, whereas the formal sense is a reflective, critical process of examining deeply held conceptions." }
+    "question_number": 3,
+    "question_text": "In recognizing arguments, explicit inferential claim is more important than implicit one.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "D",
-    explanation: "'Having' a philosophy is holding uncritical personal views; 'doing' philosophy is the critical, reflective examination of deeply held beliefs."
+    "correct_option": "B",
+    "explanation": "Explicit and implicit inferential claims are equally important; many arguments carry only an implicit one."
   },
   {
-    question_number: 4,
-    question_text: "In Plato's Symposium and the analogy of the \"cover and yolk of the egg,\" what philosophical principle is illustrated regarding human perception?",
-    options: [
-      { id: "A", text: "Sense perception provides complete access to the fundamental reality of human emotions like love." },
-      { id: "B", text: "Common sense perception represents the superficial \"cover,\" while philosophy penetrates beyond apparent perceptions to uncover ultimate reality." },
-      { id: "C", text: "Apparent justifications for love, such as physical beauty, are identical to the ultimate instinct for eternity through offspring." },
-      { id: "D", text: "Philosophy must remain confined to the apparent world because ultimate reality is entirely unknowable." }
+    "question_number": 4,
+    "question_text": "If a passage lacks indicator words, what is the most reliable method for locating the conclusion?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Identify the longest sentence."
+      },
+      {
+        "id": "B",
+        "text": "Choose the statement containing universal terms."
+      },
+      {
+        "id": "C",
+        "text": "Ask which statement the arguer is trying to prove."
+      },
+      {
+        "id": "D",
+        "text": "Pick the final sentence."
+      }
     ],
-    correct_option: "B",
-    explanation: "Just as one must pass the shell of an egg to reach the yolk, philosophy passes beyond apparent sense perceptions to uncover ultimate reality."
+    "correct_option": "C",
+    "explanation": "Ask which statement the arguer is trying to prove."
   },
   {
-    question_number: 5,
-    question_text: "According to Bertrand Russell, what is the primary consequence for a person who has \"no tincture of philosophy\"?",
-    options: [
-      { id: "A", text: "They become overly skeptical of scientific laws and experimental discoveries." },
-      { id: "B", text: "They develop an overly fragmented worldview due to excessive specialization in logic and language analysis." },
-      { id: "C", text: "They remain imprisoned in prejudices derived from common sense, habitual beliefs of their age or nation, and unexamined convictions." },
-      { id: "D", text: "They abandon all religious and historical traditions in favor of pure rationalism." }
+    "question_number": 5,
+    "question_text": "Which one of the following is an essential approach in recognizing arguments?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Conclusion indicators are sufficient; no interpretation is needed."
+      },
+      {
+        "id": "B",
+        "text": "The arguer always makes the conclusion explicit."
+      },
+      {
+        "id": "C",
+        "text": "All passages with facts contain arguments."
+      },
+      {
+        "id": "D",
+        "text": "The reader must actively interpret passages to identify reasoning."
+      }
     ],
-    correct_option: "C",
-    explanation: "Without philosophy, a person is imprisoned in prejudices from common sense, habitual beliefs, and unreasoned convictions."
+    "correct_option": "D",
+    "explanation": "The reader must actively interpret passages."
   },
   {
-    question_number: 6,
-    question_text: "What distinguishes the philosopher's synoptic worldview from the perspectives of a scientist, businessperson, or artist?",
-    options: [
-      { id: "A", text: "The philosopher attempts to integrate the conclusions of various sciences and human experiences into a consistent, overall view of life as a totality." },
-      { id: "B", text: "The philosopher rejects scientific conclusions in order to construct a purely speculative worldview." },
-      { id: "C", text: "The philosopher focuses exclusively on isolated fragments of human experience to avoid the dangers of generalization." },
-      { id: "D", text: "The philosopher prioritizes economic and aesthetic values over historical and religious inquiries." }
+    "question_number": 6,
+    "question_text": "Identify the conclusion in the following passage: \"Pollution levels continue to rise. Since industrial regulation has weakened, and vehicle emissions have increased, the government must strengthen environmental laws.\"",
+    "options": [
+      {
+        "id": "A",
+        "text": "The government must strengthen environmental laws."
+      },
+      {
+        "id": "B",
+        "text": "Pollution levels continue to rise."
+      },
+      {
+        "id": "C",
+        "text": "Industrial regulation has weakened."
+      },
+      {
+        "id": "D",
+        "text": "Vehicle emissions have increased."
+      }
     ],
-    correct_option: "A",
-    explanation: "Unlike specialists who look at fragments, philosophy integrates insights into a consistent worldview of life as a totality."
+    "correct_option": "A",
+    "explanation": "'Since' marks the premises; the government must strengthen environmental laws is the conclusion."
   },
   {
-    question_number: 7,
-    question_text: "Why is the content of philosophy better understood as \"asking the right questions\" rather than \"providing the correct answers\"?",
-    options: [
-      { id: "A", text: "Because philosophical questions are linguistically meaningless and cannot generate coherent theories." },
-      { id: "B", text: "Because empirical sciences have already answered all fundamental questions about existence, value, and truth." },
-      { id: "C", text: "Because philosophers refuse to formulate systematic theories or take definitive intellectual positions." },
-      { id: "D", text: "Because philosophy consists of perennial problems for which the ongoing attempt to find solutions gives rise to diverse systems of thought like idealism, realism, and pragmatism." }
+    "question_number": 7,
+    "question_text": "For a passage to be argumentative, one is not mandatory:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Having premises and conclusion"
+      },
+      {
+        "id": "B",
+        "text": "Factual claim with attended reasoning"
+      },
+      {
+        "id": "C",
+        "text": "Inferential claim between the statements"
+      },
+      {
+        "id": "D",
+        "text": "Having explicit inferential claim"
+      }
     ],
-    correct_option: "D",
-    explanation: "Philosophy is a group of perennial problems; attempting to answer them generates major systems of thought."
+    "correct_option": "D",
+    "explanation": "An explicit inferential claim is not mandatory; an implicit one suffices."
   },
   {
-    question_number: 8,
-    question_text: "How did the term \"Metaphysics\" acquire its name, and what is its literal meaning?",
-    options: [
-      { id: "A", text: "Aristotle coined it from Greek words meaning \"beyond nature\" to describe his theory of evolution." },
-      { id: "B", text: "Aristotle's editor, Andronicus of Rhodes, named it from Greek words meaning \"those things after the physics\" because those writings followed Aristotle's treatise on physics." },
-      { id: "C", text: "Plato invented the term to distinguish the study of physical matter from the study of mathematical forms." },
-      { id: "D", text: "Ancient Greek theologians used it to refer exclusively to the study of divine attributes and creation." }
+    "question_number": 8,
+    "question_text": "Non-argumentative passages:",
+    "options": [
+      {
+        "id": "A",
+        "text": "By far and large, they are subjective opinions."
+      },
+      {
+        "id": "B",
+        "text": "We can know them by the type of statement they consist of."
+      },
+      {
+        "id": "C",
+        "text": "Consist of passages which do not have factual claim."
+      },
+      {
+        "id": "D",
+        "text": "May contain indicator word(s)."
+      }
     ],
-    correct_option: "B",
-    explanation: "Andronicus of Rhodes placed Aristotle's writings on 'first philosophy' after his Physics, naming them meta physika."
+    "correct_option": "D",
+    "explanation": "Non-arguments may contain indicator words (e.g. 'because' in explanations)."
   },
   {
-    question_number: 9,
-    question_text: "Why are metaphysical questions considered the most basic questions in philosophy?",
-    options: [
-      { id: "A", text: "Because they are the easiest questions to verify through sensory observation and laboratory experiments." },
-      { id: "B", text: "Because they deal solely with the grammatical clarification of ordinary language." },
-      { id: "C", text: "Because they provide the irreducible foundation of reality and \"first principles\" upon which all other branches of philosophy and subsequent inquiry are based." },
-      { id: "D", text: "Because they resolve all moral and political disputes without requiring ethical theory." }
+    "question_number": 9,
+    "question_text": "Regular exercise strengthens the heart and improves circulation. It also reduces the risk of chronic diseases. Unfailing workout routine is essential for maintaining good health. Which one of the following is incorrect?",
+    "options": [
+      {
+        "id": "A",
+        "text": "\"It also reduces the risk of chronic diseases\", is neither premise nor conclusion."
+      },
+      {
+        "id": "B",
+        "text": "\"Regular exercise strengthens the heart and improves circulation\", is a premise."
+      },
+      {
+        "id": "C",
+        "text": "\"Unfailing workout routine is essential for maintaining good health\", is a conclusion."
+      },
+      {
+        "id": "D",
+        "text": "\"Regular exercise strengthens the heart and improves circulation\", is either a premise or a conclusion."
+      }
     ],
-    correct_option: "C",
-    explanation: "Metaphysics seeks an irreducible foundation of reality, the 'first principles' of all other inquiry."
+    "correct_option": "A",
+    "explanation": "That statement is a premise, so calling it neither premise nor conclusion is incorrect."
   },
   {
-    question_number: 10,
-    question_text: "Which of the following pairs of questions belongs strictly to the Cosmological aspect of metaphysics rather than the Anthropological or Theological aspects?",
-    options: [
-      { id: "A", text: "\"What is time; is its existence subjective or objective?\" and \"Did the universe come about by accident or design?\"" },
-      { id: "B", text: "\"Does each person have a soul?\" and \"Do individuals have free will?\"" },
-      { id: "C", text: "\"If God is all-good and all-powerful, why does evil exist?\" and \"Is God a moral being?\"" },
-      { id: "D", text: "\"Are people born good, evil, or morally neutral?\" and \"What is the relation between mind and body?\"" }
+    "question_number": 10,
+    "question_text": "\"This year, Jimma University welcomed over 3,000 freshman students from across the country. The university offers structured orientation and foundational courses to support their transition. The university provides various facilities such as libraries, laboratories, and student centers to support their academic and personal development.\" This passage is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "It is a deductive argument from definition."
+      },
+      {
+        "id": "B",
+        "text": "It is expository and non-argumentative passage."
+      },
+      {
+        "id": "C",
+        "text": "It is an inductive argument from generalization."
+      },
+      {
+        "id": "D",
+        "text": "It is explanation and non-argumentative passage."
+      }
     ],
-    correct_option: "A",
-    explanation: "Questions about the origin, purpose, and orderly nature of the universe, and about time, belong to Cosmology."
+    "correct_option": "B",
+    "explanation": "The passage is expository and non-argumentative."
   },
   {
-    question_number: 11,
-    question_text: "How does Ontology differ from Cosmology within the four subsets of metaphysics?",
-    options: [
-      { id: "A", text: "Ontology studies the origin and development of the universe as an orderly system, while cosmology studies human free will." },
-      { id: "B", text: "Ontology deals exclusively with proofs for the existence of God, while cosmology deals with the mind-body problem." },
-      { id: "C", text: "Ontology rejects the existence of physical energy, while cosmology affirms that only spiritual energy exists." },
-      { id: "D", text: "Ontology studies the nature of existence itself, such as whether basic reality is matter or spirit, fixed or changing, whereas cosmology studies the universe's origin, nature, and development as an orderly system." }
+    "question_number": 11,
+    "question_text": "Which one of the following statements is true about argument and non-argument?",
+    "options": [
+      {
+        "id": "A",
+        "text": "There is no exception to treat any non-argumentative passage as if it was an argumentative."
+      },
+      {
+        "id": "B",
+        "text": "The decisive difference between an argument and non-argument is the presence or absence of a claim being supported."
+      },
+      {
+        "id": "C",
+        "text": "Its only difference arises from the degree of inference found in both types of passages."
+      },
+      {
+        "id": "D",
+        "text": "Indicator words may appear in both types of passages and always carry the same meaning."
+      }
     ],
-    correct_option: "D",
-    explanation: "Cosmology studies the universe as an orderly system; Ontology studies the nature of existence itself."
+    "correct_option": "B",
+    "explanation": "The decisive difference is whether a claim is being supported."
   },
   {
-    question_number: 12,
-    question_text: "A philosopher investigating whether human actions are determined by environment and inheritance or governed by free will, and whether mind is more fundamental than body, is working within which branch of metaphysics?",
-    options: [
-      { id: "A", text: "Theological Metaphysics" },
-      { id: "B", text: "Cosmological Metaphysics" },
-      { id: "C", text: "Anthropological Metaphysics" },
-      { id: "D", text: "Ontological Metaphysics" }
+    "question_number": 12,
+    "question_text": "Which of the following is a report?",
+    "options": [
+      {
+        "id": "A",
+        "text": "The Earth revolves around the Sun, which proves the heliocentric model is correct."
+      },
+      {
+        "id": "B",
+        "text": "You must be careful because the exam is challenging."
+      },
+      {
+        "id": "C",
+        "text": "Scientists detected new species of insects in the rainforest this year."
+      },
+      {
+        "id": "D",
+        "text": "Since it is raining, you should take an umbrella."
+      }
     ],
-    correct_option: "C",
-    explanation: "Anthropological metaphysics deals with the nature of human beings: mind-body relation, free will vs. determinism, the soul."
+    "correct_option": "C",
+    "explanation": "A report simply conveys information."
   },
   {
-    question_number: 13,
-    question_text: "Epistemology is said to cover two primary areas: \"the content of thought and thought itself.\" Which of the following best reflects the core scope of epistemological inquiry?",
-    options: [
-      { id: "A", text: "Determining the ultimate purpose of human life and the moral status of humanity." },
-      { id: "B", text: "Investigating the nature, source, scope, and validity of knowledge, as well as distinguishing knowledge from mere belief or opinion." },
-      { id: "C", text: "Establishing objective standards for judging artistic beauty and aesthetic pleasure." },
-      { id: "D", text: "Evaluating the logical validity and formal structure of deductive syllogisms." }
+    "question_number": 13,
+    "question_text": "Which one of the following sentences is not a statement?",
+    "options": [
+      {
+        "id": "A",
+        "text": "A valid argument can have a false conclusion."
+      },
+      {
+        "id": "B",
+        "text": "This sentence is false."
+      },
+      {
+        "id": "C",
+        "text": "Eternal happiness is the most important purpose in life."
+      },
+      {
+        "id": "D",
+        "text": "Philosophy can't help to solve pressing problems of our days."
+      }
     ],
-    correct_option: "B",
-    explanation: "Epistemology ('theory of knowledge') examines the nature, source, scope, and validity of knowledge."
+    "correct_option": "B",
+    "explanation": "'This sentence is false' is a paradox: neither true nor false, so not a statement."
   },
   {
-    question_number: 14,
-    question_text: "Among the four schools/sources of knowledge discussed in epistemology (Empiricism, Rationalism, Intuitionism, and Revelation), which two are classified strictly as philosophical schools of epistemology?",
-    options: [
-      { id: "A", text: "Empiricism and Rationalism" },
-      { id: "B", text: "Intuitionism and Revelation" },
-      { id: "C", text: "Empiricism and Revelation" },
-      { id: "D", text: "Rationalism and Intuitionism" }
+    "question_number": 14,
+    "question_text": "Which one of the following statements is correct?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Some arguments have factual claim."
+      },
+      {
+        "id": "B",
+        "text": "The role of a conclusion in an argumentative passage is to prove the premise/s."
+      },
+      {
+        "id": "C",
+        "text": "It is possible to draw two and above conclusions from just same premise/s."
+      },
+      {
+        "id": "D",
+        "text": "Having a premise and a conclusion is necessary, but not sufficient condition for a given passage to be argumentative."
+      }
     ],
-    correct_option: "A",
-    explanation: "Only Empiricism and Rationalism are classified as philosophical schools of epistemology."
+    "correct_option": "D",
+    "explanation": "Premise and conclusion are necessary but not sufficient; an inferential claim is also needed."
   },
   {
-    question_number: 15,
-    question_text: "Which statement accurately captures the Rationalist critique of Empiricism regarding sensory experience and the human mind?",
-    options: [
-      { id: "A", text: "Rationalists deny that human beings possess sensory organs and claim all ideas come from divine revelation." },
-      { id: "B", text: "Rationalists claim that mental images provide direct, unmediated access to the external world without needing reason." },
-      { id: "C", text: "Rationalists assert that appearance and reality are identical, making sensory deception impossible." },
-      { id: "D", text: "Rationalists argue that sensations are meaningless raw material that must be organized by innate mental categories before becoming knowledge, meaning the mind is not a blank slate at birth." }
+    "question_number": 15,
+    "question_text": "Which one of the following is not a premise indicator?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Given that"
+      },
+      {
+        "id": "B",
+        "text": "Moreover"
+      },
+      {
+        "id": "C",
+        "text": "Secondly"
+      },
+      {
+        "id": "D",
+        "text": "Clearly"
+      }
     ],
-    correct_option: "D",
-    explanation: "Sensations are raw data processed by innate mental categories, rejecting the 'blank slate' view."
+    "correct_option": "B",
+    "explanation": "'Moreover' is not a premise indicator."
   },
   {
-    question_number: 16,
-    question_text: "Why do philosophers cite the example of a straight stick appearing bent when submerged in water, alongside invisible wavelengths like X-rays?",
-    options: [
-      { id: "A", text: "To prove that scientific instruments are incapable of extending human knowledge." },
-      { id: "B", text: "To confirm the empiricist claim that sensation is never an illusion." },
-      { id: "C", text: "To demonstrate the limitations and distortions of sensory perception, showing that naked senses can deceive us and miss vast aspects of reality." },
-      { id: "D", text: "To show that intuition is superior to both reason and empirical observation." }
+    "question_number": 16,
+    "question_text": "Which one of the following passages is argumentative?",
+    "options": [
+      {
+        "id": "A",
+        "text": "As Plato is Philosopher, he is from Greece."
+      },
+      {
+        "id": "B",
+        "text": "I was late to class because I couldn't find a taxi."
+      },
+      {
+        "id": "C",
+        "text": "This class began in January and end in May."
+      },
+      {
+        "id": "D",
+        "text": "I think, therefore I am."
+      }
     ],
-    correct_option: "C",
-    explanation: "These examples show that sensory perception is limited and can be distorted."
+    "correct_option": "D",
+    "explanation": "'I think, therefore I am' is a classic argument."
   },
   {
-    question_number: 17,
-    question_text: "What are the specific epistemological limitations associated with Intuition and Revelation, respectively?",
-    options: [
-      { id: "A", text: "Intuition requires scientific experimentation to occur, while revelation can be easily disproved by empirical data." },
-      { id: "B", text: "Intuition is unsafe as a method of obtaining knowledge when used alone, while revelation is subject to distortion through human interpretation and must be accepted by faith rather than empirical proof." },
-      { id: "C", text: "Intuition applies only to religious dogma, while revelation applies only to mathematical breakthroughs." },
-      { id: "D", text: "Intuition relies entirely on conscious reasoning, while revelation denies any transcendent supernatural order." }
+    "question_number": 17,
+    "question_text": "Being argumentative is ____________ condition for a given passage to have a premise/s & conclusion.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Both necessary and sufficient"
+      },
+      {
+        "id": "B",
+        "text": "Neither necessary nor sufficient"
+      },
+      {
+        "id": "C",
+        "text": "Sufficient"
+      },
+      {
+        "id": "D",
+        "text": "Necessary"
+      }
     ],
-    correct_option: "B",
-    explanation: "Intuition is unsafe alone; revelation can be distorted by interpretation and cannot be empirically proved or disproved."
+    "correct_option": "C",
+    "explanation": "Argumentative passages always contain premises and a conclusion, so being argumentative is sufficient."
   },
   {
-    question_number: 18,
-    question_text: "Which branch of Ethics investigates the question: \"Is an action right because of its good end, or is it good because of its right principle?\"",
-    options: [
-      { id: "A", text: "Meta-ethics" },
-      { id: "B", text: "Applied Ethics" },
-      { id: "C", text: "Normative Ethics" },
-      { id: "D", text: "Moral Nihilism" }
+    "question_number": 18,
+    "question_text": "Identify a statement which depicts the difference between arguments and explanation.",
+    "options": [
+      {
+        "id": "A",
+        "text": "An argument has something to prove, explanation doesn't."
+      },
+      {
+        "id": "B",
+        "text": "An argument appeals to facts, while an explanation appeals to reasons."
+      },
+      {
+        "id": "C",
+        "text": "Knowledge is to explanation, while understanding is to arguments."
+      },
+      {
+        "id": "D",
+        "text": "The explanans in explanation and the premises in arguments are accepted facts."
+      }
     ],
-    correct_option: "C",
-    explanation: "Normative ethics determines the moral rules and standards (Consequentialism vs. Deontology) used to judge conduct."
+    "correct_option": "A",
+    "explanation": "An argument has something to prove; an explanation does not."
   },
   {
-    question_number: 19,
-    question_text: "How does Meta-ethics differ from Applied Ethics?",
-    options: [
-      { id: "A", text: "Meta-ethics analyzes the meaning of ethical terms (like \"good\" or \"right\") and how moral statements are verified, whereas applied ethics uses normative principles to resolve specific practical moral problems." },
-      { id: "B", text: "Meta-ethics applies general moral rules to issues like euthanasia and capital punishment, whereas applied ethics studies the origins of religion." },
-      { id: "C", text: "Meta-ethics consists of Consequentialism, Deontology, and Virtue Ethics, whereas applied ethics consists of Emotivism and Prescriptivism." },
-      { id: "D", text: "Meta-ethics assumes all moral principles are relative, whereas applied ethics proves all moral principles are absolute." }
+    "question_number": 19,
+    "question_text": "Having a premise(s) and conclusion is ____________ condition for a given passage to be considered as argumentative.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Sufficient"
+      },
+      {
+        "id": "B",
+        "text": "Necessary"
+      },
+      {
+        "id": "C",
+        "text": "Neither sufficient nor necessary"
+      },
+      {
+        "id": "D",
+        "text": "Sufficient and necessary"
+      }
     ],
-    correct_option: "A",
-    explanation: "Meta-ethics studies the meaning and verification of ethical terms; applied ethics applies principles to specific controversies."
+    "correct_option": "B",
+    "explanation": "Necessary (but not sufficient)."
   },
   {
-    question_number: 20,
-    question_text: "According to Chapter One, what is the precise distinction between Art and Philosophy of Art (Aesthetics)?",
-    options: [
-      { id: "A", text: "Art is the theoretical study of sensory-emotional values, while philosophy of art is the physical creation of paintings and sculptures." },
-      { id: "B", text: "Art has no connection to morality or truth, whereas philosophy of art is strictly a branch of normative ethics." },
-      { id: "C", text: "Art is restricted to visual mediums, whereas philosophy of art deals exclusively with music and theatre." },
-      { id: "D", text: "Art is the perception of beauty, imitation of reality, and medium for transmitting feelings, whereas philosophy of art studies the nature and theories of art, artistic creation, criticism, and psychological responses to artworks." }
+    "question_number": 20,
+    "question_text": "One of the following is ODD about simple non-inferential passages?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Likely passages focus on uttering feelings, observations, or descriptions."
+      },
+      {
+        "id": "B",
+        "text": "There is no rational ground to find out a sort of statement that supports each other."
+      },
+      {
+        "id": "C",
+        "text": "In this case, it is absurd to uncover any logically justified conclusions."
+      },
+      {
+        "id": "D",
+        "text": "Likely passages have an implicit inferential claims but no explicit claims."
+      }
     ],
-    correct_option: "D",
-    explanation: "Art is creative expression; Aesthetics theoretically examines how art is created, criticized, and experienced."
+    "correct_option": "D",
+    "explanation": "Simple non-inferential passages have no inferential claim, explicit or implicit."
   },
   {
-    question_number: 21,
-    question_text: "The text states that \"the value of art resides both in pleasure and beauty, and what is beautiful is always good.\" What three dimensions of art does this statement imply?",
-    options: [
-      { id: "A", text: "Cognitive, rational, and empirical dimensions" },
-      { id: "B", text: "Emotional, aesthetic, and moral dimensions" },
-      { id: "C", text: "Political, economic, and social dimensions" },
-      { id: "D", text: "Metaphysical, ontological, and logical dimensions" }
+    "question_number": 21,
+    "question_text": "Argumentative passages:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Necessarily have factual statements."
+      },
+      {
+        "id": "B",
+        "text": "Have explicit inferential claim only."
+      },
+      {
+        "id": "C",
+        "text": "Involve claims that aim to prove something."
+      },
+      {
+        "id": "D",
+        "text": "The premises do actually support the conclusion."
+      }
     ],
-    correct_option: "B",
-    explanation: "Pleasure = emotional, beauty = aesthetic, goodness = moral dimension."
+    "correct_option": "C",
+    "explanation": "Argumentative passages involve claims that aim to prove something."
   },
   {
-    question_number: 22,
-    question_text: "Which philosophical theory of art, championed by Plato and Aristotle, defines art primarily as an \"imitation or representation of reality\"?",
-    options: [
-      { id: "A", text: "Formalism" },
-      { id: "B", text: "Expressivism" },
-      { id: "C", text: "Representationalism" },
-      { id: "D", text: "Institutional Theory of Art" }
+    "question_number": 22,
+    "question_text": "How can we turn a conditional statement into an argument?",
+    "options": [
+      {
+        "id": "A",
+        "text": "By taking the antecedent of a conditional statement and make it assert something."
+      },
+      {
+        "id": "B",
+        "text": "By taking the consequent of a conditional statement and make it saying it is true."
+      },
+      {
+        "id": "C",
+        "text": "By introducing premise and conclusion indicator words."
+      },
+      {
+        "id": "D",
+        "text": "By reversing the place of the antecedent and the consequent."
+      }
     ],
-    correct_option: "C",
-    explanation: "Representationalism views art as an imitation or representation of reality."
+    "correct_option": "A",
+    "explanation": "Take the antecedent and make it assert something."
   },
   {
-    question_number: 23,
-    question_text: "A modern art critic argues that a urinal placed in an art gallery is an artwork solely because recognized art world authorities and institutions designate it as such. Which theory of art does this illustrate?",
-    options: [
-      { id: "A", text: "Institutional Theory of Art" },
-      { id: "B", text: "Expressivism" },
-      { id: "C", text: "Representationalism" },
-      { id: "D", text: "Formalism" }
+    "question_number": 23,
+    "question_text": "Which one of the following passages is argumentative?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Albert isn't a fireman and he isn't a fisherman either."
+      },
+      {
+        "id": "B",
+        "text": "Every time I wash my car, it rains."
+      },
+      {
+        "id": "C",
+        "text": "Air contains molecules. Dirt does, too. So does water."
+      },
+      {
+        "id": "D",
+        "text": "I have been wrangling cattle since before you were old enough to tie your own shoes."
+      }
     ],
-    correct_option: "A",
-    explanation: "The Institutional Theory holds that an artifact becomes an artwork by recognition from art institutions."
+    "correct_option": "B",
+    "explanation": "'Every time I wash my car, it rains' is the best fit among the options."
   },
   {
-    question_number: 24,
-    question_text: "Which of the following sets of questions falls squarely within the domain of Logic rather than Epistemology or Social/Political Philosophy?",
-    options: [
-      { id: "A", text: "\"What makes an action just or unjust?\" and \"Are we obligated to obey all laws of the State?\"" },
-      { id: "B", text: "\"How are concepts formed in the mind?\" and \"What is the relationship between faith and reason?\"" },
-      { id: "C", text: "\"What is the ultimate foundation of moral principles?\" and \"Is beauty subjective or objective?\"" },
-      { id: "D", text: "\"What makes an argument valid or invalid?\" and \"What makes an argument fallacious?\"" }
+    "question_number": 24,
+    "question_text": "\"Hypotheses and theories are not derived from observed facts, but invented in order to account for them.\" (Carl Hempel, The Philosophy of Natural Science). This passage is an example of:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Expository passage"
+      },
+      {
+        "id": "B",
+        "text": "Loosely associated passage"
+      },
+      {
+        "id": "C",
+        "text": "Explanatory passage"
+      },
+      {
+        "id": "D",
+        "text": "Inferential passage"
+      }
     ],
-    correct_option: "D",
-    explanation: "Logic studies the principles of right reasoning and how to evaluate the validity and fallaciousness of arguments."
+    "correct_option": "C",
+    "explanation": "It is an explanatory passage."
   },
   {
-    question_number: 25,
-    question_text: "How does studying philosophy foster Flexibility, Tolerance, and Open-Mindedness according to Section 5 of Chapter One?",
-    options: [
-      { id: "A", text: "By proving that one specific philosophical school holds the absolute, unchanging truth on all human affairs." },
-      { id: "B", text: "By showing that no viewpoint is necessarily true or false in isolation and that the value of any attitude is contextual, making students more receptive and sympathetic to clashing views." },
-      { id: "C", text: "By encouraging students to abandon critical evaluation and accept every opinion uncritically." },
-      { id: "D", text: "By demonstrating that all philosophical disagreements are merely trivial linguistic errors." }
+    "question_number": 25,
+    "question_text": "Which one of the following alternatives is a statement?",
+    "options": [
+      {
+        "id": "A",
+        "text": "No one understands me but you."
+      },
+      {
+        "id": "B",
+        "text": "Alligators are on average smaller than crocodiles."
+      },
+      {
+        "id": "C",
+        "text": "Don't let any reptiles into the house."
+      },
+      {
+        "id": "D",
+        "text": "You may kill any reptile you see in the house."
+      }
     ],
-    correct_option: "B",
-    explanation: "Diverse perspectives show that the value of an attitude is contextual, which cultivates tolerance and open-mindedness."
+    "correct_option": "B",
+    "explanation": "The others are commands, permissions or unclear; this one is a statement."
   }
 ];
-
-// --- 4. GENERAL PSYCHOLOGY (33 Qs) ---
 export const PSYC_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "Correlational research measures the relationship between two or more variables without establishing a cause-and-effect relationship.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "A",
-    explanation: "Correlational research reveals whether variables co-vary, but cannot determine causation."
-  },
-  {
-    question_number: 2,
-    question_text: "The goal of psychology that focuses on changing an undesirable behavior, such as failing in school, into a desirable one, such as academic success, is known as prediction.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "Modifying or changing behavior relates to the goal of Control/Intervention, not prediction."
-  },
-  {
-    question_number: 3,
-    question_text: "Sigmund Freud's psychoanalysis shifted the focus of psychology from the unconscious mind to conscious experiences.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "Freud shifted the focus from conscious experience to the unconscious mind."
-  },
-  {
-    question_number: 4,
-    question_text: "Counseling psychologists treat individuals with more severe disorders than clinical psychologists.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "Clinical psychologists deal with more severe mental health disorders; counseling psychologists deal with everyday adjustment problems."
-  },
-  {
-    question_number: 5,
-    question_text: "While Wilhelm Wundt established the first psychology laboratory in Leipzig, Germany, Edward Titchener is recognized as the founder of structuralism.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "A",
-    explanation: "Wundt created the first lab in 1879, and his student Titchener formally founded structuralism."
-  },
-  {
-    question_number: 6,
-    question_text: "Which of the following statements is odd?",
-    options: [
-      { id: "A", text: "Gestalt psychology proposes psychology to study the whole mind." },
-      { id: "B", text: "Psychoanalysis proposes psychology to study the unconscious mind." },
-      { id: "C", text: "Functionalism proposes psychology to study the basic elements of the mind." },
-      { id: "D", text: "Behaviorism proposes psychology to study observable behavior." }
+    "question_number": 1,
+    "question_text": "Seeing and hearing are largely perceptual processes, whereas detecting patterns and forming a melody are largely sensory processes.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "C",
-    explanation: "Structuralism (not functionalism) studied basic elements. Functionalism studied how the mind functions.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Seeing and hearing are largely sensory; organizing sensations into patterns and melodies is perceptual."
   },
   {
-    question_number: 7,
-    question_text: "One of the following thoughts of psychology is primitive and outdated.",
-    options: [
-      { id: "A", text: "Cognitive" },
-      { id: "B", text: "Biological" },
-      { id: "C", text: "Socio-cultural" },
-      { id: "D", text: "Functionalism" }
+    "question_number": 2,
+    "question_text": "Figure-ground perception is reversible, meaning that the figure can become the ground and the ground can become the figure.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "D",
-    explanation: "Functionalism is an early historical school; Cognitive, Biological, and Socio-cultural are modern perspectives."
+    "correct_option": "A",
+    "explanation": "Figure and ground can switch roles."
   },
   {
-    question_number: 8,
-    question_text: "\"Our everyday actions, hidden fears, and adult personality are deeply driven by unresolved childhood conflicts, repressed desires, and unconscious urges that reveal themselves in our dreams and slips of the tongue.\" What psychological approach would support this statement?",
-    options: [
-      { id: "A", text: "Cognitive" },
-      { id: "B", text: "Structural" },
-      { id: "C", text: "Behavioral" },
-      { id: "D", text: "Psychoanalytic" }
+    "question_number": 3,
+    "question_text": "According to Weber's law, the amount of change in stimulation needed to produce a just noticeable difference (jnd) is a fixed, absolute amount regardless of the original stimulus intensity.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "D",
-    explanation: "Unconscious drives, repressed desires, and childhood conflicts are key tenets of psychoanalysis."
+    "correct_option": "B",
+    "explanation": "Weber's law says the jnd is a constant fraction of the original stimulus, not a fixed absolute amount."
   },
   {
-    question_number: 9,
-    question_text: "Which of the following psychologists is odd to the others?",
-    options: [
-      { id: "A", text: "John B. Watson" },
-      { id: "B", text: "Sigmund Freud" },
-      { id: "C", text: "Edward Thorndike" },
-      { id: "D", text: "B. F. Skinner" }
+    "question_number": 4,
+    "question_text": "A contour will still be clearly perceived on a piece of paper that varies continuously and smoothly in brightness from white at one border to black at the opposite border.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "B",
-    explanation: "Watson, Thorndike, and Skinner are behaviorists/learning theorists; Freud is the founder of psychoanalysis."
+    "correct_option": "B",
+    "explanation": "Contours need a marked difference in brightness or color; a smooth gradual change gives no contour."
   },
   {
-    question_number: 10,
-    question_text: "Mr. 'A' conducted a research study in which he examined a single university student with a rare memory disorder in great detail over six months to gather a tremendous amount of data about that individual. Which type of research method is Mr. 'A' conducting?",
-    options: [
-      { id: "A", text: "Survey" },
-      { id: "B", text: "Correlation" },
-      { id: "C", text: "Case study" },
-      { id: "D", text: "Descriptive" }
+    "question_number": 5,
+    "question_text": "Unlike binocular cues, monocular depth cues require only one eye, allowing people who have lost sight in one eye to still judge distance.",
+    "options": [
+      {
+        "id": "A",
+        "text": "True"
+      },
+      {
+        "id": "B",
+        "text": "False"
+      }
     ],
-    correct_option: "C",
-    explanation: "An intensive in-depth examination of a single individual is a case study."
+    "correct_option": "A",
+    "explanation": "Monocular cues work with one eye."
   },
   {
-    question_number: 11,
-    question_text: "Jill wants to study the process of thinking. Which field of psychology should she choose?",
-    options: [
-      { id: "A", text: "Cognitive" },
-      { id: "B", text: "Social" },
-      { id: "C", text: "Personality" },
-      { id: "D", text: "Learning" },
-      { id: "E", text: "Perception" }
+    "question_number": 6,
+    "question_text": "Which one of the following may not be an external factor affecting perceptual selectivity?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Stimulus intensity"
+      },
+      {
+        "id": "B",
+        "text": "Stimulus repetition"
+      },
+      {
+        "id": "C",
+        "text": "Personal motive"
+      },
+      {
+        "id": "D",
+        "text": "Stimulus novelty"
+      }
     ],
-    correct_option: "A",
-    explanation: "Cognitive psychology investigates mental processes including thinking, memory, and problem-solving."
+    "correct_option": "C",
+    "explanation": "Motives are internal factors; intensity, repetition and novelty are external stimulus factors."
   },
   {
-    question_number: 12,
-    question_text: "Of the following, who is associated with the Gestalt school of psychology?",
-    options: [
-      { id: "A", text: "John Watson" },
-      { id: "B", text: "William James" },
-      { id: "C", text: "Ivan Pavlov" },
-      { id: "D", text: "Max Wertheimer" },
-      { id: "E", text: "Sigmund Freud" }
+    "question_number": 7,
+    "question_text": "Dr. Dawit is watching a basketball game and notices how the orange ball stands out clearly against the polished wooden court. The wooden court and the orange ball are respectively:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Figure and ground"
+      },
+      {
+        "id": "B",
+        "text": "Ground and figure"
+      },
+      {
+        "id": "C",
+        "text": "Focus and margin"
+      },
+      {
+        "id": "D",
+        "text": "Proximity and closure"
+      }
     ],
-    correct_option: "D",
-    explanation: "Max Wertheimer (along with Koffka and Köhler) founded Gestalt psychology."
+    "correct_option": "B",
+    "explanation": "The court is the background (ground); the ball is the object that stands out (figure)."
   },
   {
-    question_number: 13,
-    question_text: "Psychology is considered a science mainly because it relies on direct observation. Which field of psychology supports this?",
-    options: [
-      { id: "A", text: "Behaviorism" },
-      { id: "B", text: "Psychodynamic psychology" },
-      { id: "C", text: "Social psychology" },
-      { id: "D", text: "Cognitive psychology" },
-      { id: "E", text: "Structuralism" }
+    "question_number": 8,
+    "question_text": "Which one of the following alternatives consists of the correct perceptual procedures from last to first?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Selectivity → Organization → Interpretation"
+      },
+      {
+        "id": "B",
+        "text": "Organization → Selectivity → Interpretation"
+      },
+      {
+        "id": "C",
+        "text": "Interpretation → Organization → Selectivity"
+      },
+      {
+        "id": "D",
+        "text": "Interpretation → Selectivity → Organization"
+      }
     ],
-    correct_option: "A",
-    explanation: "Behaviorism argues that psychology must be the study of directly observable, measurable behavior."
+    "correct_option": "C",
+    "explanation": "Perception flows selectivity, organization, interpretation; last to first is the reverse."
   },
   {
-    question_number: 14,
-    question_text: "Which of the following questions relates most directly to the goal of prediction?",
-    options: [
-      { id: "A", text: "Do the scores of men and women differ on tests of thinking abilities?" },
-      { id: "B", text: "Why does a blow to the head cause memory loss?" },
-      { id: "C", text: "Will productivity in a business office increase if room temperature is raised or lowered?" },
-      { id: "D", text: "What percentage of college students suffer from test anxiety?" }
+    "question_number": 9,
+    "question_text": "As a train moves farther away down a track, its retinal image becomes smaller, yet you perceive it as keeping its actual physical size because of:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Shape constancy"
+      },
+      {
+        "id": "B",
+        "text": "Brightness constancy"
+      },
+      {
+        "id": "C",
+        "text": "Size constancy"
+      },
+      {
+        "id": "D",
+        "text": "Linear perspective"
+      }
     ],
-    correct_option: "C",
-    explanation: "'Will productivity increase if...' anticipates future behavior under specified conditions (prediction)."
+    "correct_option": "C",
+    "explanation": "Size constancy keeps perceived size stable even when the retinal image shrinks."
   },
   {
-    question_number: 15,
-    question_text: "Suppose that a researcher divides a group of students into two groups, giving a new study technique to one group while keeping the other group without it, and then compares their exam scores to determine cause and effect. The researcher is using:",
-    options: [
-      { id: "A", text: "the experimental method" },
-      { id: "B", text: "naturalistic observation" },
-      { id: "C", text: "case studies" },
-      { id: "D", text: "the survey method" }
+    "question_number": 10,
+    "question_text": "Events or stimuli that you perceive clearly are probably at the ___ of your attention, while other stimuli that you dimly perceive are in the ___ of your attention.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Margin; Focus"
+      },
+      {
+        "id": "B",
+        "text": "Focus; Margin"
+      },
+      {
+        "id": "C",
+        "text": "Background; Figure"
+      },
+      {
+        "id": "D",
+        "text": "Periphery; Center"
+      }
     ],
-    correct_option: "A",
-    explanation: "Manipulating an independent variable with experimental and control groups to establish causality defines the experimental method."
+    "correct_option": "B",
+    "explanation": "Clearly perceived events are in the focus; dimly perceived ones are in the margin."
   },
   {
-    question_number: 16,
-    question_text: "The statement \"In order to understand the human mind, we must use introspection to break consciousness down into its basic elements such as sensations, images, and feelings\" might be made by a person subscribing to which school of psychology?",
-    options: [
-      { id: "A", text: "Functionalism" },
-      { id: "B", text: "Gestalt" },
-      { id: "C", text: "Behaviorism" },
-      { id: "D", text: "Structuralism" }
+    "question_number": 11,
+    "question_text": "In a painting, an artist draws distant mountains as hazy and blurred while nearby trees appear sharp and clear. Which monocular cue of depth perception is used?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Interposition"
+      },
+      {
+        "id": "B",
+        "text": "Texture gradient"
+      },
+      {
+        "id": "C",
+        "text": "Aerial perspective"
+      },
+      {
+        "id": "D",
+        "text": "Elevation"
+      }
     ],
-    correct_option: "D",
-    explanation: "Structuralism used introspection to analyze consciousness into its basic constituent elements."
+    "correct_option": "C",
+    "explanation": "Aerial perspective: distant objects look hazy, near objects look sharp."
   },
   {
-    question_number: 17,
-    question_text: "Which one of the following is true about early schools of psychology?",
-    options: [
-      { id: "A", text: "The gestalt psychologists acknowledge consciousness." },
-      { id: "B", text: "The goal of Functionalists was to find out the units or elements." },
-      { id: "C", text: "Structuralism focused on how the mind allows people to function in the real world." },
-      { id: "D", text: "Psychoanalysis views psychology as a study of observable behaviors." }
+    "question_number": 12,
+    "question_text": "If a subject is presented with a low-intensity sound 40 times and detects it exactly 20 times, that intensity represents the subject's:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Difference threshold"
+      },
+      {
+        "id": "B",
+        "text": "Sensory adaptation"
+      },
+      {
+        "id": "C",
+        "text": "Absolute threshold"
+      },
+      {
+        "id": "D",
+        "text": "Response bias"
+      }
     ],
-    correct_option: "A",
-    explanation: "Gestalt psychologists acknowledged consciousness and studied how it organizes whole patterns."
+    "correct_option": "C",
+    "explanation": "Detection 20 of 40 times (50%) is the definition of the absolute threshold."
   },
   {
-    question_number: 18,
-    question_text: "Which modern perspective of psychology is most concerned with how brain chemistry and neural structures influence behavior?",
-    options: [
-      { id: "A", text: "Biological perspective" },
-      { id: "B", text: "Humanistic perspective" },
-      { id: "C", text: "Psychodynamic perspective" },
-      { id: "D", text: "Behavioral perspective" }
+    "question_number": 13,
+    "question_text": "When we stare at a nearby object, each eye receives a slightly different image, providing a cue known as ___, which is an example of a ___ depth cue.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Convergence; binocular"
+      },
+      {
+        "id": "B",
+        "text": "Accommodation; monocular"
+      },
+      {
+        "id": "C",
+        "text": "Retinal disparity; binocular"
+      },
+      {
+        "id": "D",
+        "text": "Motion parallax; monocular"
+      }
     ],
-    correct_option: "A",
-    explanation: "The biological/neuroscience perspective examines brain chemistry, hormones, genetics, and neural systems."
+    "correct_option": "C",
+    "explanation": "Retinal disparity is the difference between the two retinal images and needs both eyes."
   },
   {
-    question_number: 19,
-    question_text: "A researcher observes how children play on a school playground without interfering, but notices that the children act more politely whenever they realize they are being watched. Which limitation of naturalistic observation does this demonstrate?",
-    options: [
-      { id: "A", text: "Observer bias" },
-      { id: "B", text: "Observer effect" },
-      { id: "C", text: "Lack of a representative sample" },
-      { id: "D", text: "Inability to generalize a single case" }
+    "question_number": 14,
+    "question_text": "Which of the following scenarios best illustrates sensory adaptation?",
+    "options": [
+      {
+        "id": "A",
+        "text": "A footballer focusing on his coach's voice in a crowded stadium"
+      },
+      {
+        "id": "B",
+        "text": "A swimmer shivering upon entering cold water, then feeling comfortable minutes later"
+      },
+      {
+        "id": "C",
+        "text": "A person misjudging the size of the moon on the horizon"
+      },
+      {
+        "id": "D",
+        "text": "A driver noticing nearby poles passing faster than distant houses"
+      }
     ],
-    correct_option: "B",
-    explanation: "When subjects modify their natural behavior because they know they are being observed, it is the observer effect (Hawthorne effect)."
+    "correct_option": "B",
+    "explanation": "Sensory adaptation is decreasing responsiveness to an unchanging stimulus over time."
   },
   {
-    question_number: 20,
-    question_text: "Which subfield of psychology applies psychological principles and theories to improve teaching methods, school curricula, and the administration of academic programs?",
-    options: [
-      { id: "A", text: "Developmental psychology" },
-      { id: "B", text: "Counseling psychology" },
-      { id: "C", text: "Educational psychology" },
-      { id: "D", text: "Industrial psychology" }
+    "question_number": 15,
+    "question_text": "While riding in a fast-moving bus, a passenger notices that nearby roadside trees rush backward quickly while distant hills move very slowly. This depth cue is known as:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "B",
+        "text": "Motion parallax"
+      },
+      {
+        "id": "C",
+        "text": "Relative size"
+      },
+      {
+        "id": "D",
+        "text": "Retinal disparity"
+      }
     ],
-    correct_option: "C",
-    explanation: "Educational psychology focuses on teaching methodologies, learning processes, and curriculum design.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Motion parallax: near objects seem to move faster than distant ones when we move."
   },
   {
-    question_number: 21,
-    question_text: "Which perspective treats the mind as a \"black box\" focused on environmental inputs and outputs?",
-    options: [
-      { id: "A", text: "Cognitive Perspective" },
-      { id: "B", text: "Behavioral Perspective" },
-      { id: "C", text: "Functionalism" },
-      { id: "D", text: "Social Psychology" }
+    "question_number": 16,
+    "question_text": "If you stand in the middle of a cobblestone street, the stones look coarse near your feet and smoother in the distance. This monocular cue is called ___.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Texture gradient"
+      },
+      {
+        "id": "B",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "C",
+        "text": "Relative size"
+      },
+      {
+        "id": "D",
+        "text": "Interposition"
+      }
     ],
-    correct_option: "B",
-    explanation: "Radical behaviorism treats internal mental operations as an unobservable 'black box'.",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "Texture gradient: surfaces look coarse up close and smoother far away."
   },
   {
-    question_number: 22,
-    question_text: "Which field studies whether psychological processes are universal or culture-specific?",
-    options: [
-      { id: "A", text: "Clinical Psychology" },
-      { id: "B", text: "Counseling Psychology" },
-      { id: "C", text: "Cross-cultural Psychology" },
-      { id: "D", text: "Social Psychology" }
+    "question_number": 17,
+    "question_text": "A husband expecting an important business call hears the phone ring immediately, whereas his wife, worried about her baby, notices the baby's faint cry first. This best demonstrates which internal factor in attention?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Stimulus intensity"
+      },
+      {
+        "id": "B",
+        "text": "Set or expectancy"
+      },
+      {
+        "id": "C",
+        "text": "Stimulus repetition"
+      },
+      {
+        "id": "D",
+        "text": "Sensory adaptation"
+      }
     ],
-    correct_option: "C",
-    explanation: "Cross-cultural psychology examines psychological diversity and universality across different cultures.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Set or expectancy is mental readiness for anticipated inputs."
   },
   {
-    question_number: 23,
-    question_text: "Which school studies how the mind adapts to the real world using mental tests?",
-    options: [
-      { id: "A", text: "Functionalism" },
-      { id: "B", text: "Cognitive Perspective" },
-      { id: "C", text: "Behavioral Perspective" },
-      { id: "D", text: "Clinical Psychology" }
+    "question_number": 18,
+    "question_text": "Which of the following occurs when two objects produce almost the same retinal image but are perceived as different images?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Perceptual constancy"
+      },
+      {
+        "id": "B",
+        "text": "Visual illusion"
+      },
+      {
+        "id": "C",
+        "text": "Figure-ground shift"
+      },
+      {
+        "id": "D",
+        "text": "Retinal disparity"
+      }
     ],
-    correct_option: "A",
-    explanation: "Functionalism investigated the adaptive functions of consciousness and pioneered mental testing.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "This is a visual illusion (e.g., Müller-Lyer, Ponzo)."
   },
   {
-    question_number: 24,
-    question_text: "Which field helps individuals with less severe everyday psychological problems?",
-    options: [
-      { id: "A", text: "Clinical Psychology" },
-      { id: "B", text: "Counseling Psychology" },
-      { id: "C", text: "Social Psychology" },
-      { id: "D", text: "Cross-cultural Psychology" }
+    "question_number": 19,
+    "question_text": "Which claim of extrasensory perception (ESP) refers to the ability to perceive remote events happening elsewhere, such as sensing a friend's house on fire?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Telepathy"
+      },
+      {
+        "id": "B",
+        "text": "Precognition"
+      },
+      {
+        "id": "C",
+        "text": "Psychokinesis"
+      },
+      {
+        "id": "D",
+        "text": "Clairvoyance"
+      }
     ],
-    correct_option: "B",
-    explanation: "Counseling psychologists focus on vocational, educational, and adjustment concerns of everyday life.",
-    needs_review: true
+    "correct_option": "D",
+    "explanation": "Clairvoyance is perceiving remote events outside normal sensory range."
   },
   {
-    question_number: 25,
-    question_text: "Which perspective focuses on internal mental processes like reasoning, memory, and problem-solving?",
-    options: [
-      { id: "A", text: "Behavioral Perspective" },
-      { id: "B", text: "Functionalism" },
-      { id: "C", text: "Cognitive Perspective" },
-      { id: "D", text: "Counseling Psychology" }
+    "question_number": 20,
+    "question_text": "When you look at a partially open rectangular door, the image on your retina is a trapezoid, yet you still perceive the door as a rectangle. This illustrates:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Size constancy"
+      },
+      {
+        "id": "B",
+        "text": "Shape constancy"
+      },
+      {
+        "id": "C",
+        "text": "Brightness constancy"
+      },
+      {
+        "id": "D",
+        "text": "Closure"
+      }
     ],
-    correct_option: "C",
-    explanation: "Cognitive psychology directly studies internal information processing.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Shape constancy keeps perceived shape stable as the retinal image changes."
   },
   {
-    question_number: 26,
-    question_text: "The research technique developed by Wilhelm Wundt to scientifically examine internal mental experiences by looking inward into consciousness is called:",
-    options: [
-      { id: "A", text: "Objective introspection" },
-      { id: "B", text: "Naturalistic observation" },
-      { id: "C", text: "Case study" },
-      { id: "D", text: "Free association" }
+    "question_number": 21,
+    "question_text": "Items that are close together in space or time tend to be perceived as units.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Closure"
+      },
+      {
+        "id": "B",
+        "text": "Continuity"
+      },
+      {
+        "id": "C",
+        "text": "Proximity"
+      },
+      {
+        "id": "D",
+        "text": "Similarity"
+      },
+      {
+        "id": "E",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "F",
+        "text": "Interposition"
+      },
+      {
+        "id": "G",
+        "text": "Convergence"
+      }
     ],
-    correct_option: "A",
-    explanation: "Wundt used trained experimental objective introspection.",
-    needs_review: true
+    "correct_option": "C",
+    "explanation": "Proximity groups items that are close together."
   },
   {
-    question_number: 27,
-    question_text: "In an experimental study, the group of participants that does not receive the experimental treatment and is used strictly for comparison is known as the:",
-    options: [
-      { id: "A", text: "Experimental group" },
-      { id: "B", text: "Control group" },
-      { id: "C", text: "Sample group" },
-      { id: "D", text: "Target group" }
+    "question_number": 22,
+    "question_text": "Objects of similar shape, intensity, or color are grouped together.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Closure"
+      },
+      {
+        "id": "B",
+        "text": "Continuity"
+      },
+      {
+        "id": "C",
+        "text": "Proximity"
+      },
+      {
+        "id": "D",
+        "text": "Similarity"
+      },
+      {
+        "id": "E",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "F",
+        "text": "Interposition"
+      },
+      {
+        "id": "G",
+        "text": "Convergence"
+      }
     ],
-    correct_option: "B",
-    explanation: "The control group serves as the baseline comparison.",
-    needs_review: true
+    "correct_option": "D",
+    "explanation": "Similarity groups like objects together."
   },
   {
-    question_number: 28,
-    question_text: "The subfield of psychology that applies psychological principles to improve the legal system, including police work and courtroom testimony, is called:",
-    options: [
-      { id: "A", text: "Forensic psychology" },
-      { id: "B", text: "Clinical psychology" },
-      { id: "C", text: "Counseling psychology" },
-      { id: "D", text: "Industrial psychology" }
+    "question_number": 23,
+    "question_text": "Perceiving a complete object even though parts of it are missing.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Closure"
+      },
+      {
+        "id": "B",
+        "text": "Continuity"
+      },
+      {
+        "id": "C",
+        "text": "Proximity"
+      },
+      {
+        "id": "D",
+        "text": "Similarity"
+      },
+      {
+        "id": "E",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "F",
+        "text": "Interposition"
+      },
+      {
+        "id": "G",
+        "text": "Convergence"
+      }
     ],
-    correct_option: "A",
-    explanation: "Forensic psychology intersects with criminal law and legal proceedings.",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "Closure fills in missing gaps."
   },
   {
-    question_number: 29,
-    question_text: "A tentative proposition or educated guess about the relationship between two or more variables that is tested through systematic research is called a:",
-    options: [
-      { id: "A", text: "Theory" },
-      { id: "B", text: "Hypothesis" },
-      { id: "C", text: "Variable" },
-      { id: "D", text: "Conclusion" }
+    "question_number": 24,
+    "question_text": "Seeing lines or patterns as continuing in one direction even if interrupted.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Closure"
+      },
+      {
+        "id": "B",
+        "text": "Continuity"
+      },
+      {
+        "id": "C",
+        "text": "Proximity"
+      },
+      {
+        "id": "D",
+        "text": "Similarity"
+      },
+      {
+        "id": "E",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "F",
+        "text": "Interposition"
+      },
+      {
+        "id": "G",
+        "text": "Convergence"
+      }
     ],
-    correct_option: "B",
-    explanation: "A testable prediction is a hypothesis.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Continuity: lines are perceived as continuing smoothly."
   },
   {
-    question_number: 30,
-    question_text: "Case: Twenty freshman students were divided into two groups. Group A drank caffeinated coffee before a memory test, while Group B drank decaffeinated coffee. The goal was to see if caffeine improves or lowers test scores. In this case, the independent variable is:",
-    options: [
-      { id: "A", text: "The test scores on the memory test" },
-      { id: "B", text: "Whether the students drank caffeinated or decaffeinated coffee" },
-      { id: "C", text: "The number of students (twenty)" },
-      { id: "D", text: "The students' memory ability" }
+    "question_number": 25,
+    "question_text": "Two parallel lines appear to converge at the horizon as they get farther away.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Closure"
+      },
+      {
+        "id": "B",
+        "text": "Continuity"
+      },
+      {
+        "id": "C",
+        "text": "Proximity"
+      },
+      {
+        "id": "D",
+        "text": "Similarity"
+      },
+      {
+        "id": "E",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "F",
+        "text": "Interposition"
+      },
+      {
+        "id": "G",
+        "text": "Convergence"
+      }
     ],
-    correct_option: "B",
-    explanation: "The independent variable is the condition manipulated by the experimenter (caffeine presence).",
-    needs_review: true
+    "correct_option": "E",
+    "explanation": "Linear perspective: parallel lines seem to converge with distance."
   },
   {
-    question_number: 31,
-    question_text: "Case: Twenty freshman students were divided into two groups. Group A drank caffeinated coffee before a memory test, while Group B drank decaffeinated coffee. The goal was to see if caffeine improves or lowers test scores. In this case, the dependent variable is:",
-    options: [
-      { id: "A", text: "Caffeinated coffee" },
-      { id: "B", text: "The test scores on the memory test" },
-      { id: "C", text: "Decaffeinated coffee" },
-      { id: "D", text: "The group assignment" }
+    "question_number": 26,
+    "question_text": "The psychological factor that refers to how ready a person is to report the presence of a particular stimulus when testing the absolute threshold is called ___.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Response bias"
+      },
+      {
+        "id": "B",
+        "text": "Sensory adaptation"
+      },
+      {
+        "id": "C",
+        "text": "Retinal disparity"
+      },
+      {
+        "id": "D",
+        "text": "Perceptual constancy"
+      }
     ],
-    correct_option: "B",
-    explanation: "The dependent variable is the measured outcome (memory test scores).",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "Response bias is readiness to report a stimulus."
   },
   {
-    question_number: 32,
-    question_text: "Case: Twenty freshman students were divided into two groups. Group A drank caffeinated coffee before a memory test, while Group B drank decaffeinated coffee. The goal was to see if caffeine improves or lowers test scores. In this case, the control group is:",
-    options: [
-      { id: "A", text: "Group A (caffeinated coffee)" },
-      { id: "B", text: "Group B (decaffeinated coffee)" },
-      { id: "C", text: "All twenty students" },
-      { id: "D", text: "Neither group" }
+    "question_number": 27,
+    "question_text": "The minimum change in stimulation that can be detected 50 percent of the time by a given person is known as the ___.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Absolute threshold"
+      },
+      {
+        "id": "B",
+        "text": "Difference threshold"
+      },
+      {
+        "id": "C",
+        "text": "Sensory adaptation"
+      },
+      {
+        "id": "D",
+        "text": "Stimulus intensity"
+      }
     ],
-    correct_option: "B",
-    explanation: "Group B received the placebo/neutral condition without the active drug (caffeine).",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "This is the difference threshold (jnd)."
   },
   {
-    question_number: 33,
-    question_text: "Case: Twenty freshman students were divided into two groups. Group A drank caffeinated coffee before a memory test, while Group B drank decaffeinated coffee. The goal was to see if caffeine improves or lowers test scores. In this case, the experimental group is:",
-    options: [
-      { id: "A", text: "Group A (caffeinated coffee)" },
-      { id: "B", text: "Group B (decaffeinated coffee)" },
-      { id: "C", text: "Both groups" },
-      { id: "D", text: "Neither group" }
+    "question_number": 28,
+    "question_text": "The binocular depth cue that refers to the degree to which both eyes turn inward to focus on a nearby object is called ___.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Retinal disparity"
+      },
+      {
+        "id": "B",
+        "text": "Motion parallax"
+      },
+      {
+        "id": "C",
+        "text": "Convergence"
+      },
+      {
+        "id": "D",
+        "text": "Accommodation"
+      }
     ],
-    correct_option: "A",
-    explanation: "Group A received the treatment condition (caffeine).",
-    needs_review: true
+    "correct_option": "C",
+    "explanation": "Convergence is the inward turning of both eyes."
+  },
+  {
+    "question_number": 29,
+    "question_text": "The monocular depth cue in which the eye's lens changes shape (thickening for near objects, flattening for far objects) to focus images on the retina is called ___.",
+    "options": [
+      {
+        "id": "A",
+        "text": "Convergence"
+      },
+      {
+        "id": "B",
+        "text": "Accommodation"
+      },
+      {
+        "id": "C",
+        "text": "Linear perspective"
+      },
+      {
+        "id": "D",
+        "text": "Texture gradient"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Accommodation is the lens changing shape to focus."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Differentiate between absolute threshold and difference threshold (just noticeable difference).",
+    "options": [
+      {
+        "id": "A",
+        "text": "Absolute threshold detects the minimum stimulus intensity, while difference threshold detects the minimum change between stimuli."
+      },
+      {
+        "id": "B",
+        "text": "Absolute threshold detects the difference between two stimuli, while difference threshold detects the presence of a stimulus."
+      },
+      {
+        "id": "C",
+        "text": "Both absolute threshold and difference threshold measure the same thing."
+      },
+      {
+        "id": "D",
+        "text": "Neither absolute threshold nor difference threshold is related to sensory perception."
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Absolute threshold is the minimum stimulation to detect a stimulus; difference threshold is the minimum change to detect a difference."
   }
 ];
-
-// --- 5. GEOGRAPHY (30 Qs) ---
 export const GEOG_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "The amount of mapped ground area coverage is smaller for small scale maps than large scale maps.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "Small-scale maps represent larger ground areas with less detail, whereas large-scale maps cover smaller areas in greater detail."
-  },
-  {
-    question_number: 2,
-    question_text: "A regional approach studies the associations and interrelationships of all or some geographic elements within a specific area marked by a degree of homogeneity.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "A",
-    explanation: "Regional geography studies the complex synthesis of human and physical elements within an area characterized by homogeneity."
-  },
-  {
-    question_number: 3,
-    question_text: "Regarding its vicinal location, Ethiopia is located southwest of the Arabian Peninsula.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "That describes its location relative to water bodies and landmasses. Vicinal location expresses a country's position with reference to its bordering neighbors (Sudan, Eritrea, Djibouti, Somalia, Kenya, South Sudan)."
-  },
-  {
-    question_number: 4,
-    question_text: "For both the Area-Boundary (A/B) ratio and the Boundary-Circumference (B/C) ratio, a higher ratio value indicates a greater degree of compactness.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "B",
-    explanation: "A higher A/B ratio means more compact, but for the B/C ratio a country is more compact the nearer the ratio is to 1."
-  },
-  {
-    question_number: 5,
-    question_text: "The term Geography has no single and universally accepted definition due to its dynamic nature and changes in its scope.",
-    options: [{ id: "A", text: "True" }, { id: "B", text: "False" }],
-    correct_option: "A",
-    explanation: "Geography has evolved from simple earth description to modern spatial and environmental analysis."
-  },
-  {
-    question_number: 6,
-    question_text: "Relatively, Ethiopia is located:",
-    options: [
-      { id: "A", text: "Southeast of South Sudan and East of Sudan" },
-      { id: "B", text: "South of Kenya and West of Djibouti" },
-      { id: "C", text: "Northwest of Somalia and North of Kenya" },
-      { id: "D", text: "South of Kenya and South Sudan" }
+    "question_number": 1,
+    "question_text": "In radiometric age dating, which statement accurately describes the relationship between radioactive parent elements and non-radioactive daughter elements as a rock gets older?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Both parent and daughter elements increase at an equal rate over time"
+      },
+      {
+        "id": "B",
+        "text": "Parent elements increase while daughter elements decrease proportionally"
+      },
+      {
+        "id": "C",
+        "text": "Parent elements decrease while non-radioactive daughter elements increase"
+      },
+      {
+        "id": "D",
+        "text": "Both parent and daughter elements remain unchanged after crystallization"
+      }
     ],
-    correct_option: "C",
-    explanation: "Somalia lies to the east and southeast of Ethiopia, which places Ethiopia northwest of Somalia."
+    "correct_option": "C",
+    "explanation": "Unstable radioactive parent atoms decay at a constant rate into stable daughter atoms."
   },
   {
-    question_number: 7,
-    question_text: "If the following values are the B/C values of five African countries, which one denotes the most compact country?",
-    options: [
-      { id: "A", text: "1.41" },
-      { id: "B", text: "1.56" },
-      { id: "C", text: "1.99" },
-      { id: "D", text: "1.33" },
-      { id: "E", text: "1.80" }
+    "question_number": 2,
+    "question_text": "How do exogenic geological processes differ from endogenic geological processes in shaping the Earth's surface?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Exogenic processes build up plateaus and volcanic mountains, whereas endogenic processes erode them"
+      },
+      {
+        "id": "B",
+        "text": "Exogenic processes modify, roughen, and lower existing landforms, whereas endogenic processes build structural and volcanic features"
+      },
+      {
+        "id": "C",
+        "text": "Exogenic processes involve folding and faulting, whereas endogenic processes involve weathering and deposition"
+      },
+      {
+        "id": "D",
+        "text": "Exogenic processes occur deep beneath the crust, whereas endogenic processes occur exclusively on the ocean floor"
+      }
     ],
-    correct_option: "D",
-    explanation: "For the B/C ratio, a country is more compact the nearer its ratio is to 1 (1.33 is closest to 1)."
+    "correct_option": "B",
+    "explanation": "Endogenic forces create mountains and plateaus, while exogenic forces wear them down via weathering, erosion, mass transfer, and deposition."
   },
   {
-    question_number: 8,
-    question_text: "Among the following categories of the shapes of a country, a country that has one portion much more elongated than the rest of the country is known as:",
-    options: [
-      { id: "A", text: "Perforated" },
-      { id: "B", text: "Protruded" },
-      { id: "C", text: "Fragmented" },
-      { id: "D", text: "Elongated" }
+    "question_number": 3,
+    "question_text": "What happens when a rock containing micas, feldspars, and hornblendes is exposed to temperatures above 125°C (257°F) prior to Potassium-Argon dating?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Potassium-40 stops decaying completely, preventing any age calculation"
+      },
+      {
+        "id": "B",
+        "text": "Argon gas leaks out, causing the measured age to reflect the last heating episode rather than original formation"
+      },
+      {
+        "id": "C",
+        "text": "The rock converts into Carbon-14, requiring organic dating methods instead"
+      },
+      {
+        "id": "D",
+        "text": "Daughter elements revert back into radioactive parent elements"
+      }
     ],
-    correct_option: "B",
-    explanation: "A protruded shape has an extension protruding outwards from the main body.",
-    needs_review: true // Corrected from file key D to B per standard geographic definitions
+    "correct_option": "B",
+    "explanation": "Above 125°C argon escapes, resetting the Potassium-Argon clock to the heating event."
   },
   {
-    question_number: 9,
-    question_text: "Ethiopian farmers build terraces on steep hillsides and construct irrigation canals to grow crops in dry areas. Which of the following themes of geography is related to this statement?",
-    options: [
-      { id: "A", text: "Region" },
-      { id: "B", text: "Movement" },
-      { id: "C", text: "Location" },
-      { id: "D", text: "Human-environment interaction" },
-      { id: "E", text: "Place" }
+    "question_number": 4,
+    "question_text": "Following the breakup of Pangaea about 200 million years ago, which set of landmasses comprised the southern supercontinent fragment known as Gondwanaland?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Eurasia, North America, and Greenland"
+      },
+      {
+        "id": "B",
+        "text": "Africa, South America, India, Antarctica, and Australia"
+      },
+      {
+        "id": "C",
+        "text": "Europe, Asia, Africa, and South America"
+      },
+      {
+        "id": "D",
+        "text": "North America, Antarctica, Australia, and Eurasia"
+      }
     ],
-    correct_option: "D",
-    explanation: "Terracing and irrigation directly illustrate human adaptation to and modification of the natural environment."
+    "correct_option": "B",
+    "explanation": "These southern landmasses formed Gondwanaland, while Eurasia and North America formed Laurasia."
   },
   {
-    question_number: 10,
-    question_text: "Which of the following marginal information are important to tell what the map is all about and to interpret its conventional symbols, respectively?",
-    options: [
-      { id: "A", text: "Date of publication and Scale" },
-      { id: "B", text: "Title and Legend" },
-      { id: "C", text: "Frame and Date of publication" },
-      { id: "D", text: "Margin and North arrow" }
+    "question_number": 5,
+    "question_text": "Which one of the following statements is correct regarding the structure and measurement of the geological time scale?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Its divisions consist of uniform lengths of time measured precisely in equal million-year intervals"
+      },
+      {
+        "id": "B",
+        "text": "It is built largely on the basis of life, evolution, and significant geological events such as mass extinctions"
+      },
+      {
+        "id": "C",
+        "text": "Each period is strictly defined by human historical records and archaeological artifacts"
+      },
+      {
+        "id": "D",
+        "text": "Epochs are the largest units of geological time, while Eons represent the smallest subdivisions"
+      }
     ],
-    correct_option: "B",
-    explanation: "Title states the theme/subject of the map, and Legend (key) decodes conventional signs and symbols."
+    "correct_option": "B",
+    "explanation": "Divisions are not uniform in length; they are defined by major evolutionary milestones and geological events."
   },
   {
-    question_number: 11,
-    question_text: "Assume countries A, B, and C have an area of 200 km², 300 km², and 400 km² respectively. If their boundary lengths are 20 km, 30 km, and 20 km respectively, which country is more compact by the A/B ratio?",
-    options: [
-      { id: "A", text: "A" },
-      { id: "B", text: "C" },
-      { id: "C", text: "B" },
-      { id: "D", text: "Cannot be determined" }
+    "question_number": 6,
+    "question_text": "Which one of the following indirect geological methods involves studying earthquake waves that penetrate deep beneath the Earth's surface to infer internal structures?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Geochronology"
+      },
+      {
+        "id": "B",
+        "text": "Geochemistry"
+      },
+      {
+        "id": "C",
+        "text": "Geophysics"
+      },
+      {
+        "id": "D",
+        "text": "Relative dating"
+      }
     ],
-    correct_option: "B",
-    explanation: "A/B ratios are 200/20 = 10, 300/30 = 10, and 400/20 = 20. The highest ratio (country C) is the most compact."
+    "correct_option": "C",
+    "explanation": "Geophysics studies earthquake waves penetrating Earth's interior to infer its structure."
   },
   {
-    question_number: 12,
-    question_text: "The human-environment interaction which allows humans to \"conquer\" the world for their comfortable living is:",
-    options: [
-      { id: "A", text: "Modification" },
-      { id: "B", text: "Adaptation" },
-      { id: "C", text: "Dependency" },
-      { id: "D", text: "All of the above" },
-      { id: "E", text: "None of the above" }
+    "question_number": 7,
+    "question_text": "Which one of the following is not included under internal (endogenic) geological processes?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Epeirogenesis"
+      },
+      {
+        "id": "B",
+        "text": "Mass transfer"
+      },
+      {
+        "id": "C",
+        "text": "Orogenesis"
+      },
+      {
+        "id": "D",
+        "text": "Faulting"
+      }
     ],
-    correct_option: "A",
-    explanation: "Modification involves altering landscapes (clearing, building, damming) to suit human needs."
+    "correct_option": "B",
+    "explanation": "Mass transfer is an exogenic process; epeirogenesis, orogenesis, and faulting are endogenic."
   },
   {
-    question_number: 13,
-    question_text: "What is the marginal information on a map that allows the user to interpret ground measurements such as distance, area size, and gradient?",
-    options: [
-      { id: "A", text: "Title" },
-      { id: "B", text: "Legend" },
-      { id: "C", text: "Scale" },
-      { id: "D", text: "North arrow" }
+    "question_number": 8,
+    "question_text": "Which one of the following correctly arranges the four main units of the geological time scale from the largest unit to the smallest unit?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Eon -> Period -> Era -> Epoch"
+      },
+      {
+        "id": "B",
+        "text": "Era -> Eon -> Period -> Epoch"
+      },
+      {
+        "id": "C",
+        "text": "Eon -> Era -> Period -> Epoch"
+      },
+      {
+        "id": "D",
+        "text": "Epoch -> Period -> Era -> Eon"
+      }
     ],
-    correct_option: "C",
-    explanation: "Scale expresses the ratio between map distance and real ground distance."
+    "correct_option": "C",
+    "explanation": "The hierarchy runs Eon, Era, Period, Epoch (largest to smallest)."
   },
   {
-    question_number: 14,
-    question_text: "How is the radius of the inscribing circle obtained to calculate the ratio of A/A'?",
-    options: [
-      { id: "A", text: "The length of the longest distance between two extreme points." },
-      { id: "B", text: "Half-length of the shortest distance between two extreme points." },
-      { id: "C", text: "By deriving radius from area of circle having the same area as the country itself." },
-      { id: "D", text: "By dividing length of the longest distance between two extreme points into two." }
+    "question_number": 9,
+    "question_text": "The discovery of bituminous coal, which forms from compacted tropical plant remains in hot, humid jungles, in Northern Asia and Antarctica provides evidence primarily for which aspect of Wegener's theory?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Apparent jigsaw fit of continental coastlines"
+      },
+      {
+        "id": "B",
+        "text": "Paleoclimate data indicating past continental positions"
+      },
+      {
+        "id": "C",
+        "text": "Rock and mountain belt correlation across oceans"
+      },
+      {
+        "id": "D",
+        "text": "Distribution of ancient freshwater reptile fossils"
+      }
     ],
-    correct_option: "D",
-    explanation: "The inscribing circle uses the longest axis diameter / 2."
+    "correct_option": "B",
+    "explanation": "Tropical coal in cold regions shows those landmasses once lay near the equator and drifted."
   },
   {
-    question_number: 15,
-    question_text: "Which can be generalized about Ethiopia with reference to its longitudinal extension?",
-    options: [
-      { id: "A", text: "Ethiopia is a land of diversity" },
-      { id: "B", text: "Ethiopia is a mountainous country" },
-      { id: "C", text: "There is a one-hour time difference between its easternmost and westernmost points" },
-      { id: "D", text: "Ethiopia is a country of agrarian society" },
-      { id: "E", text: "Ethiopia experiences a tropical type of climate" }
+    "question_number": 10,
+    "question_text": "All of the following are true about the Carbon-14 age dating technique except:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Carbon-14 begins to disintegrate at a known rate immediately upon an organism's death"
+      },
+      {
+        "id": "B",
+        "text": "No further replacement of carbon from atmospheric carbon dioxide occurs after death"
+      },
+      {
+        "id": "C",
+        "text": "Carbon-14 has a half-life of approximately 5,730 years"
+      },
+      {
+        "id": "D",
+        "text": "It is widely used for dating ancient crystalline rocks containing micas and feldspars"
+      }
     ],
-    correct_option: "C",
-    explanation: "Longitudes span 33°E to 48°E (15° difference), which equates exactly to 1 hour difference (15° = 60 minutes)."
+    "correct_option": "D",
+    "explanation": "Dating rocks containing micas, feldspars, and hornblendes is done via the Potassium-Argon technique, while Carbon-14 dates once-living organic remains."
   },
   {
-    question_number: 16,
-    question_text: "Which can be generalized about Ethiopia with reference to its astronomical location?",
-    options: [
-      { id: "A", text: "Ethiopia is a land of diversity" },
-      { id: "B", text: "Ethiopia is a mountainous country" },
-      { id: "C", text: "Ethiopia is a land locked country" },
-      { id: "D", text: "Ethiopia is a country of agrarian society" },
-      { id: "E", text: "Ethiopia experiences a tropical type of climate" }
+    "question_number": 11,
+    "question_text": "Which one of the following pairs of geological eras and their dominant life forms is wrongly matched?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Paleozoic Era -> Age of invertebrates"
+      },
+      {
+        "id": "B",
+        "text": "Mesozoic Era -> Age of mammals"
+      },
+      {
+        "id": "C",
+        "text": "Cenozoic Era -> Recent life"
+      },
+      {
+        "id": "D",
+        "text": "Mesozoic Era -> Age of reptiles"
+      }
     ],
-    correct_option: "E",
-    explanation: "Located between 3°N and 15°N latitudes, Ethiopia lies entirely within the tropical zone (Tropic of Cancer to Equator)."
+    "correct_option": "B",
+    "explanation": "The Mesozoic Era is the age of reptiles, whereas the Cenozoic Era is the age of mammals."
   },
   {
-    question_number: 17,
-    question_text: "The Ethiopian Highlands share common physical and climatic features, such as high elevation, similar rainfall, and comparable soil types, that distinguish them from the surrounding lowlands. To which core theme of Geography is this linked?",
-    options: [
-      { id: "A", text: "Human-Environment Interaction" },
-      { id: "B", text: "Movement" },
-      { id: "C", text: "Place" },
-      { id: "D", text: "Location" },
-      { id: "E", text: "Region" }
+    "question_number": 12,
+    "question_text": "Geologists establish the relative age of sedimentary rock layers without determining their exact numerical age in years primarily by:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Measuring the ratio of potassium-40 to argon in hornblendes"
+      },
+      {
+        "id": "B",
+        "text": "Examining fossil contents and applying the principle of superposition (\"what is on top of older rocks\")"
+      },
+      {
+        "id": "C",
+        "text": "Calculating the number of half-lives elapsed since mineral crystallization"
+      },
+      {
+        "id": "D",
+        "text": "Analyzing the radioactive disintegration rate of atmospheric carbon"
+      }
     ],
-    correct_option: "E",
-    explanation: "A region is an area defined by unifying physical or human characteristics that distinguish it from adjacent areas."
+    "correct_option": "B",
+    "explanation": "Relative dating compares rock ages using fossil contents and stratigraphic superposition without giving exact numerical ages."
   },
   {
-    question_number: 18,
-    question_text: "A compact shaped country can have the following advantages EXCEPT:",
-    options: [
-      { id: "A", text: "Strong core-periphery relations among the people" },
-      { id: "B", text: "Implementation of effective political administration" },
-      { id: "C", text: "Integrated cultural ties among the people" },
-      { id: "D", text: "Diversity of culture" }
+    "question_number": 13,
+    "question_text": "Which one of the following modern continents is odd with reference to its supercontinent origin following the breakup of Pangaea about 200 million years ago?",
+    "options": [
+      {
+        "id": "A",
+        "text": "South America"
+      },
+      {
+        "id": "B",
+        "text": "Australia"
+      },
+      {
+        "id": "C",
+        "text": "North America"
+      },
+      {
+        "id": "D",
+        "text": "Antarctica"
+      }
     ],
-    correct_option: "D",
-    explanation: "Compact countries tend toward cultural and demographic homogeneity, rather than wide geographic cultural diversity."
+    "correct_option": "C",
+    "explanation": "North America came from the northern supercontinent Laurasia, whereas South America, Australia, and Antarctica came from Gondwanaland."
   },
   {
-    question_number: 19,
-    question_text: "Which of the following statements is correct about Ethiopia?",
-    options: [
-      { id: "A", text: "In its vicinal location Ethiopia is found southwest of the Arabian Peninsula" },
-      { id: "B", text: "Ethiopia shares a boundary with Kenya in the South and it is located North of Kenya." },
-      { id: "C", text: "Ethiopia is located east and southeast of Somalia." },
-      { id: "D", text: "Ethiopia is the largest of all the African countries." }
+    "question_number": 14,
+    "question_text": "If a mineral sample initially contained 100% radioactive parent atoms at the time of crystallization, what proportion of the original parent atoms remains after three half-lives have elapsed?",
+    "options": [
+      {
+        "id": "A",
+        "text": "50%"
+      },
+      {
+        "id": "B",
+        "text": "25%"
+      },
+      {
+        "id": "C",
+        "text": "12.5%"
+      },
+      {
+        "id": "D",
+        "text": "6.25%"
+      }
     ],
-    correct_option: "B",
-    explanation: "Kenya borders Ethiopia to the south, which places Ethiopia north of Kenya."
+    "correct_option": "C",
+    "explanation": "Each half-life halves the remaining parent atoms: 50% after 1, 25% after 2, 12.5% after 3."
   },
   {
-    question_number: 20,
-    question_text: "The contents of topographical maps may not depend on:",
-    options: [
-      { id: "A", text: "the purpose of the map" },
-      { id: "B", text: "the shape of the area represented" },
-      { id: "C", text: "the date of compilation" },
-      { id: "D", text: "the scale of the map" },
-      { id: "E", text: "None of the above" }
+    "question_number": 15,
+    "question_text": "The slow, broad rising and sinking of a landmass without major folding or mountain building is specifically termed as:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Orogenesis"
+      },
+      {
+        "id": "B",
+        "text": "Epeirogenesis"
+      },
+      {
+        "id": "C",
+        "text": "Denudation"
+      },
+      {
+        "id": "D",
+        "text": "Deposition"
+      }
     ],
-    correct_option: "B",
-    explanation: "Topographic contents depend on scale, survey date, and purpose, but not on the geometrical shape of the territory."
+    "correct_option": "B",
+    "explanation": "Epeirogenesis is slow, broad rising and sinking of a landmass, whereas orogenesis is mountain building."
   },
   {
-    question_number: 21,
-    question_text: "Which of the following is an implication of Ethiopia's proximity to the Middle East?",
-    options: [
-      { id: "A", text: "Tropical temperature characteristics" },
-      { id: "B", text: "One-hour longitudinal time difference" },
-      { id: "C", text: "Early reception of major world religions like Christianity, Islam, and Judaism" },
-      { id: "D", text: "Having a compact territorial shape" }
+    "question_number": 16,
+    "question_text": "Mountains in the northeastern United States share the exact rock type and geological age with mountain ranges in the United Kingdom and northern Scandinavia. Which principle of Wegener's Continental Drift Theory does this observation support?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Rock and mountain correlation"
+      },
+      {
+        "id": "B",
+        "text": "Glacial striation alignment"
+      },
+      {
+        "id": "C",
+        "text": "Apparent fit of continental margins"
+      },
+      {
+        "id": "D",
+        "text": "Freshwater fossil correlation"
+      }
     ],
-    correct_option: "C",
-    explanation: "Proximity to the Red Sea and Arabian Peninsula fostered ancient trade links and early introduction of Abrahamic religions."
+    "correct_option": "A",
+    "explanation": "Matching rock types and ages across the Atlantic demonstrates rock and mountain correlation."
   },
   {
-    question_number: 22,
-    question_text: "Which of the following territorial shape categories describes a country that completely encloses another independent state within its borders, such as the Republic of South Africa?",
-    options: [
-      { id: "A", text: "Compact" },
-      { id: "B", text: "Fragmented" },
-      { id: "C", text: "Perforated" },
-      { id: "D", text: "Elongated" }
+    "question_number": 17,
+    "question_text": "Which one of the following is not used as a primary criterion to distinguish one division of the geological time scale from another?",
+    "options": [
+      {
+        "id": "A",
+        "text": "The relative position of land and sea"
+      },
+      {
+        "id": "B",
+        "text": "The kind of climate that prevailed"
+      },
+      {
+        "id": "C",
+        "text": "The kind of animal and plant life that developed and existed"
+      },
+      {
+        "id": "D",
+        "text": "The uniform duration of millions of years assigned to each period"
+      }
     ],
-    correct_option: "C",
-    explanation: "A perforated state completely surrounds another sovereign territory (e.g., South Africa encloses Lesotho)."
+    "correct_option": "D",
+    "explanation": "Geological time units vary in length; they are separated by land-sea positions, climate, and life forms, not fixed time intervals."
   },
   {
-    question_number: 23,
-    question_text: "Among the following, which pair correctly represents the southernmost and northernmost astronomical points of Ethiopia, respectively?",
-    options: [
-      { id: "A", text: "Akobo (33°E) and Ogaden (48°E)" },
-      { id: "B", text: "Moyale (3°N) and Bademe (15°N)" },
-      { id: "C", text: "Bademe (15°N) and Moyale (3°N)" },
-      { id: "D", text: "Ogaden (48°E) and Akobo (33°E)" }
+    "question_number": 18,
+    "question_text": "Deep scratches left behind on bedrock surfaces by moving ice sheets that indicate the direction of past glacier movement are known as:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Volcanic intrusions"
+      },
+      {
+        "id": "B",
+        "text": "Glacial striations"
+      },
+      {
+        "id": "C",
+        "text": "Tectonic faults"
+      },
+      {
+        "id": "D",
+        "text": "Geomorphic deposits"
+      }
     ],
-    correct_option: "B",
-    explanation: "Southernmost extreme is Moyale (~3°N) and northernmost is Bademe (~15°N)."
+    "correct_option": "B",
+    "explanation": "Glacial striations are deep scratches left on bedrock by moving ice, showing the direction of past glacier movement."
   },
   {
-    question_number: 24,
-    question_text: "Ethiopia shares the longest and the shortest boundary with ______ and ______ respectively.",
-    options: [
-      { id: "A", text: "Sudan and Djibouti" },
-      { id: "B", text: "Eritrea and Somalia" },
-      { id: "C", text: "Somalia and Djibouti" },
-      { id: "D", text: "Djibouti and Sudan" }
+    "question_number": 19,
+    "question_text": "Geology is concerned with events that took place in the remote past, long before human observation. Therefore, a great deal of geological understanding must be obtained by:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Direct laboratory replication of supercontinent breakups"
+      },
+      {
+        "id": "B",
+        "text": "Inference using clues from what can be seen and measured"
+      },
+      {
+        "id": "C",
+        "text": "Measuring current atmospheric carbon dioxide levels alone"
+      },
+      {
+        "id": "D",
+        "text": "Assuming Earth's materials and structures have remained static"
+      }
     ],
-    correct_option: "C",
-    explanation: "Ethiopia's longest international border is with Somalia (~1,600 km) and its shortest is with Djibouti (~349 km)."
+    "correct_option": "B",
+    "explanation": "Geologists infer remote past events from direct observations of rocks and landforms plus indirect geophysical, geochemical, and geochronological clues."
   },
   {
-    question_number: 25,
-    question_text: "Among the following scales of map, which one has relatively detailed information?",
-    options: [
-      { id: "A", text: "1:30,000" },
-      { id: "B", text: "1:500,000" },
-      { id: "C", text: "1:1,000,000" },
-      { id: "D", text: "1:80,000" }
+    "question_number": 20,
+    "question_text": "Which one of the following statements about the Earth's early history and supercontinent evolution is correct?",
+    "options": [
+      {
+        "id": "A",
+        "text": "The Earth was formed approximately 3.5 billion years ago, while life originated 4.5 billion years ago"
+      },
+      {
+        "id": "B",
+        "text": "Pangaea existed during the Paleozoic and early Mesozoic eras before breaking apart about 200 million years ago"
+      },
+      {
+        "id": "C",
+        "text": "The landmass of Ethiopia is exclusively the result of internal endogenic processes"
+      },
+      {
+        "id": "D",
+        "text": "Ancient freshwater reptile fossils were found across all seven modern continents"
+      }
     ],
-    correct_option: "A",
-    explanation: "1:30,000 has the smallest representative fraction denominator, meaning it is the largest scale map and provides the greatest ground detail."
+    "correct_option": "B",
+    "explanation": "Pangaea existed as a single landmass during the Paleozoic and early Mesozoic eras before splitting into Laurasia and Gondwanaland roughly 200 million years ago."
   },
   {
-    question_number: 26,
-    question_text: "Which of the following is not one of the four Earth spheres that form the thin interface zone of Geography's scope?",
-    options: [
-      { id: "A", text: "Atmosphere" },
-      { id: "B", text: "Lithosphere" },
-      { id: "C", text: "Hemisphere" },
-      { id: "D", text: "Hydrosphere" }
+    "question_number": 21,
+    "question_text": "In addition to direct observation of rocks and landforms, geologists determine the numerical ages of rocks from the radioactive elements they contain through an indirect method called:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Geomorphology"
+      },
+      {
+        "id": "B",
+        "text": "Geochronology"
+      },
+      {
+        "id": "C",
+        "text": "Geochemistry"
+      },
+      {
+        "id": "D",
+        "text": "Geophysics"
+      }
     ],
-    correct_option: "C",
-    explanation: "The four environmental spheres are atmosphere, lithosphere, hydrosphere, and biosphere. Hemisphere is a geometric division."
+    "correct_option": "B",
+    "explanation": "Geochronology determines numerical ages of rocks using the radioactive elements they contain."
   },
   {
-    question_number: 27,
-    question_text: "Which type of region is characterized by functional interrelationships in a spatial system, such as a large metropolitan city and its surrounding suburbs?",
-    options: [
-      { id: "A", text: "Formal region" },
-      { id: "B", text: "Functional (nodal) region" },
-      { id: "C", text: "Vernacular region" },
-      { id: "D", text: "Perceptual region" }
+    "question_number": 22,
+    "question_text": "When glaciers move across the Earth's surface, they leave behind deep scratches in the bedrock that reveal the direction of past ice movement, which are known as:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Glacial striations"
+      },
+      {
+        "id": "B",
+        "text": "Rift faults"
+      },
+      {
+        "id": "C",
+        "text": "Alluvial terraces"
+      },
+      {
+        "id": "D",
+        "text": "Sedimentary strata"
+      }
     ],
-    correct_option: "B",
-    explanation: "Functional or nodal regions are organized around a central focal node with spatial linkages.",
-    needs_review: true
+    "correct_option": "A",
+    "explanation": "Moving glaciers carve deep scratches called glacial striations into bedrock."
   },
   {
-    question_number: 28,
-    question_text: "Which core theme of Geography refers to the physical and human aspects of a location, associated with toponym, site, and situation, that give it unique features to compare and contrast with other places on Earth?",
-    options: [
-      { id: "A", text: "Place" },
-      { id: "B", text: "Movement" },
-      { id: "C", text: "Region" },
-      { id: "D", text: "Location" }
+    "question_number": 23,
+    "question_text": "In radiometric age dating, as geological time passes, unstable radioactive parent elements decay at a regular rate into stable, non-radioactive elements called:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Isotopic elements"
+      },
+      {
+        "id": "B",
+        "text": "Superposition elements"
+      },
+      {
+        "id": "C",
+        "text": "Daughter elements"
+      },
+      {
+        "id": "D",
+        "text": "Organic elements"
+      }
     ],
-    correct_option: "A",
-    explanation: "Place describes the distinctive human and physical characteristics of a site.",
-    needs_review: true
+    "correct_option": "C",
+    "explanation": "Unstable radioactive parent elements decay into stable, non-radioactive daughter elements."
   },
   {
-    question_number: 29,
-    question_text: "Which core theme of Geography is the translocation of human beings, their goods, and their ideas from one end of the planet to another?",
-    options: [
-      { id: "A", text: "Place" },
-      { id: "B", text: "Region" },
-      { id: "C", text: "Movement" },
-      { id: "D", text: "Human-environment interaction" }
+    "question_number": 24,
+    "question_text": "While structural and volcanic landforms are built up by endogenic forces, geomorphic processes such as weathering, mass transfer, erosion, and deposition are classified under:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Orogenic forces"
+      },
+      {
+        "id": "B",
+        "text": "Exogenic forces"
+      },
+      {
+        "id": "C",
+        "text": "Tectonic forces"
+      },
+      {
+        "id": "D",
+        "text": "Epeirogenic forces"
+      }
     ],
-    correct_option: "C",
-    explanation: "Movement addresses migration, trade, transport, and diffusion of ideas across space.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Weathering, mass transfer, erosion, and deposition are external (exogenic) forces that wear down landforms."
   },
   {
-    question_number: 30,
-    question_text: "Assume you have a flight from Ogaden (48°E) to Akobo (33°E). Your airplane departed from Ogaden on Friday at 10 a.m. and landed in Akobo after a 2-hour flight. What is the local time when you arrive in Akobo?",
-    options: [
-      { id: "A", text: "9 a.m." },
-      { id: "B", text: "11 a.m." },
-      { id: "C", text: "12 noon" },
-      { id: "D", text: "1 p.m." }
+    "question_number": 25,
+    "question_text": "Which one of the following accurately distinguishes Relative Dating from Absolute Dating techniques in geology?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Relative dating gives exact numerical ages in years using radioactive decay, whereas absolute dating compares rock layers using fossils"
+      },
+      {
+        "id": "B",
+        "text": "Relative dating determines which rock is older or younger using fossils and superposition, whereas absolute dating determines exact numerical age using radiometric decay"
+      },
+      {
+        "id": "C",
+        "text": "Relative dating uses Carbon-14 and Potassium-Argon, whereas absolute dating relies solely on the principle of \"what is on top of older rocks\""
+      },
+      {
+        "id": "D",
+        "text": "Relative dating applies only to igneous rocks, whereas absolute dating applies exclusively to sedimentary fossils"
+      }
     ],
-    correct_option: "B",
-    explanation: "The 15° longitude difference is 1 hour; Akobo is to the west, so its local sun time is 1 hour behind. 10 a.m. + 2 hours = 12 noon in Ogaden time, which is 11 a.m. in Akobo.",
-    needs_review: true
+    "correct_option": "B",
+    "explanation": "Relative dating compares rock ages without exact numbers; absolute dating calculates exact age in years via radioactive decay."
+  },
+  {
+    "question_number": 26,
+    "question_text": "Which indirect geological method analyzes the detailed chemical composition of rocks to obtain clues regarding their origin?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Geophysics"
+      },
+      {
+        "id": "B",
+        "text": "Geochemistry"
+      },
+      {
+        "id": "C",
+        "text": "Geochronology"
+      },
+      {
+        "id": "D",
+        "text": "Seismology"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Geochemistry analyzes the chemical composition of rocks to find clues about their origin."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Which of the following landforms is directly built up by internal (endogenic) tectonic and volcanic processes rather than external geomorphic processes?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Rift valleys and block mountains"
+      },
+      {
+        "id": "B",
+        "text": "Alluvial river floodplains"
+      },
+      {
+        "id": "C",
+        "text": "Windblown sand dunes"
+      },
+      {
+        "id": "D",
+        "text": "Eroded valley floors"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Rift valleys, block mountains, plateaus, and volcanic mountains are built by internal tectonic and volcanic forces."
+  },
+  {
+    "question_number": 28,
+    "question_text": "Approximately how long ago are the earliest forms of life on Earth thought to have originated?",
+    "options": [
+      {
+        "id": "A",
+        "text": "4.5 billion years ago"
+      },
+      {
+        "id": "B",
+        "text": "3.5 billion years ago"
+      },
+      {
+        "id": "C",
+        "text": "250 million years ago"
+      },
+      {
+        "id": "D",
+        "text": "200 million years ago"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Earth formed about 4.5 billion years ago, and the earliest life originated approximately 3.5 billion years ago."
+  },
+  {
+    "question_number": 29,
+    "question_text": "The discovery of identical fossils of ancient freshwater reptiles exclusively at the southern tips of South America and Africa supports Wegener's theory primarily because:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Freshwater reptiles could easily swim across the deep saltwater Atlantic Ocean"
+      },
+      {
+        "id": "B",
+        "text": "Those two continents were once joined together as part of a single landmass"
+      },
+      {
+        "id": "C",
+        "text": "Identical species evolved independently in identical climates across the globe"
+      },
+      {
+        "id": "D",
+        "text": "Ocean currents carried heavy reptile skeletons across thousands of kilometers"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Freshwater reptiles could not cross the saltwater Atlantic, so South America and Africa must once have been joined."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Which pairing of continental coastlines is cited as the classic example of the apparent jigsaw-puzzle fit of the continents in Alfred Wegener's Continental Drift Theory?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Western North America and Eastern Asia"
+      },
+      {
+        "id": "B",
+        "text": "Eastern South America and Western Africa"
+      },
+      {
+        "id": "C",
+        "text": "Northern Europe and Southern Australia"
+      },
+      {
+        "id": "D",
+        "text": "Eastern Africa and Western India"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "The matching coastlines of eastern South America and western Africa illustrate the jigsaw-puzzle fit."
   }
 ];
-
-// --- 6. GENERAL ECONOMICS (20 Qs) ---
 export const ECON_QUESTIONS = [
   {
-    question_number: 1,
-    question_text: "Which of the following best explains why economics is fundamentally considered a science of choice?",
-    options: [
-      { id: "A", text: "Human wants are limited, but resources are unlimited." },
-      { id: "B", text: "Resources are scarce relative to unlimited human wants." },
-      { id: "C", text: "Governments control all economic activities." },
-      { id: "D", text: "Production is always greater than consumption." }
+    "question_number": 1,
+    "question_text": "Demand for a commodity refers to:",
+    "options": [
+      {
+        "id": "A",
+        "text": "The amount producers are willing to sell at a price"
+      },
+      {
+        "id": "B",
+        "text": "The amount that will be purchased at a particular price during a particular period of time"
+      },
+      {
+        "id": "C",
+        "text": "The amount a consumer needs regardless of price"
+      },
+      {
+        "id": "D",
+        "text": "The total stock available in the market"
+      }
     ],
-    correct_option: "B",
-    explanation: "Economics studies how individuals and societies make choices when resources are limited but human wants are unlimited."
+    "correct_option": "B",
+    "explanation": "Demand is the quantity buyers will purchase at a given price in a given period."
   },
   {
-    question_number: 2,
-    question_text: "A researcher studies how an individual household decides to allocate its monthly income between food, clothing, and education. Which branch of economics is being applied?",
-    options: [
-      { id: "A", text: "Macroeconomics" },
-      { id: "B", text: "Development economics" },
-      { id: "C", text: "Microeconomics" },
-      { id: "D", text: "International economics" }
+    "question_number": 2,
+    "question_text": "According to the law of demand, other things remaining constant:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Quantity demanded rises when the price rises"
+      },
+      {
+        "id": "B",
+        "text": "Demand rises when income rises"
+      },
+      {
+        "id": "C",
+        "text": "Quantity supplied falls when price rises"
+      },
+      {
+        "id": "D",
+        "text": "Quantity demanded falls when the price of the good rises"
+      }
     ],
-    correct_option: "C",
-    explanation: "Microeconomics studies individual economic decision-making units, including households, firms, and specific markets."
+    "correct_option": "D",
+    "explanation": "Price and quantity demanded move in opposite directions."
   },
   {
-    question_number: 3,
-    question_text: "Which of the following statements represents normative economics?",
-    options: [
-      { id: "A", text: "The unemployment rate in Ethiopia has increased." },
-      { id: "B", text: "The price of coffee has increased this year." },
-      { id: "C", text: "The government should provide free education to all citizens." },
-      { id: "D", text: "National output increased during the previous year." }
+    "question_number": 3,
+    "question_text": "A movement along the demand curve of a good is caused by a change in:",
+    "options": [
+      {
+        "id": "A",
+        "text": "The price of the good itself"
+      },
+      {
+        "id": "B",
+        "text": "Consumers' income"
+      },
+      {
+        "id": "C",
+        "text": "Consumers' tastes"
+      },
+      {
+        "id": "D",
+        "text": "The number of buyers"
+      }
     ],
-    correct_option: "C",
-    explanation: "Normative economics involves value judgments and opinions about what ought to be, rather than describing verifiable facts."
+    "correct_option": "A",
+    "explanation": "Only a change in the good's own price moves us along the curve; the others shift it."
   },
   {
-    question_number: 4,
-    question_text: "An economist collects information about the consumption patterns of 500 households and uses the observations to develop a general theory of consumer behavior. Which method of reasoning is being used?",
-    options: [
-      { id: "A", text: "Deductive reasoning" },
-      { id: "B", text: "Inductive reasoning" },
-      { id: "C", text: "Normative reasoning" },
-      { id: "D", text: "Comparative reasoning" }
+    "question_number": 4,
+    "question_text": "The demand for orange increases because of a change in taste in favour of orange, ceteris paribus. This is shown by:",
+    "options": [
+      {
+        "id": "A",
+        "text": "A downward movement along the demand curve"
+      },
+      {
+        "id": "B",
+        "text": "An extension of demand"
+      },
+      {
+        "id": "C",
+        "text": "A rightward shift of the demand curve"
+      },
+      {
+        "id": "D",
+        "text": "A leftward shift of the demand curve"
+      }
     ],
-    correct_option: "B",
-    explanation: "Inductive reasoning moves from specific observations and facts toward general principles or theories."
+    "correct_option": "C",
+    "explanation": "A taste change is a non-price determinant, so the curve shifts right."
   },
   {
-    question_number: 5,
-    question_text: "Which statement correctly distinguishes scarcity from shortage?",
-    options: [
-      { id: "A", text: "Scarcity is temporary, while shortage is permanent." },
-      { id: "B", text: "Both scarcity and shortage are temporary economic problems." },
-      { id: "C", text: "Scarcity is universal and everlasting, while shortage is a specific and short-term problem." },
-      { id: "D", text: "Scarcity occurs only when prices increase, while shortage occurs when prices decrease." }
+    "question_number": 5,
+    "question_text": "\"Oda\" and \"Geda\" transport companies provide substitute services. If the price of Oda goes up, the demand curve for Geda will:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Shift to the left"
+      },
+      {
+        "id": "B",
+        "text": "Shift to the right"
+      },
+      {
+        "id": "C",
+        "text": "Be extended to the left"
+      },
+      {
+        "id": "D",
+        "text": "Remain constant"
+      }
     ],
-    correct_option: "C",
-    explanation: "Scarcity exists because resources are limited relative to human wants. Shortage occurs when people cannot obtain the quantity they want at the prevailing price."
+    "correct_option": "B",
+    "explanation": "Consumers switch to the substitute, so its demand increases."
   },
   {
-    question_number: 6,
-    question_text: "A student has enough money to purchase either a textbook or a pair of shoes. He chooses the textbook. What is the opportunity cost of his decision?",
-    options: [
-      { id: "A", text: "The money spent on the textbook" },
-      { id: "B", text: "The value of the shoes he sacrificed" },
-      { id: "C", text: "The total value of both products" },
-      { id: "D", text: "The cost of producing the textbook" }
+    "question_number": 6,
+    "question_text": "When Mr. Adane's income rises from 2,000 to 6,000 Birr he stops using the bus and starts using taxis. We infer that:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Bus is an inferior service for him"
+      },
+      {
+        "id": "B",
+        "text": "Taxi is an inferior service for him"
+      },
+      {
+        "id": "C",
+        "text": "Bus and taxi are complements"
+      },
+      {
+        "id": "D",
+        "text": "Bus is a necessity for him"
+      }
     ],
-    correct_option: "B",
-    explanation: "Opportunity cost is the value of the next best alternative that must be sacrificed when making a choice."
+    "correct_option": "A",
+    "explanation": "Demand for bus falls as income rises, so bus is inferior."
   },
   {
-    question_number: 7,
-    question_text: "Which of the following correctly matches the factors of production with their respective rewards?",
-    options: [
-      { id: "A", text: "Land–Wages; Labour–Rent; Capital–Profit; Entrepreneurship–Interest" },
-      { id: "B", text: "Land–Rent; Labour–Wages; Capital–Interest; Entrepreneurship–Profit" },
-      { id: "C", text: "Land–Interest; Labour–Profit; Capital–Rent; Entrepreneurship–Wages" },
-      { id: "D", text: "Land–Profit; Labour–Interest; Capital–Wages; Entrepreneurship–Rent" }
+    "question_number": 7,
+    "question_text": "People expect the price of teff to rise next week. As a result:",
+    "options": [
+      {
+        "id": "A",
+        "text": "The price of teff falls today"
+      },
+      {
+        "id": "B",
+        "text": "Today's supply of teff increases"
+      },
+      {
+        "id": "C",
+        "text": "Next week's supply of teff increases"
+      },
+      {
+        "id": "D",
+        "text": "Today's demand for teff increases"
+      }
     ],
-    correct_option: "B",
-    explanation: "Land earns rent, labour earns wages, capital earns interest, and entrepreneurship earns profit."
+    "correct_option": "D",
+    "explanation": "Buyers buy more now to avoid the higher future price."
   },
   {
-    question_number: 8,
-    question_text: "An economy produces only food and computers. A point inside its Production Possibilities Frontier (PPF) indicates:",
-    options: [
-      { id: "A", text: "An unattainable production combination." },
-      { id: "B", text: "An efficient use of all available resources." },
-      { id: "C", text: "An attainable but inefficient production combination." },
-      { id: "D", text: "Economic growth caused by technological improvement." }
+    "question_number": 8,
+    "question_text": "If the price of sugar rises, the demand for tea (a complement of sugar) will:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Shift to the right"
+      },
+      {
+        "id": "B",
+        "text": "Remain unchanged"
+      },
+      {
+        "id": "C",
+        "text": "Shift to the left (decrease)"
+      },
+      {
+        "id": "D",
+        "text": "Move upward along the same curve"
+      }
     ],
-    correct_option: "C",
-    explanation: "Points inside the PPF are attainable, but resources are not fully or efficiently used. Points on the curve are attainable and efficient, while points outside are unattainable with current resources and technology."
+    "correct_option": "C",
+    "explanation": "A higher price of a complement lowers demand for the other good."
   },
   {
-    question_number: 9,
-    question_text: "According to the law of increasing opportunity cost, when an economy produces more and more of one product:",
-    options: [
-      { id: "A", text: "The opportunity cost per additional unit decreases." },
-      { id: "B", text: "The opportunity cost per additional unit remains constant." },
-      { id: "C", text: "The opportunity cost per additional unit increases." },
-      { id: "D", text: "The economy experiences unlimited production." }
+    "question_number": 9,
+    "question_text": "A good whose demand falls as consumers' income rises is called:",
+    "options": [
+      {
+        "id": "A",
+        "text": "An inferior good"
+      },
+      {
+        "id": "B",
+        "text": "A normal good"
+      },
+      {
+        "id": "C",
+        "text": "A luxury good"
+      },
+      {
+        "id": "D",
+        "text": "A substitute good"
+      }
     ],
-    correct_option: "C",
-    explanation: "Resources are not equally adaptable to producing different goods. As production shifts toward one good, more and more of the other good must be sacrificed. This is why the PPF is generally concave to the origin."
+    "correct_option": "A",
+    "explanation": "This is the definition of an inferior good."
   },
   {
-    question_number: 10,
-    question_text: "Which of the following changes would most likely cause an outward shift of the entire Production Possibilities Frontier?",
-    options: [
-      { id: "A", text: "An increase in unemployment" },
-      { id: "B", text: "A decrease in the quantity of available resources" },
-      { id: "C", text: "An improvement in production technology" },
-      { id: "D", text: "Inefficient utilization of existing resources" }
+    "question_number": 10,
+    "question_text": "A Giffen good is a good for which:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Quantity demanded rises when its price falls"
+      },
+      {
+        "id": "B",
+        "text": "Quantity demanded falls when its price falls"
+      },
+      {
+        "id": "C",
+        "text": "Demand rises when income rises"
+      },
+      {
+        "id": "D",
+        "text": "Demand is perfectly elastic"
+      }
     ],
-    correct_option: "C",
-    explanation: "Economic growth can occur through an increase in the quantity or quality of resources or advances in technology. These changes increase productive capacity and shift the PPF outward."
+    "correct_option": "B",
+    "explanation": "A Giffen good violates the law of demand: quantity demanded falls when its price falls."
   },
   {
-    question_number: 11,
-    question_text: "A government decides whether to produce more hospitals or more military equipment. Which fundamental economic question is being addressed?",
-    options: [
-      { id: "A", text: "How to produce?" },
-      { id: "B", text: "What to produce?" },
-      { id: "C", text: "For whom to produce?" },
-      { id: "D", text: "Where to produce?" }
+    "question_number": 11,
+    "question_text": "The total quantity that all users of a commodity are willing and able to buy at a given price over a specific period is called:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Individual demand"
+      },
+      {
+        "id": "B",
+        "text": "Market supply"
+      },
+      {
+        "id": "C",
+        "text": "Individual supply"
+      },
+      {
+        "id": "D",
+        "text": "Market demand"
+      }
     ],
-    correct_option: "B",
-    explanation: "What to produce concerns the types and quantities of goods and services an economy should produce."
+    "correct_option": "D",
+    "explanation": "Market demand is the sum of all individual demands."
   },
   {
-    question_number: 12,
-    question_text: "A factory decides to use more machinery and fewer workers to manufacture its products. Which fundamental economic problem does this decision address?",
-    options: [
-      { id: "A", text: "What to produce?" },
-      { id: "B", text: "For whom to produce?" },
-      { id: "C", text: "How to produce?" },
-      { id: "D", text: "Why to consume?" }
+    "question_number": 12,
+    "question_text": "Five identical consumers each have the demand Qd = 10 - P. The market demand is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Qd = 10 - P"
+      },
+      {
+        "id": "B",
+        "text": "Qd = 50 - P"
+      },
+      {
+        "id": "C",
+        "text": "Qd = 50 - 5P"
+      },
+      {
+        "id": "D",
+        "text": "Qd = 10 - 5P"
+      }
     ],
-    correct_option: "C",
-    explanation: "How to produce concerns the choice of production techniques, particularly between labour-intensive and capital-intensive methods."
+    "correct_option": "C",
+    "explanation": "Market demand = 5 × (10 - P) = 50 - 5P."
   },
   {
-    question_number: 13,
-    question_text: "An economy decides to distribute its produced goods and services among different groups of people in society. This decision addresses:",
-    options: [
-      { id: "A", text: "The problem of resource allocation" },
-      { id: "B", text: "The problem of choice of technique" },
-      { id: "C", text: "The problem of distribution of national product" },
-      { id: "D", text: "The problem of economic growth" }
+    "question_number": 13,
+    "question_text": "Which of the following causes a rightward shift of the supply curve?",
+    "options": [
+      {
+        "id": "A",
+        "text": "An improvement in technology"
+      },
+      {
+        "id": "B",
+        "text": "An increase in input prices"
+      },
+      {
+        "id": "C",
+        "text": "An increase in tax on producers"
+      },
+      {
+        "id": "D",
+        "text": "A decrease in the number of sellers"
+      }
     ],
-    correct_option: "C",
-    explanation: "For whom to produce concerns how the final output of an economy is distributed among members of society."
+    "correct_option": "A",
+    "explanation": "Better technology lowers costs and increases supply."
   },
   {
-    question_number: 14,
-    question_text: "Which of the following is the most important distinguishing characteristic of a capitalist economy?",
-    options: [
-      { id: "A", text: "All productive resources are owned and controlled by the government." },
-      { id: "B", text: "All economic decisions are made through central planning." },
-      { id: "C", text: "Productive resources are privately owned, and production is mainly motivated by profit." },
-      { id: "D", text: "Private property and individual economic freedom are prohibited." }
+    "question_number": 14,
+    "question_text": "Sellers expect the price of their product to fall next month. Their current supply will:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Decrease (shift left)"
+      },
+      {
+        "id": "B",
+        "text": "Not change"
+      },
+      {
+        "id": "C",
+        "text": "Move along the same curve"
+      },
+      {
+        "id": "D",
+        "text": "Increase (shift right)"
+      }
     ],
-    correct_option: "C",
-    explanation: "Capitalism is characterized by private ownership, profit motive, freedom of choice, competition, and a relatively minor role of government."
+    "correct_option": "D",
+    "explanation": "Sellers sell more now before the price falls."
   },
   {
-    question_number: 15,
-    question_text: "In a capitalist economy, the principle of consumer sovereignty means that:",
-    options: [
-      { id: "A", text: "Producers determine all consumer preferences." },
-      { id: "B", text: "Consumers have freedom to choose goods and services according to their preferences." },
-      { id: "C", text: "The government determines the prices of all products." },
-      { id: "D", text: "Consumers are required to purchase only essential goods." }
+    "question_number": 15,
+    "question_text": "A government subsidy given to producers will:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Shift the supply curve to the left"
+      },
+      {
+        "id": "B",
+        "text": "Shift the supply curve to the right"
+      },
+      {
+        "id": "C",
+        "text": "Shift the demand curve to the right"
+      },
+      {
+        "id": "D",
+        "text": "Cause a movement along the supply curve"
+      }
     ],
-    correct_option: "B",
-    explanation: "Consumer sovereignty means consumers influence what producers produce through their purchasing decisions and preferences."
+    "correct_option": "B",
+    "explanation": "A subsidy lowers costs, so supply increases."
   },
   {
-    question_number: 16,
-    question_text: "Which of the following is a major disadvantage of a command economy?",
-    options: [
-      { id: "A", text: "Excessive competition among private producers" },
-      { id: "B", text: "Complete absence of government intervention" },
-      { id: "C", text: "Lack of economic freedom and incentives for efficiency" },
-      { id: "D", text: "Excessive concentration of private ownership" }
+    "question_number": 16,
+    "question_text": "The price of a good rises by 8% and the quantity demanded falls by 8%. Demand is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Elastic"
+      },
+      {
+        "id": "B",
+        "text": "Inelastic"
+      },
+      {
+        "id": "C",
+        "text": "Unitary elastic"
+      },
+      {
+        "id": "D",
+        "text": "Perfectly inelastic"
+      }
     ],
-    correct_option: "C",
-    explanation: "In a command economy, the government controls economic activities. This may reduce individual freedom and financial incentives for hard work and efficiency."
+    "correct_option": "C",
+    "explanation": "|Ed| = 8/8 = 1, which is unitary elastic."
   },
   {
-    question_number: 17,
-    question_text: "Which situation best represents a mixed economy?",
-    options: [
-      { id: "A", text: "All industries are privately owned with no government intervention." },
-      { id: "B", text: "All production and distribution decisions are made by the government." },
-      { id: "C", text: "Both public and private sectors participate in economic activities." },
-      { id: "D", text: "All productive resources are owned collectively without private property." }
+    "question_number": 17,
+    "question_text": "Which statement about price elasticity of demand (PED) is wrong?",
+    "options": [
+      {
+        "id": "A",
+        "text": "More substitutes make PED more elastic"
+      },
+      {
+        "id": "B",
+        "text": "PED for necessity goods tends to be more elastic"
+      },
+      {
+        "id": "C",
+        "text": "In the long run PED tends to be elastic"
+      },
+      {
+        "id": "D",
+        "text": "A larger share of income spent makes PED more elastic"
+      }
     ],
-    correct_option: "C",
-    explanation: "A mixed economy combines elements of capitalism and command economies, allowing public and private sectors to coexist."
+    "correct_option": "B",
+    "explanation": "Necessities tend to be inelastic, so this statement is wrong."
   },
   {
-    question_number: 18,
-    question_text: "In a closed economy, which of the following represents the three major decision-making units identified in Chapter One?",
-    options: [
-      { id: "A", text: "Households, firms, and foreign countries" },
-      { id: "B", text: "Households, firms, and government" },
-      { id: "C", text: "Banks, households, and international organizations" },
-      { id: "D", text: "Producers, consumers, and foreign markets" }
+    "question_number": 18,
+    "question_text": "Demand is inelastic (|Ed| = 0.4). If the price rises, total revenue will:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Rise"
+      },
+      {
+        "id": "B",
+        "text": "Fall"
+      },
+      {
+        "id": "C",
+        "text": "Stay the same"
+      },
+      {
+        "id": "D",
+        "text": "Fall to zero"
+      }
     ],
-    correct_option: "B",
-    explanation: "The three major decision-making units in a closed economy are households, firms, and government."
+    "correct_option": "A",
+    "explanation": "With inelastic demand, price and total revenue move in the same direction."
   },
   {
-    question_number: 19,
-    question_text: "In the factor market, which of the following transactions takes place?",
-    options: [
-      { id: "A", text: "Households purchase finished goods from firms." },
-      { id: "B", text: "Firms sell finished goods to households." },
-      { id: "C", text: "Households sell factors of production to firms." },
-      { id: "D", text: "Government sells consumer goods to households only." }
+    "question_number": 19,
+    "question_text": "Given Qd = 100 - 5P, the price elasticity of demand at P = 10 is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "-0.5"
+      },
+      {
+        "id": "B",
+        "text": "-2"
+      },
+      {
+        "id": "C",
+        "text": "-5"
+      },
+      {
+        "id": "D",
+        "text": "-1"
+      }
     ],
-    correct_option: "C",
-    explanation: "In the factor market, households supply labour, land, and capital to firms and receive wages, rent, and interest as income."
+    "correct_option": "D",
+    "explanation": "At P = 10, Q = 50; Ed = (dQ/dP)(P/Q) = -5 × 10/50 = -1."
   },
   {
-    question_number: 20,
-    question_text: "In the circular flow model, firms sell goods and services to households in the product market. What does the opposite flow represent?",
-    options: [
-      { id: "A", text: "Households supply factors of production to firms through the factor market." },
-      { id: "B", text: "Firms supply labour and land to households." },
-      { id: "C", text: "Government supplies all productive resources to firms." },
-      { id: "D", text: "Households pay taxes directly to firms." }
+    "question_number": 20,
+    "question_text": "Income rises by 10% and quantity demanded rises by 5%. The income elasticity is 0.5, so the good is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "An inferior good"
+      },
+      {
+        "id": "B",
+        "text": "A luxury good"
+      },
+      {
+        "id": "C",
+        "text": "A normal good and a necessity"
+      },
+      {
+        "id": "D",
+        "text": "A Giffen good"
+      }
     ],
-    correct_option: "A",
-    explanation: "Households supply factors of production to firms through the factor market."
+    "correct_option": "C",
+    "explanation": "Income elasticity between 0 and 1 means a normal good that is a necessity."
+  },
+  {
+    "question_number": 21,
+    "question_text": "The cross elasticity of demand between X and Y is -0.67. The two goods are:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Substitutes"
+      },
+      {
+        "id": "B",
+        "text": "Unrelated"
+      },
+      {
+        "id": "C",
+        "text": "Inferior goods"
+      },
+      {
+        "id": "D",
+        "text": "Complements"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "Negative cross elasticity means complements."
+  },
+  {
+    "question_number": 22,
+    "question_text": "The demand curve is vertical when the price elasticity of demand is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Zero (perfectly inelastic)"
+      },
+      {
+        "id": "B",
+        "text": "Infinity"
+      },
+      {
+        "id": "C",
+        "text": "One"
+      },
+      {
+        "id": "D",
+        "text": "Greater than one"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "A vertical curve means quantity does not respond to price."
+  },
+  {
+    "question_number": 23,
+    "question_text": "Given Qd = 60 - 2P and Qs = -20 + 2P, the equilibrium price and quantity are:",
+    "options": [
+      {
+        "id": "A",
+        "text": "P = 10, Q = 40"
+      },
+      {
+        "id": "B",
+        "text": "P = 20, Q = 20"
+      },
+      {
+        "id": "C",
+        "text": "P = 20, Q = 40"
+      },
+      {
+        "id": "D",
+        "text": "P = 40, Q = 20"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "60 - 2P = -20 + 2P gives P = 20; then Q = 60 - 40 = 20."
+  },
+  {
+    "question_number": 24,
+    "question_text": "If the market price is above the equilibrium price, there is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "A shortage and the price tends to rise"
+      },
+      {
+        "id": "B",
+        "text": "A surplus and the price tends to rise"
+      },
+      {
+        "id": "C",
+        "text": "A surplus and the price tends to fall"
+      },
+      {
+        "id": "D",
+        "text": "A shortage and the price tends to fall"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "Above equilibrium, Qs > Qd (surplus), pushing price down."
+  },
+  {
+    "question_number": 25,
+    "question_text": "If the price is below the equilibrium price:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Quantity demanded exceeds quantity supplied"
+      },
+      {
+        "id": "B",
+        "text": "Quantity supplied exceeds quantity demanded"
+      },
+      {
+        "id": "C",
+        "text": "Quantity demanded equals quantity supplied"
+      },
+      {
+        "id": "D",
+        "text": "There is a surplus"
+      }
+    ],
+    "correct_option": "A",
+    "explanation": "Below equilibrium there is a shortage: Qd > Qs."
+  },
+  {
+    "question_number": 26,
+    "question_text": "A price ceiling set below the equilibrium price results in:",
+    "options": [
+      {
+        "id": "A",
+        "text": "A surplus"
+      },
+      {
+        "id": "B",
+        "text": "No change in the market"
+      },
+      {
+        "id": "C",
+        "text": "A higher equilibrium price"
+      },
+      {
+        "id": "D",
+        "text": "A shortage"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "A binding ceiling makes Qd exceed Qs."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Demand and supply both increase by the same amount. Equilibrium price and quantity:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Price rises; quantity is unchanged"
+      },
+      {
+        "id": "B",
+        "text": "Price is unchanged; quantity rises"
+      },
+      {
+        "id": "C",
+        "text": "Both rise"
+      },
+      {
+        "id": "D",
+        "text": "Price falls; quantity rises"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Equal shifts cancel the price effect; quantity rises."
+  },
+  {
+    "question_number": 28,
+    "question_text": "Supply decreases (for example input prices rise) while demand is constant. Equilibrium price and quantity:",
+    "options": [
+      {
+        "id": "A",
+        "text": "Price falls; quantity rises"
+      },
+      {
+        "id": "B",
+        "text": "Both rise"
+      },
+      {
+        "id": "C",
+        "text": "Price rises; quantity falls"
+      },
+      {
+        "id": "D",
+        "text": "Both fall"
+      }
+    ],
+    "correct_option": "C",
+    "explanation": "The supply curve shifts left: higher price, lower quantity."
+  },
+  {
+    "question_number": 29,
+    "question_text": "In December the price of Christmas trees and the quantity sold both rise. This is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "A violation of the law of demand"
+      },
+      {
+        "id": "B",
+        "text": "Not a violation of the law of demand; demand has shifted right"
+      },
+      {
+        "id": "C",
+        "text": "A movement along the demand curve"
+      },
+      {
+        "id": "D",
+        "text": "A leftward shift of supply only"
+      }
+    ],
+    "correct_option": "B",
+    "explanation": "Demand shifted right, so both price and quantity rise."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Market demand is Qd = 100 - 5P and market supply is P = (1/5)Qs + 10. The equilibrium is:",
+    "options": [
+      {
+        "id": "A",
+        "text": "P = 15, Q = 75"
+      },
+      {
+        "id": "B",
+        "text": "P = 25, Q = 15"
+      },
+      {
+        "id": "C",
+        "text": "P = 10, Q = 50"
+      },
+      {
+        "id": "D",
+        "text": "P = 15, Q = 25"
+      }
+    ],
+    "correct_option": "D",
+    "explanation": "Qs = 5P - 50. Set 100 - 5P = 5P - 50, so P = 15 and Q = 25."
   }
 ];
-
-export const SUBJECT_QUESTIONS_MAP = {
-  "MATH-1011": MATH_QUESTIONS,
-  "PHYS-1011": PHYS_QUESTIONS,
-  "PHIL-1011": LOGIC_QUESTIONS,
-  "PSYC-1011": PSYC_QUESTIONS,
-  "GEOG-1011": GEOG_QUESTIONS,
-  "ECON-1011": ECON_QUESTIONS,
-};
-
-export async function runSeeder() {
-  console.log("🌱 Starting Exam Data Seeder...");
-
-  // 1. Check if exam_subjects table exists
-  const { data: testSub, error: testErr } = await supabase.from("exam_subjects").select("id").limit(1);
-  if (testErr) {
-    console.error("❌ Table exam_subjects does not exist yet. Please run the SQL migration in Supabase SQL editor first!");
-    console.error("Error:", testErr.message);
-    process.exit(1);
-  }
-
-  let totalQuestionsImported = 0;
-  const reviewReport = [];
-
-  // 2. Upsert subjects and their questions
-  for (const subjectMeta of EXAM_SUBJECTS) {
-    const { code, title, field, duration_minutes, question_count } = subjectMeta;
-
-    // Upsert subject by code
-    const { data: subData, error: subErr } = await supabase
-      .from("exam_subjects")
-      .upsert({ code, title, field, duration_minutes, question_count }, { onConflict: "code" })
-      .select()
-      .single();
-
-    if (subErr) {
-      console.error(`❌ Failed to upsert subject ${code}:`, subErr.message);
-      continue;
-    }
-
-    const subjectId = subData.id;
-    console.log(`✅ Subject [${code}] ${title} ready (ID: ${subjectId})`);
-
-    const qList = SUBJECT_QUESTIONS_MAP[code] || [];
-    
-    // Clear old questions for this subject if re-seeding
-    await supabase.from("exam_questions").delete().eq("subject_id", subjectId);
-
-    const questionsToInsert = qList.map((q) => {
-      const isReview = !!q.needs_review;
-      if (isReview) {
-        reviewReport.push({
-          subject: title,
-          qNum: q.question_number,
-          reason: q.explanation || "Review requested in syllabus"
-        });
-      }
-      return {
-        subject_id: subjectId,
-        question_number: q.question_number,
-        question_text: q.question_text,
-        options: q.options,
-        correct_option: q.correct_option,
-        explanation: q.explanation || null,
-        needs_review: isReview
-      };
-    });
-
-    if (questionsToInsert.length > 0) {
-      const { data: inserted, error: qErr } = await supabase
-        .from("exam_questions")
-        .insert(questionsToInsert)
-        .select("id");
-
-      if (qErr) {
-        console.error(`❌ Error inserting questions for ${code}:`, qErr.message);
-      } else {
-        totalQuestionsImported += (inserted?.length || 0);
-        console.log(`   ↳ Inserted ${inserted?.length || 0} questions for ${title}`);
-      }
-    }
-  }
-
-  console.log("\n========================================================");
-  console.log(`🎉 IMPORT COMPLETED! Total questions imported: ${totalQuestionsImported}`);
-  console.log(`📋 Total questions marked 'needs_review': ${reviewReport.length}`);
-  console.log("========================================================\n");
-}
-
-if (process.argv[1]?.endsWith("seed_exam_data.js")) {
-  runSeeder().catch(console.error);
-}
-
